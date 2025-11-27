@@ -449,9 +449,14 @@ export function ChristmasMode() {
           )}
 
           {/* Filter Selection */}
-          <div className="mt-8 p-6 bg-gradient-to-br from-red-50 to-green-50 rounded-xl border border-red-100">
-            <h4 className="font-medium text-[#3d3632] mb-4">Choose Your Holiday Decorations</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          <div className="relative mt-8 rounded-2xl border border-red-100 bg-gradient-to-br from-red-50 via-white to-green-50 overflow-hidden shadow-sm">
+            <div className="christmas-garland" aria-hidden />
+            <div className="christmas-snow" aria-hidden />
+            <div className="christmas-bokeh" aria-hidden />
+
+            <div className="relative z-10 p-6">
+              <h4 className="font-medium text-[#3d3632] mb-4">Choose Your Holiday Decorations</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {christmasFilters.map((filter) => {
                 const Icon = filter.icon
                 const isSelected = selectedFilters.includes(filter.id)
@@ -461,8 +466,12 @@ export function ChristmasMode() {
                     onClick={() => toggleFilter(filter.id)}
                     disabled={isProcessing}
                     className={`
-                      p-3 rounded-lg border-2 transition-all text-center
-                      ${isSelected ? "border-red-400 bg-red-50" : "border-[#d4c9b8] bg-white hover:border-red-200"}
+                      p-3 rounded-lg border-2 transition-all text-center shadow-sm
+                      ${
+                        isSelected
+                          ? "border-red-400 bg-red-50 shadow-[0_10px_30px_-18px_rgba(193,39,45,0.55)]"
+                          : "border-[#d4c9b8] bg-white hover:border-red-200 hover:shadow-[0_10px_30px_-20px_rgba(32,85,58,0.55)]"
+                      }
                       disabled:opacity-50
                     `}
                   >
@@ -473,24 +482,25 @@ export function ChristmasMode() {
                   </button>
                 )
               })}
-            </div>
+              </div>
 
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="animate"
-                  checked={animateResult}
-                  onCheckedChange={(checked) => {
-                    setAnimateResult(checked)
-                    setResultType(checked ? "video" : "image")
-                    setResultUrl(null)
-                    setError(null)
-                  }}
-                  disabled={isProcessing}
-                />
-                <Label htmlFor="animate" className="text-sm text-[#6b5e54]">
-                  Animate decorations (video output)
-                </Label>
+              <div className="mt-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="animate"
+                    checked={animateResult}
+                    onCheckedChange={(checked) => {
+                      setAnimateResult(checked)
+                      setResultType(checked ? "video" : "image")
+                      setResultUrl(null)
+                      setError(null)
+                    }}
+                    disabled={isProcessing}
+                  />
+                  <Label htmlFor="animate" className="text-sm text-[#3d3632]">
+                    Animate decorations (video output)
+                  </Label>
+                </div>
               </div>
             </div>
           </div>

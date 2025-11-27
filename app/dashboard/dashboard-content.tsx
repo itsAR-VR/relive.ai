@@ -16,6 +16,7 @@ import {
   XCircle,
   Loader2,
 } from "lucide-react"
+import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -53,6 +54,11 @@ export function DashboardContent({
 }: DashboardContentProps) {
   const router = useRouter()
   const supabase = createClient()
+
+  // Force-disable the Christmas palette on the dashboard so contrast stays neutral.
+  useEffect(() => {
+    document.documentElement.classList.remove("christmas-theme")
+  }, [])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -128,34 +134,34 @@ export function DashboardContent({
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <Link href="/#live-demo">
-            <div className="bg-gradient-to-br from-[#a67c52] to-[#8d6e4c] rounded-xl p-6 text-white hover:shadow-lg transition-shadow cursor-pointer group">
+            <div className="bg-gradient-to-br from-[#8d6e4c] to-[#3d3632] rounded-xl p-6 text-white shadow-md hover:shadow-lg transition-shadow cursor-pointer group">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center ring-1 ring-white/15">
                   <ImageIcon className="w-6 h-6" />
                 </div>
                 <Plus className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <h3 className="text-xl font-semibold mb-1">Enhance Photo</h3>
-              <p className="text-white/80 text-sm">
+              <p className="text-white/90 text-sm">
                 Restore and colorize old photos with AI
               </p>
-              <p className="mt-3 text-xs text-white/60">Uses 1 credit</p>
+              <p className="mt-3 text-xs text-white/80">Uses 1 credit</p>
             </div>
           </Link>
 
           <Link href="/#live-demo">
-            <div className="bg-gradient-to-br from-[#3d3632] to-[#2a2522] rounded-xl p-6 text-white hover:shadow-lg transition-shadow cursor-pointer group">
+            <div className="bg-gradient-to-br from-[#3d3632] to-[#2a2522] rounded-xl p-6 text-white shadow-md hover:shadow-lg transition-shadow cursor-pointer group">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center ring-1 ring-white/15">
                   <Video className="w-6 h-6" />
                 </div>
                 <Plus className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <h3 className="text-xl font-semibold mb-1">Generate Video</h3>
-              <p className="text-white/80 text-sm">
+              <p className="text-white/90 text-sm">
                 Bring still photos to life with motion
               </p>
-              <p className="mt-3 text-xs text-white/60">Uses 5 credits</p>
+              <p className="mt-3 text-xs text-white/80">Uses 5 credits</p>
             </div>
           </Link>
         </div>

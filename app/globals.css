@@ -465,3 +465,71 @@ html.christmas-theme {
   --tw-gradient-to: rgb(var(--relive-grad-a67c52) / 0) var(--tw-gradient-to-position, 100%);
   --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--relive-grad-a67c52) / 0.2) var(--tw-gradient-via-position, 50%), var(--tw-gradient-to);
 }
+
+/* Christmas Mode embellishments */
+.christmas-snow {
+  position: absolute;
+  inset: -20px;
+  background-image:
+    radial-gradient(1.6px 1.6px at 20% 30%, rgba(255, 255, 255, 0.8), transparent 45%),
+    radial-gradient(1.8px 1.8px at 70% 10%, rgba(255, 255, 255, 0.7), transparent 45%),
+    radial-gradient(1.2px 1.2px at 40% 70%, rgba(255, 255, 255, 0.6), transparent 45%);
+  background-size: 320px 320px, 260px 260px, 300px 300px;
+  background-repeat: repeat;
+  animation: christmas-snow-fall 22s linear infinite;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.christmas-bokeh {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(220px 220px at 15% 30%, rgba(193, 39, 45, 0.08), transparent 60%),
+    radial-gradient(260px 260px at 85% 20%, rgba(46, 126, 90, 0.08), transparent 60%),
+    radial-gradient(180px 180px at 60% 80%, rgba(240, 226, 200, 0.18), transparent 65%);
+  filter: blur(0.25px);
+  opacity: 0.9;
+  animation: christmas-bokeh-drift 18s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.christmas-garland {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(193, 39, 45, 0.9) 0 24px,
+    rgba(32, 85, 58, 0.9) 24px 48px,
+    rgba(240, 226, 200, 0.9) 48px 72px
+  );
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.06);
+  opacity: 0.9;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes christmas-snow-fall {
+  to {
+    background-position: 0 820px, -60px 620px, 40px 700px;
+  }
+}
+
+@keyframes christmas-bokeh-drift {
+  0% {
+    transform: translateY(0);
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(12px);
+    opacity: 0.9;
+  }
+}
