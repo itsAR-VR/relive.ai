@@ -1,16 +1,28 @@
 import Stripe from "stripe"
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil",
-  typescript: true,
-})
+// Lazy-load Stripe to avoid build-time errors when env vars aren't set
+let _stripe: Stripe | null = null
 
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("STRIPE_SECRET_KEY is not configured")
+    }
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-04-30.basil",
+      typescript: true,
+    })
+  }
+  return _stripe
+}
+
+// Credit packages configuration
 export const CREDIT_PACKAGES = [
   {
     id: "starter",
     name: "Starter Pack",
     credits: 10,
-    price: 5,
+    price: 5, // $5
     priceId: process.env.STRIPE_PRICE_STARTER,
     popular: false,
   },
@@ -18,7 +30,7 @@ export const CREDIT_PACKAGES = [
     id: "popular",
     name: "Popular Pack",
     credits: 50,
-    price: 20,
+    price: 20, // $20
     priceId: process.env.STRIPE_PRICE_POPULAR,
     popular: true,
   },
@@ -26,7 +38,7 @@ export const CREDIT_PACKAGES = [
     id: "pro",
     name: "Pro Pack",
     credits: 150,
-    price: 50,
+    price: 50, // $50
     priceId: process.env.STRIPE_PRICE_PRO,
     popular: false,
   },

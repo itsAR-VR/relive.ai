@@ -34,11 +34,11 @@ class KieClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<KieApiResponse<T>> {
-    const response = await fetch(\`\${KIE_API_BASE}\${endpoint}\`, {
+    const response = await fetch(`${KIE_API_BASE}${endpoint}`, {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        Authorization: \`Bearer \${this.apiKey}\`,
+        Authorization: `Bearer ${this.apiKey}`,
         ...options.headers,
       },
     })
@@ -47,7 +47,7 @@ class KieClient {
       const errorData = await response.json().catch(() => ({}))
       return {
         success: false,
-        error: errorData.message || \`API error: \${response.status}\`,
+        error: errorData.message || `API error: ${response.status}`,
       }
     }
 
@@ -98,13 +98,13 @@ class KieClient {
   async getEnhanceStatus(
     jobId: string
   ): Promise<KieApiResponse<ImageEnhanceResult>> {
-    return this.request<ImageEnhanceResult>(\`/images/enhance/\${jobId}\`)
+    return this.request<ImageEnhanceResult>(`/images/enhance/${jobId}`)
   }
 
   async getVideoStatus(
     jobId: string
   ): Promise<KieApiResponse<VideoGenerateResult>> {
-    return this.request<VideoGenerateResult>(\`/videos/generate/\${jobId}\`)
+    return this.request<VideoGenerateResult>(`/videos/generate/${jobId}`)
   }
 }
 

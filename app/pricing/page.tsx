@@ -76,7 +76,7 @@ export default function PricingPage() {
           {CREDIT_PACKAGES.map((pkg) => {
             const Icon = PACKAGE_ICONS[pkg.id as keyof typeof PACKAGE_ICONS]
             return (
-              <div key={pkg.id} className={\`relative bg-white rounded-2xl border-2 p-6 transition-all hover:shadow-lg \${pkg.popular ? "border-[#a67c52] shadow-lg scale-105" : "border-[#e2d8c3]"}\`}>
+              <div key={pkg.id} className={`relative bg-white rounded-2xl border-2 p-6 transition-all hover:shadow-lg ${pkg.popular ? "border-[#a67c52] shadow-lg scale-105" : "border-[#e2d8c3]"}`}>
                 {pkg.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="bg-[#a67c52] text-white text-xs font-medium px-3 py-1 rounded-full">Most Popular</span>
@@ -84,11 +84,11 @@ export default function PricingPage() {
                 )}
 
                 <div className="text-center mb-6">
-                  <div className={\`w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center \${pkg.popular ? "bg-gradient-to-br from-[#a67c52] to-[#8d6e4c]" : "bg-[#f5f1e6]"}\`}>
-                    <Icon className={\`w-7 h-7 \${pkg.popular ? "text-white" : "text-[#a67c52]"}\`} />
+                  <div className={`w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center ${pkg.popular ? "bg-gradient-to-br from-[#a67c52] to-[#8d6e4c]" : "bg-[#f5f1e6]"}`}>
+                    <Icon className={`w-7 h-7 ${pkg.popular ? "text-white" : "text-[#a67c52]"}`} />
                   </div>
                   <h3 className="text-xl font-semibold text-[#3d3632] mb-1">{pkg.name}</h3>
-                  <p className="text-3xl font-bold text-[#3d3632]">\${pkg.price}</p>
+                  <p className="text-3xl font-bold text-[#3d3632]">${pkg.price}</p>
                 </div>
 
                 <div className="space-y-3 mb-6">
@@ -101,9 +101,9 @@ export default function PricingPage() {
                 <Button
                   onClick={() => handlePurchase(pkg.id)}
                   disabled={loading === pkg.id}
-                  className={\`w-full h-12 font-medium \${pkg.popular ? "bg-gradient-to-r from-[#a67c52] to-[#8d6e4c] hover:from-[#8d6e4c] hover:to-[#735a3a] text-white" : "bg-[#3d3632] hover:bg-[#2a2522] text-white"}\`}
+                  className={`w-full h-12 font-medium ${pkg.popular ? "bg-gradient-to-r from-[#a67c52] to-[#8d6e4c] hover:from-[#8d6e4c] hover:to-[#735a3a] text-white" : "bg-[#3d3632] hover:bg-[#2a2522] text-white"}`}
                 >
-                  {loading === pkg.id ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : \`Buy \${pkg.credits} Credits\`}
+                  {loading === pkg.id ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : `Buy ${pkg.credits} Credits`}
                 </Button>
               </div>
             )

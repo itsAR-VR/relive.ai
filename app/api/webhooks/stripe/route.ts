@@ -1,12 +1,15 @@
-import { stripe } from "@/lib/stripe"
+import { getStripe } from "@/lib/stripe"
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy-load supabase admin client
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export async function POST(request: Request) {
   const body = await request.text()
@@ -17,6 +20,8 @@ export async function POST(request: Request) {
   }
 
   let event: Stripe.Event
+  const stripe = getStripe()
+  const supabaseAdmin = getSupabaseAdmin()
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -47,7 +52,7 @@ export async function POST(request: Request) {
         })
         .eq("stripe_checkout_session_id", session.id)
 
-      console.log(\`Added \${credits} credits to user \${userId}\`)
+      console.log(`Added ${credits} credits to user ${userId}`)
       break
     }
 

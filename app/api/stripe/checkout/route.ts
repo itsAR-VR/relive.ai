@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { stripe, getPackageById } from "@/lib/stripe"
+import { getStripe, getPackageById } from "@/lib/stripe"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
@@ -28,6 +28,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Price not configured" }, { status: 500 })
     }
 
+    const stripe = getStripe()
     let stripeCustomerId: string | undefined
 
     const { data: profile } = await supabase
@@ -57,8 +58,8 @@ export async function POST(request: Request) {
       customer: stripeCustomerId,
       line_items: [{ price: creditPackage.priceId, quantity: 1 }],
       mode: "payment",
-      success_url: \`\${origin}/dashboard?success=true&credits=\${creditPackage.credits}\`,
-      cancel_url: \`\${origin}/dashboard?canceled=true\`,
+      success_url: `${origin}/dashboard?success=true&credits=${creditPackage.credits}`,
+      cancel_url: `${origin}/dashboard?canceled=true`,
       metadata: {
         user_id: user.id,
         package_id: creditPackage.id,

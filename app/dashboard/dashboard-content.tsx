@@ -82,7 +82,7 @@ export function DashboardContent({ user, profile, generations }: DashboardConten
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#3d3632]">
-            Welcome back{profile?.full_name ? \`, \${profile.full_name.split(" ")[0]}\` : ""}!
+            Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
           </h1>
           <p className="mt-1 text-[#7d6b56]">Ready to bring more memories to life?</p>
         </div>

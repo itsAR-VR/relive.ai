@@ -64,8 +64,8 @@ export async function POST(request: Request) {
     try {
       const kie = createKieClient()
       const webhookUrl = process.env.VERCEL_URL
-        ? \`https://\${process.env.VERCEL_URL}/api/webhooks/kie\`
-        : \`\${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/kie\`
+        ? `https://${process.env.VERCEL_URL}/api/webhooks/kie`
+        : `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/kie`
 
       const result = await kie.generateVideo({
         imageUrl,
