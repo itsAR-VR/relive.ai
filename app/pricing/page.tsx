@@ -13,6 +13,21 @@ const PACKAGE_ICONS = {
   pro: Crown,
 }
 
+const PACKAGE_NAME_EFFECTS = {
+  starter: {
+    gradient: "from-[#d5b07c] via-[#f3e6cf] to-[#a67c52]",
+    underline: "from-transparent via-[#d5b07c] to-transparent",
+  },
+  popular: {
+    gradient: "from-[#f0cfa0] via-[#d9a85b] to-[#8d6e4c]",
+    underline: "from-transparent via-[#d9a85b] to-transparent",
+  },
+  pro: {
+    gradient: "from-[#c7b199] via-[#a67c52] to-[#4a3729]",
+    underline: "from-transparent via-[#a67c52] to-transparent",
+  },
+} as const
+
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const supabase = createClient()
@@ -101,15 +116,20 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {CREDIT_PACKAGES.map((pkg) => {
             const Icon = PACKAGE_ICONS[pkg.id as keyof typeof PACKAGE_ICONS]
+            const nameStyle =
+              PACKAGE_NAME_EFFECTS[
+                pkg.id as keyof typeof PACKAGE_NAME_EFFECTS
+              ] ?? PACKAGE_NAME_EFFECTS.starter
             return (
               <div
                 key={pkg.id}
-                className={`relative bg-white rounded-2xl border-2 p-6 transition-all hover:shadow-lg ${
+                className={`group relative bg-white rounded-2xl border-2 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${
                   pkg.popular
                     ? "border-[#a67c52] shadow-lg scale-105"
                     : "border-[#e2d8c3]"
                 }`}
               >
+                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#f5ede0]/0 via-[#f5ede0]/70 to-[#a67c52]/15 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
                 {pkg.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="bg-[#a67c52] text-white text-xs font-medium px-3 py-1 rounded-full">
@@ -132,8 +152,15 @@ export default function PricingPage() {
                       }`}
                     />
                   </div>
-                  <h3 className="text-xl font-semibold text-[#3d3632] mb-1">
-                    {pkg.name}
+                  <h3 className="relative inline-block mb-1">
+                    <span
+                      className={`inline-block text-xl font-black uppercase tracking-[0.14em] bg-clip-text text-transparent transition-all duration-500 bg-gradient-to-r ${nameStyle.gradient} drop-shadow-[0_8px_28px_rgba(166,124,82,0.35)] group-hover:scale-105 group-hover:-translate-y-[2px] group-hover:tracking-[0.2em]`}
+                    >
+                      {pkg.name}
+                    </span>
+                    <span
+                      className={`pointer-events-none absolute left-1/2 bottom-[-6px] h-0.5 w-12 -translate-x-1/2 rounded-full opacity-0 transition-all duration-500 bg-gradient-to-r ${nameStyle.underline} group-hover:opacity-100 group-hover:w-20`}
+                    />
                   </h3>
                   <p className="text-3xl font-bold text-[#3d3632]">
                     ${pkg.price}
@@ -204,4 +231,3 @@ export default function PricingPage() {
     </div>
   )
 }
-

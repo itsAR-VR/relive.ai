@@ -20,7 +20,7 @@ export function getStripe(): Stripe {
 export const CREDIT_PACKAGES = [
   {
     id: "starter",
-    name: "Starter Pack",
+    name: "Time Capsule",
     credits: 10,
     price: 5, // $5
     priceId: process.env.STRIPE_PRICE_STARTER,
@@ -28,7 +28,7 @@ export const CREDIT_PACKAGES = [
   },
   {
     id: "popular",
-    name: "Popular Pack",
+    name: "Memory Bank",
     credits: 50,
     price: 20, // $20
     priceId: process.env.STRIPE_PRICE_POPULAR,
@@ -36,7 +36,7 @@ export const CREDIT_PACKAGES = [
   },
   {
     id: "pro",
-    name: "Pro Pack",
+    name: "Legacy",
     credits: 150,
     price: 50, // $50
     priceId: process.env.STRIPE_PRICE_PRO,
