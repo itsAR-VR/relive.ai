@@ -25,7 +25,15 @@ export async function POST(request: Request) {
     }
 
     if (!creditPackage.priceId) {
-      return NextResponse.json({ error: "Price not configured" }, { status: 500 })
+      console.error("Stripe checkout error: missing priceId", {
+        packageId,
+        expectedEnv: {
+          starter: ["STRIPE_PRICE_STARTER", "STRIPE_PRICE_CAPSULE", "STRIPE_PRICE_SNAPSHOT"],
+          popular: ["STRIPE_PRICE_POPULAR", "STRIPE_PRICE_MEMORY"],
+          pro: ["STRIPE_PRICE_PRO", "STRIPE_PRICE_LEGACY"],
+        }[packageId as "starter" | "popular" | "pro"],
+      })
+      return NextResponse.json({ error: "Price not configured for this package" }, { status: 500 })
     }
 
     const stripe = getStripe()
@@ -77,7 +85,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error("Stripe checkout error:", error)
-    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 })
+    const message = error instanceof Error ? error.message : "Failed to create checkout session"
+    console.error("Stripe checkout error:", message, error)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

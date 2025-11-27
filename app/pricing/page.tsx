@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { CREDIT_PACKAGES } from "@/lib/stripe"
@@ -15,7 +15,14 @@ const PACKAGE_ICONS = {
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; type?: "error" | "success" } | null>(null)
   const supabase = createClient()
+
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), 4000)
+    return () => clearTimeout(timer)
+  }, [toast])
 
   const handlePurchase = async (packageId: string) => {
     setLoading(packageId)
@@ -46,7 +53,8 @@ export default function PricingPage() {
       }
     } catch (error) {
       console.error("Purchase error:", error)
-      alert("Failed to start checkout. Please try again.")
+      const message = error instanceof Error ? error.message : "Failed to start checkout. Please try again."
+      setToast({ message, type: "error" })
     } finally {
       setLoading(null)
     }
@@ -54,6 +62,17 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f1e6]">
+      {toast && (
+        <div
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 rounded-lg px-4 py-3 shadow-lg border ${
+            toast.type === "error"
+              ? "bg-red-50 border-red-200 text-red-800"
+              : "bg-green-50 border-green-200 text-green-800"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-[#e2d8c3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -204,4 +223,3 @@ export default function PricingPage() {
     </div>
   )
 }
-
