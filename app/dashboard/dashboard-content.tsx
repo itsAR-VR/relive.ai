@@ -1,12 +1,13 @@
 "use client"
 
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { User } from "@supabase/supabase-js"
 import {
   Sparkles,
   CreditCard,
-  Image,
+  Image as ImageIcon,
   Video,
   LogOut,
   Plus,
@@ -15,8 +16,9 @@ import {
   XCircle,
   Loader2,
 } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+
+import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
 
 interface Profile {
   id: string
@@ -129,7 +131,7 @@ export function DashboardContent({
             <div className="bg-gradient-to-br from-[#a67c52] to-[#8d6e4c] rounded-xl p-6 text-white hover:shadow-lg transition-shadow cursor-pointer group">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Image className="w-6 h-6" />
+                  <ImageIcon className="w-6 h-6" />
                 </div>
                 <Plus className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
@@ -185,7 +187,7 @@ export function DashboardContent({
           {generations.length === 0 ? (
             <div className="bg-white/60 border border-[#e2d8c3] rounded-xl p-12 text-center">
               <div className="w-16 h-16 bg-[#f5f1e6] rounded-full flex items-center justify-center mx-auto mb-4">
-                <Image className="w-8 h-8 text-[#8a7e72]" />
+                <ImageIcon className="w-8 h-8 text-[#8a7e72]" />
               </div>
               <h3 className="text-lg font-medium text-[#3d3632] mb-1">
                 No creations yet
@@ -209,21 +211,25 @@ export function DashboardContent({
                   {/* Thumbnail */}
                   <div className="aspect-video bg-[#e2d8c3] relative">
                     {gen.result_url ? (
-                      <img
+                      <Image
                         src={gen.result_url}
                         alt="Generation result"
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 33vw"
+                        className="object-cover"
                       />
                     ) : gen.original_image_url ? (
-                      <img
+                      <Image
                         src={gen.original_image_url}
-                        alt="Original"
-                        className="w-full h-full object-cover opacity-50"
+                        alt="Original upload"
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 33vw"
+                        className="object-cover opacity-50"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         {gen.type === "image_enhance" ? (
-                          <Image className="w-8 h-8 text-[#8a7e72]" />
+                          <ImageIcon className="w-8 h-8 text-[#8a7e72]" />
                         ) : (
                           <Video className="w-8 h-8 text-[#8a7e72]" />
                         )}
@@ -264,4 +270,3 @@ export function DashboardContent({
     </div>
   )
 }
-

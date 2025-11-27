@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
@@ -151,10 +152,12 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
         <div>
           <p className="text-sm font-medium text-[#6b5e54] mb-3">Your Enhanced Photo</p>
           <div className="relative aspect-[5/6] rounded-lg overflow-hidden bg-[#f5f1e6] border border-[#d4c9b8]">
-            <img
+            <Image
               src={enhancedImage || "/placeholder.svg"}
               alt="Enhanced photo ready for animation"
-              className="w-full h-full object-cover"
+              fill
+              sizes="100vw"
+              className="object-cover"
             />
           </div>
         </div>
@@ -185,10 +188,12 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
                   />
                 ) : (
                   <>
-                    <img
+                    <Image
                       src={videoUrl}
                       alt="Generated video preview"
-                      className="w-full h-full object-cover opacity-80"
+                      fill
+                      sizes="100vw"
+                      className="object-cover opacity-80"
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <button className="w-16 h-16 rounded-full bg-[#a67c52] flex items-center justify-center hover:bg-[#8a6642] transition-colors shadow-lg">
@@ -403,4 +408,3 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
     </div>
   )
 }
-

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { LiveDemo } from "./live-demo"
 import { ChristmasMode } from "./christmas-mode"
 import { YoungerSelf } from "./younger-self"
@@ -38,6 +38,33 @@ const features = [
 
 export function FeatureSelector() {
   const [activeFeature, setActiveFeature] = useState<FeatureType>("relive")
+  const [lastNonChristmasFeature, setLastNonChristmasFeature] = useState<FeatureType>("relive")
+
+  useEffect(() => {
+    const root = document.documentElement
+    if (activeFeature === "christmas") {
+      root.classList.add("christmas-theme")
+    } else {
+      root.classList.remove("christmas-theme")
+    }
+
+    return () => {
+      root.classList.remove("christmas-theme")
+    }
+  }, [activeFeature])
+
+  const handleFeatureClick = (featureId: FeatureType) => {
+    if (featureId === "christmas" && activeFeature === "christmas") {
+      setActiveFeature(lastNonChristmasFeature)
+      return
+    }
+
+    if (featureId !== "christmas") {
+      setLastNonChristmasFeature(featureId)
+    }
+
+    setActiveFeature(featureId)
+  }
 
   return (
     <section id="live-demo" className="bg-[#f5f1e6] px-4 py-12 md:py-16">
@@ -53,20 +80,26 @@ export function FeatureSelector() {
           {features.map((feature) => {
             const Icon = feature.icon
             const isActive = activeFeature === feature.id
+            const isChristmasFeature = feature.id === "christmas"
+            const activeClasses = isChristmasFeature
+              ? "bg-[rgb(var(--relive-button-beige))] text-[#8a6642] border border-[#d4c9b8] shadow-lg"
+              : "bg-[#3d3632] text-[#f5f1e6] shadow-lg"
+            const inactiveClasses = isChristmasFeature
+              ? "bg-white text-[#6b5e54] border border-[#d4c9b8] hover:bg-[rgb(var(--relive-button-beige)_/_0.65)] hover:text-[#8a6642]"
+              : "bg-white text-[#6b5e54] border border-[#d4c9b8] hover:border-[#a67c52] hover:text-[#3d3632]"
             return (
               <button
                 key={feature.id}
-                onClick={() => setActiveFeature(feature.id)}
+                onClick={() => handleFeatureClick(feature.id)}
+                aria-pressed={isActive}
                 className={`
                   flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all
-                  ${
-                    isActive
-                      ? "bg-[#3d3632] text-[#f5f1e6] shadow-lg"
-                      : "bg-white text-[#6b5e54] border border-[#d4c9b8] hover:border-[#a67c52] hover:text-[#3d3632]"
-                  }
+                  ${isActive ? activeClasses : inactiveClasses}
                 `}
               >
-                <Icon className={`h-4 w-4 ${isActive ? "text-[#d4b896]" : "text-[#a67c52]"}`} />
+                <Icon
+                  className={`h-4 w-4 ${isActive ? (isChristmasFeature ? "text-[#8a6642]" : "text-[#d4b896]") : "text-[#a67c52]"}`}
+                />
                 <span className="hidden sm:inline">{feature.label}</span>
                 <span className="sm:hidden">{feature.label.split(" ")[0]}</span>
               </button>

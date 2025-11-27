@@ -16,6 +16,20 @@ export function getStripe(): Stripe {
   return _stripe
 }
 
+// Resolve price IDs with backward-compatibility for renamed env vars.
+const priceIds = {
+  starter:
+    process.env.STRIPE_PRICE_STARTER ||
+    process.env.STRIPE_PRICE_CAPSULE ||
+    process.env.STRIPE_PRICE_SNAPSHOT,
+  popular:
+    process.env.STRIPE_PRICE_POPULAR ||
+    process.env.STRIPE_PRICE_MEMORY,
+  pro:
+    process.env.STRIPE_PRICE_PRO ||
+    process.env.STRIPE_PRICE_LEGACY,
+}
+
 // Credit packages configuration
 export const CREDIT_PACKAGES = [
   {
@@ -23,7 +37,7 @@ export const CREDIT_PACKAGES = [
     name: "Time Capsule",
     credits: 10,
     price: 5, // $5
-    priceId: process.env.STRIPE_PRICE_STARTER,
+    priceId: priceIds.starter,
     popular: false,
   },
   {
@@ -31,7 +45,7 @@ export const CREDIT_PACKAGES = [
     name: "Memory Bank",
     credits: 50,
     price: 20, // $20
-    priceId: process.env.STRIPE_PRICE_POPULAR,
+    priceId: priceIds.popular,
     popular: true,
   },
   {
@@ -39,7 +53,7 @@ export const CREDIT_PACKAGES = [
     name: "Legacy",
     credits: 150,
     price: 50, // $50
-    priceId: process.env.STRIPE_PRICE_PRO,
+    priceId: priceIds.pro,
     popular: false,
   },
 ] as const

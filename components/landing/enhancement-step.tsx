@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -150,10 +151,12 @@ export function EnhancementStep({ originalImage, onEnhancementComplete, onBack }
         <div>
           <p className="text-sm font-medium text-[#6b5e54] mb-3">Original Photo</p>
           <div className="relative aspect-[5/6] rounded-lg overflow-hidden bg-[#f5f1e6] border border-[#d4c9b8]">
-            <img
+            <Image
               src={originalImage || "/placeholder.svg"}
               alt="Original uploaded photo"
-              className="w-full h-full object-cover"
+              fill
+              sizes="100vw"
+              className="object-cover"
             />
           </div>
         </div>
@@ -170,10 +173,12 @@ export function EnhancementStep({ originalImage, onEnhancementComplete, onBack }
               </div>
             ) : enhancedImage ? (
               <>
-                <img
+                <Image
                   src={enhancedImage || "/placeholder.svg"}
                   alt="Enhanced photo"
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
                 />
                 <button
                   onClick={handleDownload}
@@ -278,4 +283,3 @@ export function EnhancementStep({ originalImage, onEnhancementComplete, onBack }
     </div>
   )
 }
-

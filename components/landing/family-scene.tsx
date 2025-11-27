@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import type React from "react"
 import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
@@ -98,7 +99,13 @@ export function FamilyScene() {
         {familyMembers.map((member) => (
           <div key={member.id} className="relative group">
             <div className="aspect-square rounded-lg overflow-hidden bg-[#f5f1e6] border border-[#d4c9b8]">
-              <img src={member.image || "/placeholder.svg"} alt={member.name} className="w-full h-full object-cover" />
+              <Image
+                src={member.image || "/placeholder.svg"}
+                alt={member.name}
+                fill
+                sizes="100vw"
+                className="object-cover"
+              />
             </div>
             <button
               onClick={() => handleRemoveMember(member.id)}
@@ -179,10 +186,12 @@ export function FamilyScene() {
                     </p>
                   </div>
                 ) : resultImage ? (
-                  <img
+                  <Image
                     src={resultImage || "/placeholder.svg"}
                     alt="Family scene"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
                   />
                 ) : null}
               </div>

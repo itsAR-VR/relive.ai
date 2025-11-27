@@ -180,3 +180,288 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #a67c52;
 }
+
+/* Palette variables reused when Christmas Mode remaps the UI colors */
+:root {
+  --relive-bg-f5f1e6: 245 241 230;
+  --relive-bg-a67c52: 166 124 82;
+  --relive-bg-3d3632: 61 54 50;
+  --relive-bg-2a2522: 42 37 34;
+  --relive-bg-2d2622: 45 38 34;
+  --relive-bg-4a433e: 74 67 62;
+  --relive-bg-d4c9b8: 212 201 184;
+  --relive-bg-e2d8c3: 226 216 195;
+  --relive-bg-e8dfcd: 232 223 205;
+  --relive-bg-white: 255 255 255;
+  --relive-bg-8a6642: 138 102 66;
+  --relive-bg-8d6e4c: 141 110 76;
+  --relive-text-3d3632: 61 54 50;
+  --relive-text-5c4d3f: 92 77 63;
+  --relive-text-6b5e54: 107 94 84;
+  --relive-text-7d6b56: 125 107 86;
+  --relive-text-8a7e72: 138 126 114;
+  --relive-text-a67c52: 166 124 82;
+  --relive-text-c4b8a8: 196 184 168;
+  --relive-text-d4b896: 212 184 150;
+  --relive-text-f5f1e6: 245 241 230;
+  --relive-text-8a6642: 138 102 66;
+  --relive-text-8d6e4c: 141 110 76;
+  --relive-border-d4c9b8: 212 201 184;
+  --relive-border-dbd0ba: 219 208 186;
+  --relive-border-e2d8c3: 226 216 195;
+  --relive-border-a67c52: 166 124 82;
+  --relive-ring-a67c52: 166 124 82;
+  --relive-grad-a67c52: 166 124 82;
+  --relive-grad-3d3632: 61 54 50;
+  --relive-grad-d4b896: 212 184 150;
+  --relive-grad-2a2522: 42 37 34;
+  --relive-grad-8a6642: 138 102 66;
+  --relive-grad-8d6e4c: 141 110 76;
+  --relive-grad-735a3a: 115 90 58;
+  --relive-button-beige: 236 224 202;
+}
+
+/* Christmas palette applied while the feature selector is set to Christmas Mode */
+html.christmas-theme {
+  --background: #0f2417;
+  --foreground: #f3e8dc;
+  --card: #1b4431;
+  --card-foreground: #f3e8dc;
+  --popover: #1b4431;
+  --popover-foreground: #f3e8dc;
+  --primary: #c1272d;
+  --primary-foreground: #f6ecde;
+  --secondary: #1f4a33;
+  --secondary-foreground: #f3e8dc;
+  --muted: #123423;
+  --muted-foreground: #d6cabc;
+  --accent: #2f6a4b;
+  --accent-foreground: #f3e8dc;
+  --destructive: #9b1d23;
+  --destructive-foreground: #f6ecde;
+  --border: #2f6a4b;
+  --input: #1b3d2c;
+  --ring: #c1272d;
+  --chart-1: #c1272d;
+  --chart-2: #2f6a4b;
+  --chart-3: #9b1d23;
+  --chart-4: #f0d19a;
+  --chart-5: #1b4431;
+  --sidebar: #0f2417;
+  --sidebar-foreground: #f3e8dc;
+  --sidebar-primary: #c1272d;
+  --sidebar-primary-foreground: #f6ecde;
+  --sidebar-accent: #2f6a4b;
+  --sidebar-accent-foreground: #f3e8dc;
+  --sidebar-border: #2f6a4b;
+  --sidebar-ring: #c1272d;
+  --relive-bg-f5f1e6: 15 36 23;
+  --relive-bg-a67c52: 193 39 45;
+  --relive-bg-3d3632: 14 43 30;
+  --relive-bg-2a2522: 9 31 23;
+  --relive-bg-2d2622: 16 50 34;
+  --relive-bg-4a433e: 22 59 43;
+  --relive-bg-d4c9b8: 47 106 75;
+  --relive-bg-e2d8c3: 63 132 89;
+  --relive-bg-e8dfcd: 27 78 53;
+  --relive-bg-white: 32 72 51;
+  --relive-bg-8a6642: 155 29 35;
+  --relive-bg-8d6e4c: 41 119 82;
+  --relive-text-3d3632: 243 232 220;
+  --relive-text-5c4d3f: 232 221 208;
+  --relive-text-6b5e54: 220 207 193;
+  --relive-text-7d6b56: 206 191 174;
+  --relive-text-8a7e72: 199 186 169;
+  --relive-text-a67c52: 193 39 45;
+  --relive-text-c4b8a8: 230 220 208;
+  --relive-text-d4b896: 236 207 156;
+  --relive-text-f5f1e6: 245 237 224;
+  --relive-text-8a6642: 155 29 35;
+  --relive-text-8d6e4c: 41 119 82;
+  --relive-border-d4c9b8: 47 106 75;
+  --relive-border-dbd0ba: 56 122 85;
+  --relive-border-e2d8c3: 63 132 89;
+  --relive-border-a67c52: 193 39 45;
+  --relive-ring-a67c52: 193 39 45;
+  --relive-grad-a67c52: 193 39 45;
+  --relive-grad-3d3632: 14 43 30;
+  --relive-grad-d4b896: 236 207 156;
+  --relive-grad-2a2522: 9 31 23;
+  --relive-grad-8a6642: 155 29 35;
+  --relive-grad-8d6e4c: 41 119 82;
+  --relive-grad-735a3a: 21 71 48;
+  --relive-button-beige: 240 226 200;
+}
+
+/* Palette-driven overrides so utilities inherit the active theme without touching component markup */
+:is(.bg-\[\#f5f1e6\], .bg-\[\#f5f1e6\]\/90, .hover\:bg-\[\#f5f1e6\]:hover, .hover\:bg-\[\#f5f1e6\]\/50:hover) {
+  background-color: rgb(var(--relive-bg-f5f1e6) / var(--tw-bg-opacity, 1)) !important;
+}
+
+:is(.bg-\[\#a67c52\], .bg-\[\#a67c52\]\/5, .bg-\[\#a67c52\]\/10, .bg-\[\#a67c52\]\/20, .hover\:bg-\[\#a67c52\]:hover, .hover\:bg-\[\#a67c52\]\/10:hover) {
+  background-color: rgb(var(--relive-bg-a67c52) / var(--tw-bg-opacity, 1)) !important;
+}
+
+:is(.bg-\[\#3d3632\], .bg-\[\#3d3632\]\/90, .hover\:bg-\[\#3d3632\]:hover) {
+  background-color: rgb(var(--relive-bg-3d3632) / var(--tw-bg-opacity, 1)) !important;
+}
+
+:is(.bg-\[\#2a2522\], .hover\:bg-\[\#2a2522\]:hover) {
+  background-color: rgb(var(--relive-bg-2a2522) / var(--tw-bg-opacity, 1)) !important;
+}
+
+:is(.bg-\[\#2d2622\], .hover\:bg-\[\#2d2622\]:hover) {
+  background-color: rgb(var(--relive-bg-2d2622) / var(--tw-bg-opacity, 1)) !important;
+}
+
+.bg-\[\#4a433e\] {
+  background-color: rgb(var(--relive-bg-4a433e) / var(--tw-bg-opacity, 1)) !important;
+}
+
+.bg-\[\#d4c9b8\] {
+  background-color: rgb(var(--relive-bg-d4c9b8) / var(--tw-bg-opacity, 1)) !important;
+}
+
+.bg-\[\#e2d8c3\] {
+  background-color: rgb(var(--relive-bg-e2d8c3) / var(--tw-bg-opacity, 1)) !important;
+}
+
+:is(.bg-\[\#e8dfcd\], .hover\:bg-\[\#e8dfcd\]:hover) {
+  background-color: rgb(var(--relive-bg-e8dfcd) / var(--tw-bg-opacity, 1)) !important;
+}
+
+.bg-white,
+.bg-white\/10,
+.bg-white\/20,
+.bg-white\/60,
+.bg-white\/70,
+.bg-white\/80,
+.hover\:bg-white\/20:hover {
+  background-color: rgb(var(--relive-bg-white) / var(--tw-bg-opacity, 1)) !important;
+}
+
+.hover\:bg-\[\#8a6642\]:hover {
+  background-color: rgb(var(--relive-bg-8a6642) / var(--tw-bg-opacity, 1)) !important;
+}
+
+.hover\:bg-\[\#8d6e4c\]:hover {
+  background-color: rgb(var(--relive-bg-8d6e4c) / var(--tw-bg-opacity, 1)) !important;
+}
+
+:is(.text-\[\#3d3632\], .hover\:text-\[\#3d3632\]:hover) {
+  color: rgb(var(--relive-text-3d3632) / var(--tw-text-opacity, 1)) !important;
+}
+
+.text-\[\#5c4d3f\] {
+  color: rgb(var(--relive-text-5c4d3f) / var(--tw-text-opacity, 1)) !important;
+}
+
+.text-\[\#6b5e54\] {
+  color: rgb(var(--relive-text-6b5e54) / var(--tw-text-opacity, 1)) !important;
+}
+
+.text-\[\#7d6b56\] {
+  color: rgb(var(--relive-text-7d6b56) / var(--tw-text-opacity, 1)) !important;
+}
+
+.text-\[\#8a7e72\] {
+  color: rgb(var(--relive-text-8a7e72) / var(--tw-text-opacity, 1)) !important;
+}
+
+:is(.text-\[\#a67c52\], .hover\:text-\[\#a67c52\]:hover) {
+  color: rgb(var(--relive-text-a67c52) / var(--tw-text-opacity, 1)) !important;
+}
+
+.text-\[\#c4b8a8\] {
+  color: rgb(var(--relive-text-c4b8a8) / var(--tw-text-opacity, 1)) !important;
+}
+
+.text-\[\#d4b896\] {
+  color: rgb(var(--relive-text-d4b896) / var(--tw-text-opacity, 1)) !important;
+}
+
+.text-\[\#f5f1e6\] {
+  color: rgb(var(--relive-text-f5f1e6) / var(--tw-text-opacity, 1)) !important;
+}
+
+:is(.text-\[\#8a6642\], .hover\:text-\[\#8a6642\]:hover) {
+  color: rgb(var(--relive-text-8a6642) / var(--tw-text-opacity, 1)) !important;
+}
+
+:is(.text-\[\#8d6e4c\], .hover\:text-\[\#8d6e4c\]:hover) {
+  color: rgb(var(--relive-text-8d6e4c) / var(--tw-text-opacity, 1)) !important;
+}
+
+.placeholder\:text-\[\#8a7e72\]::placeholder {
+  color: rgb(var(--relive-text-8a7e72) / 1) !important;
+}
+
+:is(.border-\[\#d4c9b8\], .border-\[\#d4c9b8\]\/80) {
+  border-color: rgb(var(--relive-border-d4c9b8) / var(--tw-border-opacity, 1)) !important;
+}
+
+.border-\[\#dbd0ba\] {
+  border-color: rgb(var(--relive-border-dbd0ba) / var(--tw-border-opacity, 1)) !important;
+}
+
+.border-\[\#e2d8c3\] {
+  border-color: rgb(var(--relive-border-e2d8c3) / var(--tw-border-opacity, 1)) !important;
+}
+
+:is(.border-\[\#a67c52\], .focus\:border-\[\#a67c52\]:focus, .hover\:border-\[\#a67c52\]:hover, .hover\:border-\[\#a67c52\]\/50:hover) {
+  border-color: rgb(var(--relive-border-a67c52) / var(--tw-border-opacity, 1)) !important;
+}
+
+.ring-\[\#a67c52\]\/30,
+.focus\:ring-\[\#a67c52\]\/30:focus {
+  --tw-ring-color: rgb(var(--relive-ring-a67c52) / 0.3) !important;
+}
+
+.focus\:ring-\[\#a67c52\]\/50:focus {
+  --tw-ring-color: rgb(var(--relive-ring-a67c52) / 0.5) !important;
+}
+
+.from-\[\#a67c52\] {
+  --tw-gradient-from: rgb(var(--relive-grad-a67c52)) var(--tw-gradient-from-position, 0%);
+  --tw-gradient-to: rgb(var(--relive-grad-a67c52) / 0) var(--tw-gradient-to-position, 100%);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-\[\#d4b896\]\/30 {
+  --tw-gradient-from: rgb(var(--relive-grad-d4b896) / 0.3) var(--tw-gradient-from-position, 0%);
+  --tw-gradient-to: rgb(var(--relive-grad-d4b896) / 0) var(--tw-gradient-to-position, 100%);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-\[\#3d3632\] {
+  --tw-gradient-from: rgb(var(--relive-grad-3d3632)) var(--tw-gradient-from-position, 0%);
+  --tw-gradient-to: rgb(var(--relive-grad-3d3632) / 0) var(--tw-gradient-to-position, 100%);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.hover\:from-\[\#8d6e4c\]:hover {
+  --tw-gradient-from: rgb(var(--relive-grad-8d6e4c)) var(--tw-gradient-from-position, 0%);
+  --tw-gradient-to: rgb(var(--relive-grad-8d6e4c) / 0) var(--tw-gradient-to-position, 100%);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.to-\[\#2a2522\] {
+  --tw-gradient-to: rgb(var(--relive-grad-2a2522) / var(--tw-gradient-to-opacity, 1)) var(--tw-gradient-to-position, 100%);
+}
+
+.to-\[\#8a6642\]\/30 {
+  --tw-gradient-to: rgb(var(--relive-grad-8a6642) / 0.3) var(--tw-gradient-to-position, 100%);
+}
+
+.to-\[\#8d6e4c\] {
+  --tw-gradient-to: rgb(var(--relive-grad-8d6e4c) / var(--tw-gradient-to-opacity, 1)) var(--tw-gradient-to-position, 100%);
+}
+
+.hover\:to-\[\#735a3a\]:hover {
+  --tw-gradient-to: rgb(var(--relive-grad-735a3a) / var(--tw-gradient-to-opacity, 1)) var(--tw-gradient-to-position, 100%);
+}
+
+.via-\[\#a67c52\]\/20 {
+  --tw-gradient-to: rgb(var(--relive-grad-a67c52) / 0) var(--tw-gradient-to-position, 100%);
+  --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--relive-grad-a67c52) / 0.2) var(--tw-gradient-via-position, 50%), var(--tw-gradient-to);
+}

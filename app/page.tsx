@@ -1,11 +1,13 @@
-import { HeroSection } from "@/components/landing/hero-section"
-import { FeatureSelector } from "@/components/landing/feature-selector"
-import { MissionSection } from "@/components/landing/mission-section"
 import { FeatureCards } from "@/components/landing/feature-cards"
+import { FeatureSelector } from "@/components/landing/feature-selector"
+import { HeroSection } from "@/components/landing/hero-section"
+import { LandingHeader } from "@/components/landing/header"
+import { MissionSection } from "@/components/landing/mission-section"
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#f5f1e6]">
+      <LandingHeader />
       <HeroSection />
       <FeatureSelector />
       <MissionSection />

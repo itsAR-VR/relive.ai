@@ -1,11 +1,15 @@
 "use client"
 
+import { useEffect, useRef } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowDown, Play } from "lucide-react"
-import { useEffect, useRef } from "react"
+
+import { useAuthUser } from "./use-auth-user"
 
 export function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const { user, isLoading } = useAuthUser()
 
   useEffect(() => {
     if (videoRef.current) {
@@ -38,13 +42,22 @@ export function HeroSection() {
 
             <div className="mt-6 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
               <Button
+                asChild
                 size="lg"
                 className="bg-[#a67c52] hover:bg-[#8a6642] text-[#f5f1e6] font-medium px-8 py-5 text-base rounded-lg shadow-lg transition-all hover:shadow-xl hover:scale-[1.02]"
-                onClick={() => document.getElementById("live-demo")?.scrollIntoView({ behavior: "smooth" })}
               >
-                Try It Free
+                <Link href="/login">Try It Free</Link>
               </Button>
-              <span className="text-[#8a7e72] text-sm">No sign-up required</span>
+              {!isLoading && user && (
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border border-[#d4c9b8] bg-[#2a2522] hover:bg-[#3d3632] text-[#f5f1e6] font-medium px-8 py-5 text-base rounded-lg shadow-lg transition-all hover:shadow-xl"
+                >
+                  <Link href="/dashboard">Go to Dashboard</Link>
+                </Button>
+              )}
             </div>
           </div>
 

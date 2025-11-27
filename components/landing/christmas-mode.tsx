@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import type React from "react"
 import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
@@ -104,7 +105,13 @@ export function ChristmasMode() {
             <div>
               <p className="text-sm font-medium text-[#6b5e54] mb-3">Original Photo</p>
               <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-[#f5f1e6] border border-[#d4c9b8]">
-                <img src={uploadedImage || "/placeholder.svg"} alt="Original" className="w-full h-full object-cover" />
+                <Image
+                  src={uploadedImage || "/placeholder.svg"}
+                  alt="Original upload"
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                />
               </div>
             </div>
 
@@ -119,10 +126,12 @@ export function ChristmasMode() {
                     <p className="text-red-200 text-sm mt-1">Sprinkling snow & lights</p>
                   </div>
                 ) : resultImage ? (
-                  <img
+                  <Image
                     src={resultImage || "/placeholder.svg"}
                     alt="Festive result"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-[#8a7e72]">

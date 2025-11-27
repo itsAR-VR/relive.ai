@@ -43,17 +43,6 @@ Transform faded photographs into living, breathing moments. Help grandparents se
 | `STRIPE_PRICE_PRO` | Stripe Price ID for Pro pack |
 | `NEXT_PUBLIC_APP_URL` | Your deployed app URL |
 
-## Credit Costs
-
-- **Photo Enhancement:** 1 credit
-- **Video Generation:** 5 credits
-- **New users:** 10 free credits on signup
-
-## Documentation
-
-- See `AGENTS.md` for architecture, conventions, and contributor guidelines.
-- See `supabase/migrations/` for database schema.
-
 ## License
 
 MIT
