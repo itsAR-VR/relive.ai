@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { createKieClient } from "@/lib/kie"
 import { NextResponse } from "next/server"
+import { randomUUID } from "crypto"
+import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js"
 
 const CREDITS_REQUIRED = 5
 const WEBHOOK_PATH = "/api/webhooks/kie"
+const UPLOAD_BUCKET = "user-uploads"
 
 function getWebhookUrl() {
   const baseUrl = process.env.VERCEL_URL
@@ -12,6 +15,54 @@ function getWebhookUrl() {
 
   if (!baseUrl) return null
   return `${baseUrl}${WEBHOOK_PATH}`
+}
+
+function getSupabaseAdmin() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Supabase admin env vars missing")
+  }
+  return createSupabaseAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  )
+}
+
+async function ensureBucketExists(admin: ReturnType<typeof createSupabaseAdminClient>) {
+  try {
+    await admin.storage.createBucket(UPLOAD_BUCKET, { public: true })
+  } catch (err) {
+    // ignore if exists
+  }
+}
+
+async function normalizeImageUrl(imageUrl: string, userId: string) {
+  if (!imageUrl.startsWith("data:")) return imageUrl
+
+  const admin = getSupabaseAdmin()
+  await ensureBucketExists(admin)
+
+  const matches = imageUrl.match(/^data:(.+);base64,(.*)$/)
+  if (!matches) throw new Error("Invalid image data URL")
+  const mimeType = matches[1]
+  const base64 = matches[2]
+  const buffer = Buffer.from(base64, "base64")
+  const ext = mimeType.includes("png") ? "png" : mimeType.includes("webp") ? "webp" : "jpg"
+  const path = `uploads/${userId}/${Date.now()}-${randomUUID()}.${ext}`
+
+  const { error: uploadError } = await admin.storage
+    .from(UPLOAD_BUCKET)
+    .upload(path, buffer, { contentType: mimeType, upsert: false })
+
+  if (uploadError) {
+    console.error("Failed to upload image to storage", { uploadError })
+    throw new Error("Failed to prepare image for processing")
+  }
+
+  const { data: publicUrl } = admin.storage.from(UPLOAD_BUCKET).getPublicUrl(path)
+  if (!publicUrl?.publicUrl) {
+    throw new Error("Failed to get public URL for uploaded image")
+  }
+  return publicUrl.publicUrl
 }
 
 export async function POST(request: Request) {
@@ -121,9 +172,10 @@ export async function POST(request: Request) {
     // Call Kie.ai API for video generation
     try {
       const kie = createKieClient()
+      const normalizedImageUrl = await normalizeImageUrl(imageUrl, user.id)
       
       const result = await kie.generateVideo({
-        imageUrl,
+        imageUrl: normalizedImageUrl,
         prompt,
         duration,
         resolution,
