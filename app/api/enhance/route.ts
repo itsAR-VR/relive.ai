@@ -7,12 +7,17 @@ const CREDITS_REQUIRED = 1
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+
+    // Check authentication
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Get user profile
     const { data: profile } = await supabase
       .from("profiles")
       .select("credits")
@@ -20,16 +25,23 @@ export async function POST(request: Request) {
       .single()
 
     if (!profile || profile.credits < CREDITS_REQUIRED) {
-      return NextResponse.json({ error: "Insufficient credits" }, { status: 402 })
+      return NextResponse.json(
+        { error: "Insufficient credits" },
+        { status: 402 }
+      )
     }
 
     const body = await request.json()
     const { imageUrl, faceRestoration = true, colorCorrection = true } = body
 
     if (!imageUrl) {
-      return NextResponse.json({ error: "Image URL is required" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Image URL is required" },
+        { status: 400 }
+      )
     }
 
+    // Create generation record
     const { data: generation, error: insertError } = await supabase
       .from("generations")
       .insert({
@@ -45,21 +57,32 @@ export async function POST(request: Request) {
 
     if (insertError) {
       console.error("Failed to create generation record:", insertError)
-      return NextResponse.json({ error: "Failed to create generation" }, { status: 500 })
+      return NextResponse.json(
+        { error: "Failed to create generation" },
+        { status: 500 }
+      )
     }
 
+    // Deduct credits
     const { error: creditError } = await supabase.rpc("deduct_credits", {
       user_uuid: user.id,
       amount: CREDITS_REQUIRED,
     })
 
     if (creditError) {
+      console.error("Failed to deduct credits:", creditError)
+      // Rollback generation
       await supabase.from("generations").delete().eq("id", generation.id)
-      return NextResponse.json({ error: "Failed to process payment" }, { status: 500 })
+      return NextResponse.json(
+        { error: "Failed to process payment" },
+        { status: 500 }
+      )
     }
 
+    // Call Kie.ai API - Nano Banana Pro for photo restoration
     try {
       const kie = createKieClient()
+      
       const webhookUrl = process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}/api/webhooks/kie`
         : `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/kie`
@@ -76,9 +99,10 @@ export async function POST(request: Request) {
         throw new Error(result.error || "Kie.ai API failed")
       }
 
+      // Update generation with Kie job ID
       await supabase
         .from("generations")
-        .update({ replicate_prediction_id: result.data.id })
+        .update({ replicate_prediction_id: result.data.id }) // reusing column for Kie job ID
         .eq("id", generation.id)
 
       return NextResponse.json({
@@ -89,30 +113,53 @@ export async function POST(request: Request) {
       })
     } catch (kieError) {
       console.error("Kie.ai API error:", kieError)
-      await supabase.rpc("add_credits", { user_uuid: user.id, amount: CREDITS_REQUIRED })
+
+      // Refund credits on API failure
+      await supabase.rpc("add_credits", {
+        user_uuid: user.id,
+        amount: CREDITS_REQUIRED,
+      })
+
+      // Mark generation as failed
       await supabase
         .from("generations")
-        .update({ status: "failed", error_message: "AI processing failed" })
+        .update({
+          status: "failed",
+          error_message: "AI processing failed",
+        })
         .eq("id", generation.id)
 
-      return NextResponse.json({ error: "AI processing failed" }, { status: 500 })
+      return NextResponse.json(
+        { error: "AI processing failed" },
+        { status: 500 }
+      )
     }
   } catch (error) {
     console.error("Enhance API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
 }
 
+// GET endpoint to check generation status
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const generationId = searchParams.get("id")
 
   if (!generationId) {
-    return NextResponse.json({ error: "Generation ID required" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Generation ID required" },
+      { status: 400 }
+    )
   }
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -129,6 +176,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
+  // If still processing, check status with Kie.ai
   if (generation.status === "processing" && generation.replicate_prediction_id) {
     try {
       const kie = createKieClient()
@@ -136,6 +184,7 @@ export async function GET(request: Request) {
       
       if (status.success && status.data) {
         if (status.data.status === "completed" && status.data.result_url) {
+          // Update our record
           await supabase
             .from("generations")
             .update({

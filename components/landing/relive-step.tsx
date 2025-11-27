@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
-import { Sparkles, RotateCcw, Play, Loader2, ChevronDown, Zap, Gem } from "lucide-react"
+import { Sparkles, RotateCcw, Play, Loader2, ChevronDown, Zap, Gem, Download } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { createClient } from "@/lib/supabase/client"
 
 interface ReliveStepProps {
   enhancedImage: string
@@ -20,6 +21,17 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isExpandingPrompt, setIsExpandingPrompt] = useState(false)
   const [videoGenerated, setVideoGenerated] = useState(false)
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user)
+    })
+  }, [supabase.auth])
 
   const handleExpandPrompt = async () => {
     setIsExpandingPrompt(true)
@@ -32,10 +44,93 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
 
   const handleGenerate = async () => {
     setIsGenerating(true)
-    // Simulate video generation
-    await new Promise((resolve) => setTimeout(resolve, 4000))
-    setIsGenerating(false)
-    setVideoGenerated(true)
+    setError(null)
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      // Demo mode - simulate processing
+      await new Promise((resolve) => setTimeout(resolve, 4000))
+      setVideoGenerated(true)
+      setVideoUrl("/animated-vintage-wedding-couple-dancing-motion-blu.jpg") // Demo placeholder
+      setIsGenerating(false)
+      return
+    }
+
+    // Real API mode
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageUrl: enhancedImage,
+          prompt,
+          motionStrength: motionStrength[0],
+          duration: selectedModel === "ultra" ? 6 : 4,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 402) {
+          setError("Insufficient credits. Video generation requires 5 credits.")
+        } else {
+          setError(data.error || "Generation failed")
+        }
+        setIsGenerating(false)
+        return
+      }
+
+      // Poll for completion
+      const pollInterval = setInterval(async () => {
+        const statusRes = await fetch(`/api/generate?id=${data.generationId}`)
+        const statusData = await statusRes.json()
+
+        if (statusData.status === "completed" && statusData.result_url) {
+          clearInterval(pollInterval)
+          setVideoUrl(statusData.result_url)
+          setVideoGenerated(true)
+          setIsGenerating(false)
+        } else if (statusData.status === "failed") {
+          clearInterval(pollInterval)
+          setError(statusData.error_message || "Video generation failed")
+          setIsGenerating(false)
+        }
+      }, 3000)
+
+      // Timeout after 3 minutes (video takes longer)
+      setTimeout(() => {
+        clearInterval(pollInterval)
+        if (isGenerating) {
+          setError("Processing is taking longer than expected. Check your dashboard for the result.")
+          setIsGenerating(false)
+        }
+      }, 180000)
+    } catch (err) {
+      console.error("Generate error:", err)
+      setError("Failed to start generation. Please try again.")
+      setIsGenerating(false)
+    }
+  }
+
+  const handleDownload = async () => {
+    if (!videoUrl) return
+    
+    try {
+      const response = await fetch(videoUrl)
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "relive-memory.mp4"
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error("Download failed:", err)
+    }
   }
 
   return (
@@ -77,21 +172,42 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
                 <p className="text-[#f5f1e6] font-medium mt-6">Creating your living memory...</p>
                 <p className="text-[#c4b8a8] text-sm mt-1">This usually takes 30-60 seconds</p>
               </div>
-            ) : videoGenerated ? (
+            ) : videoGenerated && videoUrl ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#2d2622]">
-                <img
-                  src="/animated-vintage-wedding-couple-dancing-motion-blu.jpg"
-                  alt="Generated video preview"
-                  className="w-full h-full object-cover opacity-80"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <button className="w-16 h-16 rounded-full bg-[#a67c52] flex items-center justify-center hover:bg-[#8a6642] transition-colors shadow-lg">
-                    <Play className="h-8 w-8 text-[#f5f1e6] ml-1" />
+                {videoUrl.endsWith(".mp4") || videoUrl.includes("video") ? (
+                  <video
+                    src={videoUrl}
+                    className="w-full h-full object-cover"
+                    controls
+                    autoPlay
+                    loop
+                    muted
+                  />
+                ) : (
+                  <>
+                    <img
+                      src={videoUrl}
+                      alt="Generated video preview"
+                      className="w-full h-full object-cover opacity-80"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <button className="w-16 h-16 rounded-full bg-[#a67c52] flex items-center justify-center hover:bg-[#8a6642] transition-colors shadow-lg">
+                        <Play className="h-8 w-8 text-[#f5f1e6] ml-1" />
+                      </button>
+                    </div>
+                  </>
+                )}
+                <div className="absolute bottom-4 left-4 right-4 bg-[#3d3632]/90 rounded-lg p-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-[#f5f1e6] text-sm font-medium">Your memory is alive!</p>
+                    <p className="text-[#c4b8a8] text-xs mt-1">Click to play or download below</p>
+                  </div>
+                  <button
+                    onClick={handleDownload}
+                    className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                  >
+                    <Download className="h-4 w-4 text-white" />
                   </button>
-                </div>
-                <div className="absolute bottom-4 left-4 right-4 bg-[#3d3632]/90 rounded-lg p-3">
-                  <p className="text-[#f5f1e6] text-sm font-medium">Your memory is alive!</p>
-                  <p className="text-[#c4b8a8] text-xs mt-1">Click to play or download below</p>
                 </div>
               </div>
             ) : (
@@ -103,6 +219,18 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
           </div>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
+          {error.includes("credits") && (
+            <a href="/pricing" className="ml-2 underline font-medium">
+              Buy Credits
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Motion Prompt */}
       <div className="mt-8">
@@ -134,6 +262,14 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
             AI Expand
           </button>
         </div>
+
+        {/* Login prompt for non-logged in users */}
+        {isLoggedIn === false && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+            <strong>Demo Mode:</strong> Sign in to generate real videos and save your creations.{" "}
+            <a href="/login" className="underline font-medium">Sign in</a>
+          </div>
+        )}
       </div>
 
       {/* Fine-tuning Options */}
@@ -239,7 +375,10 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
             <Button variant="outline" onClick={onReset} className="border-[#d4c9b8] text-[#3d3632] bg-transparent">
               Create Another
             </Button>
-            <Button className="bg-[#a67c52] hover:bg-[#8a6642] text-[#f5f1e6]">Download Video</Button>
+            <Button onClick={handleDownload} className="bg-[#a67c52] hover:bg-[#8a6642] text-[#f5f1e6]">
+              <Download className="mr-2 h-4 w-4" />
+              Download Video
+            </Button>
           </>
         ) : (
           <Button
@@ -264,3 +403,4 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
     </div>
   )
 }
+

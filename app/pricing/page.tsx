@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { CREDIT_PACKAGES } from "@/lib/stripe"
 import { Check, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import type { SupabaseClient } from "@supabase/supabase-js"
 
 const PACKAGE_ICONS = {
   starter: Zap,
@@ -16,27 +15,20 @@ const PACKAGE_ICONS = {
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null)
-
-  // Initialize Supabase client only on the client side
-  useEffect(() => {
-    setSupabase(createClient())
-  }, [])
+  const supabase = createClient()
 
   const handlePurchase = async (packageId: string) => {
     setLoading(packageId)
 
     try {
       // Check if user is logged in
-      if (supabase) {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-        if (!user) {
-          window.location.href = "/login?redirect=/pricing"
-          return
-        }
+      if (!user) {
+        window.location.href = "/login?redirect=/pricing"
+        return
       }
 
       const response = await fetch("/api/stripe/checkout", {
@@ -212,3 +204,4 @@ export default function PricingPage() {
     </div>
   )
 }
+

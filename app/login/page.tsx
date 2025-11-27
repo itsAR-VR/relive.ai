@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Mail, Lock, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
-import type { SupabaseClient } from "@supabase/supabase-js"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -13,17 +12,11 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null)
 
-  // Initialize Supabase client only on the client side
-  useEffect(() => {
-    setSupabase(createClient())
-  }, [])
+  const supabase = createClient()
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!supabase) return
-    
     setIsLoading(true)
     setMessage(null)
 
@@ -55,8 +48,6 @@ export default function LoginPage() {
   }
 
   const handleGoogleAuth = async () => {
-    if (!supabase) return
-    
     setIsLoading(true)
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -104,7 +95,7 @@ export default function LoginPage() {
           {/* Google Sign In */}
           <Button
             onClick={handleGoogleAuth}
-            disabled={isLoading || !supabase}
+            disabled={isLoading}
             variant="outline"
             className="w-full h-12 mb-6 bg-white hover:bg-[#f5f1e6] border-[#dbd0ba] text-[#3d3632] font-medium"
           >
@@ -180,7 +171,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              disabled={isLoading || !supabase}
+              disabled={isLoading}
               className="w-full h-12 bg-gradient-to-r from-[#a67c52] to-[#8d6e4c] hover:from-[#8d6e4c] hover:to-[#735a3a] text-white font-medium shadow-lg"
             >
               {isLoading ? (
@@ -222,3 +213,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

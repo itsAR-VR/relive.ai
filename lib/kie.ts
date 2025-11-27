@@ -55,6 +55,10 @@ class KieClient {
     return { success: true, data }
   }
 
+  /**
+   * Enhance/restore an old photo using Nano Banana Pro
+   * Features: Face restoration, colorization, upscaling
+   */
   async enhanceImage(params: {
     imageUrl: string
     faceRestoration?: boolean
@@ -76,6 +80,10 @@ class KieClient {
     })
   }
 
+  /**
+   * Generate a video from a still image
+   * Uses AI to add motion and bring photos to life
+   */
   async generateVideo(params: {
     imageUrl: string
     prompt?: string
@@ -95,12 +103,18 @@ class KieClient {
     })
   }
 
+  /**
+   * Check the status of an image enhancement job
+   */
   async getEnhanceStatus(
     jobId: string
   ): Promise<KieApiResponse<ImageEnhanceResult>> {
     return this.request<ImageEnhanceResult>(`/images/enhance/${jobId}`)
   }
 
+  /**
+   * Check the status of a video generation job
+   */
   async getVideoStatus(
     jobId: string
   ): Promise<KieApiResponse<VideoGenerateResult>> {
@@ -108,6 +122,7 @@ class KieClient {
   }
 }
 
+// Export a singleton instance
 export function createKieClient() {
   const apiKey = process.env.KIE_API_KEY
   if (!apiKey) {
@@ -117,3 +132,4 @@ export function createKieClient() {
 }
 
 export type { KieClient, ImageEnhanceResult, VideoGenerateResult }
+
