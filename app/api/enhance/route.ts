@@ -90,6 +90,13 @@ export async function POST(request: Request) {
       )
     }
 
+    console.info("Enhance job created", {
+      generationId: generation.id,
+      userId: user.id,
+      imageUrl,
+      settings: { faceRestoration, colorCorrection, aspectRatio, resolution, outputFormat },
+    })
+
     // Deduct credits
     const { data: creditUsed, error: creditError } = await supabase.rpc("deduct_credits", {
       user_uuid: user.id,
@@ -163,6 +170,12 @@ export async function POST(request: Request) {
           { status: 500 }
         )
       }
+
+      console.info("Enhance job submitted to Kie", {
+        generationId: generation.id,
+        userId: user.id,
+        jobId: result.data.id,
+      })
 
       return NextResponse.json({
         success: true,

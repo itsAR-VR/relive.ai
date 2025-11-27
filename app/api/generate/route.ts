@@ -92,6 +92,13 @@ export async function POST(request: Request) {
       )
     }
 
+    console.info("Generate job created", {
+      generationId: generation.id,
+      userId: user.id,
+      imageUrl,
+      settings: { prompt, duration, resolution, motionStrength, negativePrompt, enablePromptExpansion, seed },
+    })
+
     // Deduct credits
     const { data: creditUsed, error: creditError } = await supabase.rpc("deduct_credits", {
       user_uuid: user.id,
@@ -167,6 +174,12 @@ export async function POST(request: Request) {
           { status: 500 }
         )
       }
+
+      console.info("Generate job submitted to Kie", {
+        generationId: generation.id,
+        userId: user.id,
+        jobId: result.data.id,
+      })
 
       return NextResponse.json({
         success: true,
