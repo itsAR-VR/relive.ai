@@ -1,13 +1,90 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
-import { Sparkles, RotateCcw, Play, Loader2, ChevronDown, Zap, Gem, Download } from "lucide-react"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Switch } from "@/components/ui/switch"
+import { Sparkles, RotateCcw, Play, Loader2, Download, Monitor, Clock, ShieldCheck } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
+
+type PromptSuggestion = {
+  label: string
+  tone: string
+  text: string
+}
+
+const promptSuggestions: PromptSuggestion[] = [
+  {
+    label: "Slow dance",
+    tone: "Tender & steady",
+    text: "They sway slowly together, hands clasped and eyes locked, breathing softly as the camera gently pushes in around them.",
+  },
+  {
+    label: "Cinematic pan",
+    tone: "Lifelike & airy",
+    text: "Camera glides in a soft arc as they look toward each other, hair and clothing moving slightly in a light breeze, natural smiles forming.",
+  },
+  {
+    label: "Playful laugh",
+    tone: "Warm & candid",
+    text: "They laugh and lean closer, shoulders brushing as they turn toward the camera, a small step forward bringing the moment to life.",
+  },
+]
+
+const VIDEO_MODEL_ID = "wan/2-5-image-to-video"
+const DEFAULT_NEGATIVE_PROMPT =
+  "low quality, blurry, distorted, watermark, text, logo, extra limbs, malformed hands, oversaturated"
+const EXPANDED_PROMPT =
+  "Cinematic close-up as they slowly turn toward the camera with gentle breathing and lifelike eye movement, a soft breeze catching subtle details."
+type StatusPayload = Record<string, any>
+
+const extractResultUrl = (payload: StatusPayload) => {
+  if (typeof payload?.result_url === "string") return payload.result_url
+  if (typeof payload?.resultUrl === "string") return payload.resultUrl
+  if (Array.isArray(payload?.resultUrls) && typeof payload.resultUrls[0] === "string") return payload.resultUrls[0]
+
+  const rawResultJson = payload?.resultJson ?? payload?.result_json ?? payload?.result
+  if (typeof rawResultJson === "string") {
+    try {
+      const parsed = JSON.parse(rawResultJson)
+      if (Array.isArray(parsed?.resultUrls) && typeof parsed.resultUrls[0] === "string") {
+        return parsed.resultUrls[0]
+      }
+    } catch {
+      // ignore
+    }
+  } else if (rawResultJson && typeof rawResultJson === "object") {
+    const urls = (rawResultJson as { resultUrls?: unknown }).resultUrls
+    if (Array.isArray(urls) && typeof urls[0] === "string") {
+      return urls[0]
+    }
+  }
+
+  return null
+}
+
+const normalizeStatus = (payload: StatusPayload) => {
+  const statusRaw =
+    typeof payload?.status === "string"
+      ? payload.status.toLowerCase()
+      : typeof payload?.state === "string"
+        ? payload.state.toLowerCase()
+        : ""
+
+  return {
+    statusRaw,
+    isCompleted: statusRaw === "completed" || statusRaw === "success",
+    isFailed: statusRaw === "failed" || statusRaw === "fail",
+    resultUrl: extractResultUrl(payload),
+    errorMessage:
+      (typeof payload?.error_message === "string" && payload.error_message) ||
+      (typeof payload?.error === "string" && payload.error) ||
+      (typeof payload?.failMsg === "string" && payload.failMsg) ||
+      null,
+  }
+}
 
 interface ReliveStepProps {
   enhancedImage: string
@@ -15,16 +92,20 @@ interface ReliveStepProps {
 }
 
 export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
-  const [prompt, setPrompt] = useState("")
-  const [motionStrength, setMotionStrength] = useState([50])
-  const [creativity, setCreativity] = useState([30])
-  const [selectedModel, setSelectedModel] = useState<"standard" | "ultra">("standard")
+  const [prompt, setPrompt] = useState(promptSuggestions[0].text)
+  const [duration, setDuration] = useState<"5" | "10">("5")
+  const [resolution, setResolution] = useState<"720p" | "1080p">("720p")
+  const [useNegativePrompt, setUseNegativePrompt] = useState(true)
+  const [enablePromptExpansion, setEnablePromptExpansion] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isExpandingPrompt, setIsExpandingPrompt] = useState(false)
   const [videoGenerated, setVideoGenerated] = useState(false)
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+  const generationIdRef = useRef<string | null>(null)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const supabase = createClient()
 
@@ -34,83 +115,155 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
     })
   }, [supabase.auth])
 
+  const clearPolling = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
+    }
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current)
+      pollTimeoutRef.current = null
+    }
+    generationIdRef.current = null
+  }, [])
+
+  useEffect(() => () => clearPolling(), [clearPolling])
+
   const handleExpandPrompt = async () => {
     setIsExpandingPrompt(true)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setPrompt(
-      "The couple gently sways together in a slow dance, their eyes meeting with tender affection. A soft breeze catches her veil as he lovingly places his hand on her waist. Their expressions soften into warm smiles as the moment unfolds.",
-    )
+    await new Promise((resolve) => setTimeout(resolve, 1200))
+    setPrompt(EXPANDED_PROMPT)
     setIsExpandingPrompt(false)
   }
 
   const handleGenerate = async () => {
+    clearPolling()
     setIsGenerating(true)
     setError(null)
+    setVideoGenerated(false)
+    setVideoUrl(null)
+    generationIdRef.current = null
 
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      // Demo mode - simulate processing
-      await new Promise((resolve) => setTimeout(resolve, 4000))
-      setVideoGenerated(true)
-      setVideoUrl("/animated-vintage-wedding-couple-dancing-motion-blu.jpg") // Demo placeholder
-      setIsGenerating(false)
-      return
-    }
-
-    // Real API mode
     try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageUrl: enhancedImage,
-          prompt,
-          motionStrength: motionStrength[0],
-          duration: selectedModel === "ultra" ? 6 : 4,
-        }),
-      })
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        if (response.status === 402) {
-          setError("Insufficient credits. Video generation requires 5 credits.")
-        } else {
-          setError(data.error || "Generation failed")
-        }
+      if (!user) {
+        const message = "Please sign in to generate your video."
+        setError(message)
+        toast.error(message)
         setIsGenerating(false)
         return
       }
 
-      // Poll for completion
-      const pollInterval = setInterval(async () => {
-        const statusRes = await fetch(`/api/generate?id=${data.generationId}`)
-        const statusData = await statusRes.json()
+      const trimmedPrompt = prompt.trim()
+      const finalPrompt = trimmedPrompt || promptSuggestions[0].text
+      const payload: Record<string, unknown> = {
+        imageUrl: enhancedImage,
+        prompt: finalPrompt,
+        duration,
+        resolution,
+        model: VIDEO_MODEL_ID,
+        enablePromptExpansion,
+      }
 
-        if (statusData.status === "completed" && statusData.result_url) {
-          clearInterval(pollInterval)
-          setVideoUrl(statusData.result_url)
-          setVideoGenerated(true)
+      if (useNegativePrompt) {
+        payload.negativePrompt = DEFAULT_NEGATIVE_PROMPT
+      }
+
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        const message =
+          response.status === 402
+            ? "Insufficient credits. Video generation requires 5 credits."
+            : data.error || "Generation failed"
+        setError(message)
+        toast.error(message)
+        setIsGenerating(false)
+        return
+      }
+
+      if (!data?.generationId) {
+        const message = "Missing generation ID from server."
+        setError(message)
+        toast.error(message)
+        setIsGenerating(false)
+        return
+      }
+
+      generationIdRef.current = data.generationId as string
+      toast.success("Video generation started")
+
+      const pollStatus = async () => {
+        const jobId = generationIdRef.current
+        if (!jobId) return
+
+        try {
+          const statusRes = await fetch(`/api/generate?id=${jobId}`)
+          const statusData = await statusRes.json().catch(() => ({}))
+
+          if (!statusRes.ok) {
+            const message =
+              statusRes.status === 401
+                ? "Session expired. Please sign in again."
+                : statusData.error || "Unable to check video status."
+            throw new Error(message)
+          }
+
+          const normalized = normalizeStatus(statusData)
+
+          if (normalized.isCompleted && normalized.resultUrl) {
+            clearPolling()
+            setVideoUrl(normalized.resultUrl)
+            setVideoGenerated(true)
+            setIsGenerating(false)
+            toast.success("Video generated")
+          } else if (normalized.isCompleted) {
+            clearPolling()
+            const message = "Video completed but no result received."
+            setError(message)
+            setIsGenerating(false)
+            toast.error(message)
+          } else if (normalized.isFailed) {
+            clearPolling()
+            const message = normalized.errorMessage || "Video generation failed"
+            setError(message)
+            setIsGenerating(false)
+            toast.error(message)
+          }
+        } catch (statusError) {
+          console.error("Video status check failed:", statusError)
+          clearPolling()
+          const message = statusError instanceof Error ? statusError.message : "Failed to check generation status."
+          setError(message)
           setIsGenerating(false)
-        } else if (statusData.status === "failed") {
-          clearInterval(pollInterval)
-          setError(statusData.error_message || "Video generation failed")
-          setIsGenerating(false)
+          toast.error(message)
         }
-      }, 3000)
+      }
+
+      pollStatus()
+      pollIntervalRef.current = setInterval(pollStatus, 3000)
 
       // Timeout after 3 minutes (video takes longer)
-      setTimeout(() => {
-        clearInterval(pollInterval)
-        if (isGenerating) {
-          setError("Processing is taking longer than expected. Check your dashboard for the result.")
-          setIsGenerating(false)
-        }
+      pollTimeoutRef.current = setTimeout(() => {
+        clearPolling()
+        setError("Processing is taking longer than expected. Check your dashboard for the result.")
+        setIsGenerating(false)
+        toast.error("Processing is taking longer than expected. Check your dashboard for the result.")
       }, 180000)
     } catch (err) {
       console.error("Generate error:", err)
+      clearPolling()
       setError("Failed to start generation. Please try again.")
+      toast.error("Failed to start generation. Please try again.")
       setIsGenerating(false)
     }
   }
@@ -144,7 +297,12 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
           <RotateCcw className="h-4 w-4" />
           <span className="text-sm">Start Over</span>
         </button>
-        <h3 className="font-serif text-xl text-[#3d3632]">Bring This Moment to Life</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-serif text-xl text-[#3d3632]">Bring This Moment to Life</h3>
+          <span className="px-3 py-1 text-xs font-medium rounded-full bg-[#a67c52]/10 text-[#8a6642] border border-[#d4c9b8]">
+            WAN 2.5 Video
+          </span>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -268,110 +426,139 @@ export function ReliveStep({ enhancedImage, onReset }: ReliveStepProps) {
           </button>
         </div>
 
+        <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-start">
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-[#3d3632] uppercase tracking-wide">Prompt helper</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {promptSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion.label}
+                  onClick={() => setPrompt(suggestion.text)}
+                  disabled={isGenerating || videoGenerated}
+                  className={`
+                    px-3 py-2 rounded-lg border text-left transition-all text-sm
+                    ${prompt === suggestion.text ? "border-[#a67c52] bg-[#a67c52]/10" : "border-[#d4c9b8] hover:border-[#a67c52]/60"}
+                    disabled:opacity-50
+                  `}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-[#3d3632]">{suggestion.label}</span>
+                    <span className="text-[11px] text-[#8a7e72]">{suggestion.tone}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-[#6b5e54] leading-snug">{suggestion.text}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="md:w-64 bg-[#f5f1e6] border border-[#d4c9b8] rounded-lg p-3">
+            <p className="text-xs font-semibold text-[#3d3632] uppercase tracking-wide mb-1">What we send</p>
+            <p className="text-xs text-[#6b5e54] leading-relaxed">
+              Prompt, duration ({duration}s), resolution ({resolution}), and model WAN 2.5 image-to-video.{" "}
+              {useNegativePrompt ? "Quality guardrails are on via a negative prompt." : "No negative prompt applied."}{" "}
+              {enablePromptExpansion ? "Prompt expansion is enabled." : "Prompt stays as written."}
+            </p>
+          </div>
+        </div>
+
         {/* Login prompt for non-logged in users */}
         {isLoggedIn === false && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
-            <strong>Demo Mode:</strong> Sign in to generate real videos and save your creations.{" "}
+            <strong>Sign in:</strong> Generate real videos and save your creations.{" "}
             <a href="/login" className="underline font-medium">Sign in</a>
           </div>
         )}
       </div>
 
-      {/* Fine-tuning Options */}
-      <Accordion type="single" collapsible className="mt-6">
-        <AccordionItem value="fine-tuning" className="border-[#d4c9b8]">
-          <AccordionTrigger className="text-[#3d3632] hover:text-[#3d3632] hover:no-underline">
-            <span className="flex items-center gap-2">
-              <ChevronDown className="h-4 w-4" />
-              Fine-tune your result
+      {/* Video Settings */}
+      <div className="mt-6 grid md:grid-cols-3 gap-4">
+        <div className="p-4 rounded-lg border border-[#d4c9b8] bg-[#f5f1e6]">
+          <div className="flex items-center justify-between mb-3">
+            <span className="flex items-center gap-2 text-[#3d3632] font-medium">
+              <Clock className="h-4 w-4 text-[#a67c52]" />
+              Duration
             </span>
-          </AccordionTrigger>
-          <AccordionContent className="pt-4">
-            <div className="space-y-6">
-              {/* Motion Strength */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <Label className="text-[#3d3632]">Motion Strength</Label>
-                  <span className="text-sm text-[#6b5e54]">
-                    {motionStrength[0] < 33 ? "Subtle" : motionStrength[0] < 66 ? "Natural" : "Dynamic"}
-                  </span>
-                </div>
-                <Slider
-                  value={motionStrength}
-                  onValueChange={setMotionStrength}
-                  max={100}
-                  step={1}
+            <span className="text-xs text-[#6b5e54]">5s or 10s</span>
+          </div>
+          <div className="flex gap-2">
+            {(["5", "10"] as const).map((value) => {
+              const isActive = duration === value
+              return (
+                <button
+                  key={value}
+                  onClick={() => setDuration(value)}
                   disabled={isGenerating || videoGenerated}
-                  className="[&_[role=slider]]:bg-[#a67c52]"
-                />
-                <div className="flex justify-between mt-1 text-xs text-[#8a7e72]">
-                  <span>Low</span>
-                  <span>High</span>
-                </div>
-              </div>
+                  className={`
+                    flex-1 px-3 py-2 rounded-lg border text-sm transition-all
+                    ${isActive ? "border-[#a67c52] bg-[#a67c52]/10 text-[#3d3632]" : "border-[#d4c9b8] text-[#6b5e54] hover:border-[#a67c52]/60"}
+                    disabled:opacity-50
+                  `}
+                >
+                  {value}s
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-              {/* Creativity */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <Label className="text-[#3d3632]">Creativity</Label>
-                  <span className="text-sm text-[#6b5e54]">
-                    {creativity[0] < 33 ? "Faithful" : creativity[0] < 66 ? "Balanced" : "Imaginative"}
-                  </span>
-                </div>
-                <Slider
-                  value={creativity}
-                  onValueChange={setCreativity}
-                  max={100}
-                  step={1}
+        <div className="p-4 rounded-lg border border-[#d4c9b8] bg-[#f5f1e6]">
+          <div className="flex items-center justify-between mb-3">
+            <span className="flex items-center gap-2 text-[#3d3632] font-medium">
+              <Monitor className="h-4 w-4 text-[#a67c52]" />
+              Resolution
+            </span>
+            <span className="text-xs text-[#6b5e54]">HD or Full HD</span>
+          </div>
+          <div className="flex gap-2">
+            {(["720p", "1080p"] as const).map((value) => {
+              const isActive = resolution === value
+              return (
+                <button
+                  key={value}
+                  onClick={() => setResolution(value)}
                   disabled={isGenerating || videoGenerated}
-                  className="[&_[role=slider]]:bg-[#a67c52]"
-                />
-                <div className="flex justify-between mt-1 text-xs text-[#8a7e72]">
-                  <span>Strict</span>
-                  <span>Wild</span>
-                </div>
-              </div>
+                  className={`
+                    flex-1 px-3 py-2 rounded-lg border text-sm transition-all
+                    ${isActive ? "border-[#a67c52] bg-[#a67c52]/10 text-[#3d3632]" : "border-[#d4c9b8] text-[#6b5e54] hover:border-[#a67c52]/60"}
+                    disabled:opacity-50
+                  `}
+                >
+                  {value}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-              {/* Model Selection */}
-              <div>
-                <Label className="text-[#3d3632] mb-3 block">Generation Model</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setSelectedModel("standard")}
-                    disabled={isGenerating || videoGenerated}
-                    className={`p-4 rounded-lg border-2 text-left transition-all ${
-                      selectedModel === "standard"
-                        ? "border-[#a67c52] bg-[#a67c52]/5"
-                        : "border-[#d4c9b8] hover:border-[#a67c52]/50"
-                    } disabled:opacity-50`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="h-4 w-4 text-[#a67c52]" />
-                      <span className="font-medium text-[#3d3632]">Standard</span>
-                    </div>
-                    <p className="text-xs text-[#6b5e54]">Fast generation, great for most photos</p>
-                  </button>
-                  <button
-                    onClick={() => setSelectedModel("ultra")}
-                    disabled={isGenerating || videoGenerated}
-                    className={`p-4 rounded-lg border-2 text-left transition-all ${
-                      selectedModel === "ultra"
-                        ? "border-[#a67c52] bg-[#a67c52]/5"
-                        : "border-[#d4c9b8] hover:border-[#a67c52]/50"
-                    } disabled:opacity-50`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Gem className="h-4 w-4 text-[#a67c52]" />
-                      <span className="font-medium text-[#3d3632]">Ultra-Real</span>
-                    </div>
-                    <p className="text-xs text-[#6b5e54]">Maximum quality, lifelike motion</p>
-                  </button>
-                </div>
-              </div>
+        <div className="p-4 rounded-lg border border-[#d4c9b8] bg-[#f5f1e6] space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[#3d3632] font-medium">Negative prompt</p>
+              <p className="text-xs text-[#6b5e54]">Filter artifacts & text</p>
             </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            <Switch
+              checked={useNegativePrompt}
+              onCheckedChange={setUseNegativePrompt}
+              disabled={isGenerating || videoGenerated}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[#3d3632] font-medium">AI prompt expansion</p>
+              <p className="text-xs text-[#6b5e54]">Let WAN enhance wording</p>
+            </div>
+            <Switch
+              checked={enablePromptExpansion}
+              onCheckedChange={setEnablePromptExpansion}
+              disabled={isGenerating || videoGenerated}
+            />
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[#6b5e54] bg-white/60 border border-[#d4c9b8] rounded-lg p-2">
+            <ShieldCheck className="h-4 w-4 text-[#a67c52]" />
+            <span>Model fixed to WAN 2.5 image-to-video for best motion quality.</span>
+          </div>
+        </div>
+      </div>
 
       {/* Generate Button */}
       <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-end">

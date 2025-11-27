@@ -19,6 +19,9 @@ export function FamilyScene() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [resultImage, setResultImage] = useState<string | null>(null)
   const [isExpandingPrompt, setIsExpandingPrompt] = useState(false)
+  const isFeatureReady = false
+  const comingSoonMessage =
+    "Coming soon: we'll enable multi-person scene composition once Kie.ai ships the family scene endpoint—no placeholder results meanwhile."
 
   const handleAddMember = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,10 +66,9 @@ export function FamilyScene() {
   }
 
   const handleGenerate = async () => {
-    setIsProcessing(true)
-    await new Promise((resolve) => setTimeout(resolve, 4000))
-    setResultImage("/family-portrait-multiple-generations-together-livi.jpg")
+    // Disabled until Kie.ai supports multi-person compositing for this flow
     setIsProcessing(false)
+    setResultImage(null)
   }
 
   const handleReset = () => {
@@ -87,6 +89,10 @@ export function FamilyScene() {
             Start Over
           </button>
         )}
+      </div>
+
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-blue-800 text-sm">
+        {comingSoonMessage}
       </div>
 
       <p className="text-[#6b5e54] mb-6">
@@ -217,7 +223,7 @@ export function FamilyScene() {
             ) : (
               <Button
                 onClick={handleGenerate}
-                disabled={isProcessing || !sceneDescription.trim()}
+                disabled={isProcessing || !sceneDescription.trim() || !isFeatureReady}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8"
               >
                 {isProcessing ? (
@@ -228,12 +234,18 @@ export function FamilyScene() {
                 ) : (
                   <>
                     <Users className="mr-2 h-4 w-4" />
-                    Create Family Scene
+                    {isFeatureReady ? "Create Family Scene" : "Coming Soon"}
                   </>
                 )}
               </Button>
             )}
           </div>
+
+          {!isFeatureReady && (
+            <p className="mt-2 text-sm text-blue-700">
+              Waiting on Kie.ai compositing support. We’ll enable real generations here as soon as it lands.
+            </p>
+          )}
         </>
       )}
 

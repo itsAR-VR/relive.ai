@@ -1,26 +1,48 @@
 /**
  * Kie.ai API Client
  * Documentation: https://docs.kie.ai
+ * Implements:
+ *  - POST /api/v1/jobs/createTask (Wan 2.5 image-to-video, Nano Banana Pro image)
+ *  - GET  /api/v1/jobs/recordInfo   (status/result)
  */
 
-const KIE_API_BASE = "https://api.kie.ai/v1"
+const KIE_API_BASE = "https://api.kie.ai/api/v1"
 
 interface KieApiResponse<T> {
   success: boolean
   data?: T
   error?: string
+  status?: number
+  raw?: unknown
 }
 
-interface ImageEnhanceResult {
+type KieState = "waiting" | "queuing" | "generating" | "success" | "fail"
+
+interface KieJobCreateResponse {
+  code?: number
+  message?: string
+  data?: { taskId: string }
+}
+
+interface KieRecordInfo {
+  code?: number
+  message?: string
+  data?: {
+    taskId: string
+    model: string
+    state: KieState
+    resultJson?: string
+    failCode?: string
+    failMsg?: string
+  }
+}
+
+interface NormalizedResult {
   id: string
   status: "pending" | "processing" | "completed" | "failed"
   result_url?: string
-}
-
-interface VideoGenerateResult {
-  id: string
-  status: "pending" | "processing" | "completed" | "failed"
-  result_url?: string
+  error?: string
+  raw?: unknown
 }
 
 class KieClient {
@@ -34,91 +56,189 @@ class KieClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<KieApiResponse<T>> {
-    const response = await fetch(`${KIE_API_BASE}${endpoint}`, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
-        ...options.headers,
-      },
-    })
+    try {
+      const response = await fetch(`${KIE_API_BASE}${endpoint}`, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
+          ...options.headers,
+        },
+      })
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const responseBody = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        const message =
+          (responseBody && (responseBody.message || responseBody.msg || responseBody.error)) ||
+          `API error: ${response.status}`
+
+        return {
+          success: false,
+          error: message,
+          status: response.status,
+          raw: responseBody,
+        }
+      }
+
+      return {
+        success: true,
+        data: responseBody,
+        status: response.status,
+        raw: responseBody,
+      }
+    } catch (error) {
       return {
         success: false,
-        error: errorData.message || `API error: ${response.status}`,
+        error: error instanceof Error ? error.message : "Unknown API error",
+      }
+    }
+  }
+
+  private normalizeRecordInfo(record?: KieRecordInfo): NormalizedResult | null {
+    if (!record?.data?.taskId) return null
+
+    const state = record.data.state
+    let status: NormalizedResult["status"] = "processing"
+    if (state === "success") status = "completed"
+    else if (state === "fail") status = "failed"
+
+    let resultUrl: string | undefined
+    if (record.data.resultJson) {
+      try {
+        const parsed = JSON.parse(record.data.resultJson)
+        const urls: string[] | undefined = parsed?.resultUrls
+        if (Array.isArray(urls) && urls.length > 0) {
+          resultUrl = urls[0]
+        }
+      } catch {
+        // ignore parse errors
       }
     }
 
-    const data = await response.json()
-    return { success: true, data }
+    const error =
+      record.data.failMsg ||
+      record.data.failCode ||
+      record.message ||
+      (record.code && record.code !== 200 ? `Kie error code ${record.code}` : undefined)
+
+    return {
+      id: record.data.taskId,
+      status,
+      result_url: resultUrl,
+      error,
+      raw: record,
+    }
   }
 
   /**
-   * Enhance/restore an old photo using Nano Banana Pro
-   * Features: Face restoration, colorization, upscaling
+   * Create job (generic)
+   */
+  private async createJob(payload: {
+    model: string
+    input: Record<string, unknown>
+    callBackUrl?: string
+  }): Promise<KieApiResponse<{ id: string }>> {
+    const res = await this.request<KieJobCreateResponse>("/jobs/createTask", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+
+    if (!res.success || !res.data?.data?.taskId) {
+      return {
+        success: false,
+        error: res.error || "Failed to create Kie job",
+        status: res.status,
+        raw: res.raw,
+      }
+    }
+
+    return {
+      success: true,
+      data: { id: res.data.data.taskId },
+      status: res.status,
+      raw: res.raw,
+    }
+  }
+
+  /**
+   * Enhance/generate image with Nano Banana Pro
    */
   async enhanceImage(params: {
     imageUrl: string
-    faceRestoration?: boolean
-    colorCorrection?: boolean
-    upscale?: number
+    prompt?: string
+    aspectRatio?: string
+    resolution?: string
+    outputFormat?: string
     webhookUrl?: string
-  }): Promise<KieApiResponse<ImageEnhanceResult>> {
-    return this.request<ImageEnhanceResult>("/images/enhance", {
-      method: "POST",
-      body: JSON.stringify({
-        image: params.imageUrl,
-        options: {
-          face_restoration: params.faceRestoration ?? true,
-          colorization: params.colorCorrection ?? true,
-          upscale_factor: params.upscale ?? 2,
-        },
-        webhook_url: params.webhookUrl,
-      }),
+  }): Promise<KieApiResponse<{ id: string }>> {
+    return this.createJob({
+      model: "nano-banana-pro",
+      callBackUrl: params.webhookUrl,
+      input: {
+        prompt: params.prompt || "Restore and enhance this photo with natural colors and details.",
+        image_input: [params.imageUrl],
+        aspect_ratio: params.aspectRatio || "1:1",
+        resolution: params.resolution || "1K",
+        output_format: params.outputFormat || "png",
+      },
     })
   }
 
   /**
-   * Generate a video from a still image
-   * Uses AI to add motion and bring photos to life
+   * Generate video from image using Wan 2.5 image-to-video
    */
   async generateVideo(params: {
     imageUrl: string
-    prompt?: string
-    motionStrength?: number
+    prompt: string
     duration?: number
+    resolution?: "720p" | "1080p"
+    negativePrompt?: string
+    enablePromptExpansion?: boolean
+    seed?: number
     webhookUrl?: string
-  }): Promise<KieApiResponse<VideoGenerateResult>> {
-    return this.request<VideoGenerateResult>("/videos/generate", {
-      method: "POST",
-      body: JSON.stringify({
-        image: params.imageUrl,
-        prompt: params.prompt || "gentle natural movement",
-        motion_strength: params.motionStrength ?? 50,
-        duration_seconds: params.duration ?? 4,
-        webhook_url: params.webhookUrl,
-      }),
+  }): Promise<KieApiResponse<{ id: string }>> {
+    return this.createJob({
+      model: "wan/2-5-image-to-video",
+      callBackUrl: params.webhookUrl,
+      input: {
+        prompt: params.prompt,
+        image_url: params.imageUrl,
+        duration: `${params.duration ?? 5}`,
+        resolution: params.resolution || "1080p",
+        negative_prompt: params.negativePrompt,
+        enable_prompt_expansion: params.enablePromptExpansion ?? false,
+        seed: params.seed ?? null,
+      },
     })
   }
 
   /**
-   * Check the status of an image enhancement job
+   * Check the status of any job
    */
-  async getEnhanceStatus(
-    jobId: string
-  ): Promise<KieApiResponse<ImageEnhanceResult>> {
-    return this.request<ImageEnhanceResult>(`/images/enhance/${jobId}`)
-  }
+  async getJobStatus(jobId: string): Promise<KieApiResponse<NormalizedResult>> {
+    const res = await this.request<KieRecordInfo>(`/jobs/recordInfo?taskId=${jobId}`, {
+      method: "GET",
+    })
 
-  /**
-   * Check the status of a video generation job
-   */
-  async getVideoStatus(
-    jobId: string
-  ): Promise<KieApiResponse<VideoGenerateResult>> {
-    return this.request<VideoGenerateResult>(`/videos/generate/${jobId}`)
+    if (!res.success) return res as KieApiResponse<NormalizedResult>
+
+    const normalized = this.normalizeRecordInfo(res.data)
+    if (!normalized) {
+      return {
+        success: false,
+        error: "Invalid status payload",
+        status: res.status,
+        raw: res.raw,
+      }
+    }
+
+    return {
+      success: true,
+      data: normalized,
+      status: res.status,
+      raw: res.raw,
+    }
   }
 }
 
@@ -131,5 +251,4 @@ export function createKieClient() {
   return new KieClient(apiKey)
 }
 
-export type { KieClient, ImageEnhanceResult, VideoGenerateResult }
-
+export type { KieClient, NormalizedResult }

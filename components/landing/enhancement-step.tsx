@@ -1,12 +1,81 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Sparkles, ArrowLeft, ArrowRight, Loader2, Download } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
+
+type AspectRatioOption = "original" | "1:1" | "2:3" | "3:2" | "3:4" | "4:3" | "4:5" | "5:4" | "9:16" | "16:9" | "21:9"
+type ResolutionOption = "1K" | "2K" | "4K"
+type OutputFormatOption = "jpg" | "png"
+type StatusPayload = Record<string, any>
+
+const aspectRatioOptions: { value: AspectRatioOption; label: string }[] = [
+  { value: "original", label: "Original" },
+  { value: "1:1", label: "1:1" },
+  { value: "2:3", label: "2:3" },
+  { value: "3:2", label: "3:2" },
+  { value: "3:4", label: "3:4" },
+  { value: "4:3", label: "4:3" },
+  { value: "4:5", label: "4:5" },
+  { value: "5:4", label: "5:4" },
+  { value: "9:16", label: "9:16" },
+  { value: "16:9", label: "16:9" },
+  { value: "21:9", label: "21:9" },
+]
+
+const resolutionOptions: ResolutionOption[] = ["1K", "2K", "4K"]
+const outputFormatOptions: OutputFormatOption[] = ["jpg", "png"]
+
+const extractResultUrl = (payload: StatusPayload) => {
+  if (typeof payload?.result_url === "string") return payload.result_url
+  if (typeof payload?.resultUrl === "string") return payload.resultUrl
+  if (Array.isArray(payload?.resultUrls) && typeof payload.resultUrls[0] === "string") return payload.resultUrls[0]
+
+  const rawResultJson = payload?.resultJson ?? payload?.result_json ?? payload?.result
+  if (typeof rawResultJson === "string") {
+    try {
+      const parsed = JSON.parse(rawResultJson)
+      if (Array.isArray(parsed?.resultUrls) && typeof parsed.resultUrls[0] === "string") {
+        return parsed.resultUrls[0]
+      }
+    } catch {
+      // Ignore JSON parse errors; will fall back to null.
+    }
+  } else if (rawResultJson && typeof rawResultJson === "object") {
+    const urls = (rawResultJson as { resultUrls?: unknown }).resultUrls
+    if (Array.isArray(urls) && typeof urls[0] === "string") {
+      return urls[0]
+    }
+  }
+
+  return null
+}
+
+const normalizeStatus = (payload: StatusPayload) => {
+  const statusRaw =
+    typeof payload?.status === "string"
+      ? payload.status.toLowerCase()
+      : typeof payload?.state === "string"
+        ? payload.state.toLowerCase()
+        : ""
+
+  return {
+    statusRaw,
+    isCompleted: statusRaw === "completed" || statusRaw === "success",
+    isFailed: statusRaw === "failed" || statusRaw === "fail",
+    resultUrl: extractResultUrl(payload),
+    errorMessage:
+      (typeof payload?.error_message === "string" && payload.error_message) ||
+      (typeof payload?.error === "string" && payload.error) ||
+      (typeof payload?.failMsg === "string" && payload.failMsg) ||
+      null,
+  }
+}
 
 interface EnhancementStepProps {
   originalImage: string
@@ -17,11 +86,16 @@ interface EnhancementStepProps {
 export function EnhancementStep({ originalImage, onEnhancementComplete, onBack }: EnhancementStepProps) {
   const [faceRestoration, setFaceRestoration] = useState(true)
   const [colorCorrection, setColorCorrection] = useState(true)
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioOption>("original")
+  const [resolution, setResolution] = useState<ResolutionOption>("1K")
+  const [outputFormat, setOutputFormat] = useState<OutputFormatOption>("jpg")
   const [isProcessing, setIsProcessing] = useState(false)
   const [enhancedImage, setEnhancedImage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
-  const [generationId, setGenerationId] = useState<string | null>(null)
+  const generationIdRef = useRef<string | null>(null)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const supabase = createClient()
 
@@ -32,24 +106,40 @@ export function EnhancementStep({ originalImage, onEnhancementComplete, onBack }
     })
   }, [supabase.auth])
 
+  const clearPolling = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
+    }
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current)
+      pollTimeoutRef.current = null
+    }
+    generationIdRef.current = null
+  }, [])
+
+  useEffect(() => () => clearPolling(), [clearPolling])
+
   const handleEnhance = async () => {
+    clearPolling()
     setIsProcessing(true)
     setError(null)
+    setEnhancedImage(null)
+    generationIdRef.current = null
 
-    // Check if logged in
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      // Demo mode - simulate processing
-      await new Promise((resolve) => setTimeout(resolve, 2500))
-      const enhanced = "/restored-colorized-vintage-wedding-photograph-high.jpg"
-      setEnhancedImage(enhanced)
-      setIsProcessing(false)
-      return
-    }
-
-    // Real API mode
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        const message = "Please sign in to enhance your photo."
+        setError(message)
+        toast.error(message)
+        setIsProcessing(false)
+        return
+      }
+
       const response = await fetch("/api/enhance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,50 +147,97 @@ export function EnhancementStep({ originalImage, onEnhancementComplete, onBack }
           imageUrl: originalImage,
           faceRestoration,
           colorCorrection,
+          resolution,
+          outputFormat,
+          ...(aspectRatio !== "original" ? { aspectRatio } : {}),
         }),
       })
 
-      const data = await response.json()
+      const data = await response.json().catch(() => ({}))
 
       if (!response.ok) {
-        if (response.status === 402) {
-          setError("Insufficient credits. Please purchase more credits to continue.")
-        } else {
-          setError(data.error || "Enhancement failed")
-        }
+        const message =
+          response.status === 402
+            ? "Insufficient credits. Please purchase more credits to continue."
+            : data.error || "Enhancement failed"
+        setError(message)
+        toast.error(message)
         setIsProcessing(false)
         return
       }
 
-      setGenerationId(data.generationId)
+      if (!data?.generationId) {
+        const message = "Missing generation ID from server."
+        setError(message)
+        toast.error(message)
+        setIsProcessing(false)
+        return
+      }
 
-      // Poll for completion
-      const pollInterval = setInterval(async () => {
-        const statusRes = await fetch(`/api/enhance?id=${data.generationId}`)
-        const statusData = await statusRes.json()
+      generationIdRef.current = data.generationId as string
 
-        if (statusData.status === "completed" && statusData.result_url) {
-          clearInterval(pollInterval)
-          setEnhancedImage(statusData.result_url)
+      const pollStatus = async () => {
+        const jobId = generationIdRef.current
+        if (!jobId) return
+
+        try {
+          const statusRes = await fetch(`/api/enhance?id=${jobId}`)
+          const statusData = await statusRes.json().catch(() => ({}))
+
+          if (!statusRes.ok) {
+            const message =
+              statusRes.status === 401
+                ? "Session expired. Please sign in again."
+                : statusData.error || "Unable to check enhancement status."
+            throw new Error(message)
+          }
+
+          const normalized = normalizeStatus(statusData)
+
+          if (normalized.isCompleted && normalized.resultUrl) {
+            clearPolling()
+            setEnhancedImage(normalized.resultUrl)
+            setIsProcessing(false)
+            toast.success("Photo enhanced")
+          } else if (normalized.isCompleted) {
+            clearPolling()
+            const message = "Enhancement completed but no result received."
+            setError(message)
+            setIsProcessing(false)
+            toast.error(message)
+          } else if (normalized.isFailed) {
+            clearPolling()
+            const message = normalized.errorMessage || "Enhancement failed"
+            setError(message)
+            setIsProcessing(false)
+            toast.error(message)
+          }
+        } catch (statusError) {
+          console.error("Enhancement status check failed:", statusError)
+          clearPolling()
+          const message =
+            statusError instanceof Error ? statusError.message : "Failed to check enhancement status."
+          setError(message)
           setIsProcessing(false)
-        } else if (statusData.status === "failed") {
-          clearInterval(pollInterval)
-          setError(statusData.error_message || "Enhancement failed")
-          setIsProcessing(false)
+          toast.error(message)
         }
-      }, 2000)
+      }
+
+      pollStatus()
+      pollIntervalRef.current = setInterval(pollStatus, 2000)
 
       // Timeout after 2 minutes
-      setTimeout(() => {
-        clearInterval(pollInterval)
-        if (isProcessing) {
-          setError("Processing is taking longer than expected. Please check your dashboard.")
-          setIsProcessing(false)
-        }
+      pollTimeoutRef.current = setTimeout(() => {
+        clearPolling()
+        setError("Processing is taking longer than expected. Please check your dashboard.")
+        setIsProcessing(false)
+        toast.error("Processing is taking longer than expected. Please check your dashboard.")
       }, 120000)
     } catch (err) {
       console.error("Enhancement error:", err)
+      clearPolling()
       setError("Failed to start enhancement. Please try again.")
+      toast.error("Failed to start enhancement. Please try again.")
       setIsProcessing(false)
     }
   }
@@ -242,12 +379,89 @@ export function EnhancementStep({ originalImage, onEnhancementComplete, onBack }
               disabled={isProcessing || !!enhancedImage}
             />
           </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-[#3d3632] font-medium">Aspect Ratio (optional)</Label>
+              <span className="text-xs text-[#6b5e54]">Defaults to your upload</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {aspectRatioOptions.map((option) => {
+                const isActive = aspectRatio === option.value
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => setAspectRatio(option.value)}
+                    disabled={isProcessing || !!enhancedImage}
+                    className={`
+                      px-3 py-2 rounded-lg border text-sm transition-all
+                      ${isActive ? "border-[#a67c52] bg-[#a67c52]/10 text-[#3d3632]" : "border-[#d4c9b8] text-[#6b5e54] hover:border-[#a67c52]/60"}
+                      disabled:opacity-50
+                    `}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-[#3d3632] font-medium">Resolution</Label>
+                <span className="text-xs text-[#6b5e54]">Higher uses more time</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {resolutionOptions.map((option) => {
+                  const isActive = resolution === option
+                  return (
+                    <button
+                      key={option}
+                      onClick={() => setResolution(option)}
+                      disabled={isProcessing || !!enhancedImage}
+                      className={`
+                        px-3 py-2 rounded-lg border text-sm transition-all
+                        ${isActive ? "border-[#a67c52] bg-[#a67c52]/10 text-[#3d3632]" : "border-[#d4c9b8] text-[#6b5e54] hover:border-[#a67c52]/60"}
+                        disabled:opacity-50
+                      `}
+                    >
+                      {option}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-[#3d3632] font-medium">Output Format</Label>
+                <span className="text-xs text-[#6b5e54]">Great for downloads</span>
+              </div>
+              <div className="flex gap-2">
+                {outputFormatOptions.map((format) => {
+                  const isActive = outputFormat === format
+                  return (
+                    <button
+                      key={format}
+                      onClick={() => setOutputFormat(format)}
+                      disabled={isProcessing || !!enhancedImage}
+                      className={`
+                        px-3 py-2 rounded-lg border text-sm transition-all capitalize
+                        ${isActive ? "border-[#a67c52] bg-[#a67c52]/10 text-[#3d3632]" : "border-[#d4c9b8] text-[#6b5e54] hover:border-[#a67c52]/60"}
+                        disabled:opacity-50
+                      `}
+                    >
+                      {format}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Login prompt for non-logged in users */}
         {isLoggedIn === false && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
-            <strong>Demo Mode:</strong> Sign in to save your enhancements and use real AI processing.{" "}
+            <strong>Sign in:</strong> Use real AI processing and save your enhancements.{" "}
             <a href="/login" className="underline font-medium">Sign in</a>
           </div>
         )}

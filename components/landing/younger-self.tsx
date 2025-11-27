@@ -15,6 +15,9 @@ export function YoungerSelf() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [resultImage, setResultImage] = useState<string | null>(null)
   const [isExpandingPrompt, setIsExpandingPrompt] = useState(false)
+  const isFeatureReady = false
+  const comingSoonMessage =
+    "Coming soon: we're waiting on Kie.ai's age transformation endpoint, so no placeholder results are shown here."
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -40,10 +43,9 @@ export function YoungerSelf() {
   }
 
   const handleGenerate = async () => {
-    setIsProcessing(true)
-    await new Promise((resolve) => setTimeout(resolve, 3500))
-    setResultImage("/younger-version-of-elderly-person-portrait-vintage.jpg")
+    // Disabled until Kie.ai ships an age transformation endpoint
     setIsProcessing(false)
+    setResultImage(null)
   }
 
   const handleReset = () => {
@@ -72,6 +74,10 @@ export function YoungerSelf() {
             Start Over
           </button>
         )}
+      </div>
+
+      <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+        {comingSoonMessage}
       </div>
 
       {!uploadedImage ? (
@@ -219,7 +225,7 @@ export function YoungerSelf() {
             ) : (
               <Button
                 onClick={handleGenerate}
-                disabled={isProcessing}
+                disabled={isProcessing || !isFeatureReady}
                 className="bg-amber-600 hover:bg-amber-700 text-white px-8"
               >
                 {isProcessing ? (
@@ -230,12 +236,18 @@ export function YoungerSelf() {
                 ) : (
                   <>
                     <ArrowRight className="mr-2 h-4 w-4" />
-                    Generate Younger Self
+                    {isFeatureReady ? "Generate Younger Self" : "Coming Soon"}
                   </>
                 )}
               </Button>
             )}
           </div>
+
+          {!isFeatureReady && (
+            <p className="mt-2 text-sm text-amber-700">
+              We’ll enable this the moment Kie.ai supports age-shift transformations—no fake previews in the meantime.
+            </p>
+          )}
         </div>
       )}
     </div>
