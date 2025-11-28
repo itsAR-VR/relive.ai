@@ -26,28 +26,22 @@ export default function Home() {
       
       <HowItWorks onStartGift={handleStartGift} />
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/30 py-12">
+      {/* Footer - Compact */}
+      <footer className="border-t border-border bg-muted/30 py-6 md:py-8">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Brand */}
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <Gift className="w-5 h-5" />
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <Gift className="w-4 h-4" />
               </div>
               <div>
-                <p className="font-serif text-lg text-foreground">GiftingMoments</p>
-                <p className="text-xs text-muted-foreground">Memory Restoration Studio</p>
+                <p className="font-serif text-base text-foreground">GiftingMoments</p>
               </div>
             </div>
 
-            {/* Tagline */}
-            <p className="text-sm text-muted-foreground text-center">
-              Give the gift of a relived memory. Tell us the story, we&apos;ll bring it to life.
-            </p>
-
             {/* Links */}
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <a href="/pricing" className="hover:text-foreground transition-colors">
                 Packages
               </a>
@@ -57,9 +51,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-border text-center">
+          <div className="mt-4 pt-4 border-t border-border text-center">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} GiftingMoments. All memories deserve to be relived.
+              © {new Date().getFullYear()} GiftingMoments
             </p>
           </div>
         </div>

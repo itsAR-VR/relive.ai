@@ -1,44 +1,40 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Check, Gift, ArrowLeft, Heart, Clapperboard, Film, Sparkles } from "lucide-react"
+import { Check, Gift, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, RefreshCw } from "lucide-react"
 import Link from "next/link"
 
-// Service packages for GiftingMoments
+// Service packages for GiftingMoments - condensed features
 const SERVICE_PACKAGES = [
   {
     id: "keepsake",
-    name: "The Digital Keepsake",
+    name: "Digital Keepsake",
     tagline: "Just thinking of you",
     price: 49,
     originalPrice: 99,
-    description: "Perfect for smaller budgets or a thoughtful gesture.",
+    description: "A thoughtful gesture.",
     features: [
       "1 Restored Memory Video",
       "Super 8 Vintage Style",
-      "High-Resolution Download",
       "Email Delivery",
-      "24-Hour Turnaround",
     ],
     icon: Heart,
     popular: false,
   },
   {
     id: "directors",
-    name: "The Director's Cut",
-    tagline: "Concierge Service & Sound Design",
+    name: "Director's Cut",
+    tagline: "The Big Gift",
     price: 149,
     originalPrice: 299,
-    description: "Our most popular package. Perfect for milestone birthdays.",
+    description: "Our most popular. Perfect for milestones.",
     features: [
-      "Concierge Curation (20 versions, best 1 delivered)",
-      "Professional Sound Design & Music",
+      "Concierge Curation (20 versions)",
+      "Sound Design & Music",
       "Private Viewing Page",
       "Unlimited Revisions",
-      "Optional Voice Note Introduction",
-      "24-Hour Priority Delivery",
+      "Voice Note Intro",
     ],
     icon: Clapperboard,
     popular: true,
@@ -49,15 +45,12 @@ const SERVICE_PACKAGES = [
     tagline: "Mini-Documentary",
     price: 299,
     originalPrice: 800,
-    description: "Perfect for group gifts. Siblings can split the cost.",
+    description: "Group gift. Split with siblings.",
     features: [
       "3 Connected Memory Scenes",
-      "30-Minute Consultation Call",
-      "Mini-Documentary Format",
+      "30-Min Consultation Call",
+      "Mini-Doc Format",
       "Custom Narration",
-      "Private Family Viewing Page",
-      "Unlimited Revisions",
-      "Physical \"Digital Ticket\" PDF",
     ],
     icon: Film,
     popular: false,
@@ -68,7 +61,6 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; type?: "error" | "success" } | null>(null)
   const [quizData, setQuizData] = useState<{ honoree?: string; memory?: string; feeling?: string } | null>(null)
-  const supabase = createClient()
 
   useEffect(() => {
     // Check for quiz data from session storage
@@ -92,20 +84,8 @@ export default function PricingPage() {
     setLoading(packageId)
 
     try {
-      // Check if user is logged in
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
-        // Store the package selection before redirecting
-        sessionStorage.setItem("giftingmoments_package", packageId)
-        window.location.href = "/login?redirect=/pricing"
-        return
-      }
-
-      // For now, redirect to director-interview with package info
-      // In production, this would go to Stripe checkout first
+      // Store the package selection and go directly to intake (Stripe integration later)
+      // No sign-in check - account created via Stripe email matching
       sessionStorage.setItem("giftingmoments_package", packageId)
       window.location.href = "/director-interview"
       
@@ -132,115 +112,98 @@ export default function PricingPage() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Header - Compact */}
       <header className="bg-card/80 backdrop-blur-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center group-hover:shadow-lg transition-shadow">
-              <Gift className="w-5 h-5 text-primary-foreground" />
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <Gift className="w-4 h-4 text-primary-foreground" />
             </div>
-            <div>
-              <span className="text-lg font-serif text-foreground">GiftingMoments</span>
-              <p className="text-xs text-muted-foreground">Memory Restoration Studio</p>
-            </div>
+            <span className="text-base font-serif text-foreground">GiftingMoments</span>
           </Link>
           <Link
             href="/"
             className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Home
+            Back
           </Link>
         </div>
       </header>
 
-      {/* Pricing Content */}
-      <main className="max-w-6xl mx-auto px-4 py-16">
-        {/* Quiz Summary (if available) */}
+      {/* Pricing Content - Condensed */}
+      <main className="max-w-5xl mx-auto px-4 py-6 md:py-10">
+        {/* Quiz Summary (if available) - Compact */}
         {quizData && quizData.memory && (
-          <div className="mb-12 p-6 bg-muted/50 rounded-2xl border border-border max-w-2xl mx-auto">
-            <p className="text-sm text-muted-foreground mb-2">Creating a memory for:</p>
-            <p className="font-serif text-lg text-foreground capitalize mb-3">
+          <div className="mb-6 p-4 bg-muted/50 rounded-xl border border-border max-w-lg mx-auto">
+            <p className="text-xs text-muted-foreground">Creating a memory for:</p>
+            <p className="font-serif text-base text-foreground capitalize">
               {quizData.honoree || "Someone Special"}
-            </p>
-            <p className="text-sm text-muted-foreground italic">
-              &ldquo;{quizData.memory.slice(0, 150)}{quizData.memory.length > 150 ? "..." : ""}&rdquo;
             </p>
           </div>
         )}
 
-        <div className="text-center mb-12">
-          <span className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-accent/20 text-accent-foreground text-sm font-medium border border-accent/30">
-            <Sparkles className="w-4 h-4" />
-            Black Friday Special — Up to 60% Off
+        {/* Header - Compact */}
+        <div className="text-center mb-6 md:mb-8">
+          <span className="inline-flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground text-xs font-medium border border-accent/30">
+            <Sparkles className="w-3 h-3" />
+            Black Friday — Up to 60% Off
           </span>
-          <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
-            Choose Your Memory Package
+          <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-2">
+            Choose Your Package
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Every package includes our &ldquo;Memory Haze&rdquo; aesthetic—warm, nostalgic, and designed to feel like a cherished memory.
+          <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
+            Warm, nostalgic memories. Designed to make them cry.
           </p>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        {/* Pricing Cards - Condensed */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
           {SERVICE_PACKAGES.map((pkg) => {
             const Icon = pkg.icon
             return (
               <div
                 key={pkg.id}
-                className={`relative bg-card rounded-2xl border-2 p-6 lg:p-8 transition-all hover:shadow-xl ${
+                className={`relative bg-card rounded-xl border-2 p-4 md:p-5 transition-all ${
                   pkg.popular
-                    ? "border-primary shadow-lg md:scale-105"
+                    ? "border-primary shadow-lg md:scale-[1.02] ring-2 ring-primary/20"
                     : "border-border hover:border-primary/50"
                 }`}
               >
                 {pkg.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground text-sm font-medium px-4 py-1.5 rounded-full shadow-lg">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full shadow-lg">
                       Most Popular
                     </span>
                   </div>
                 )}
 
-                <div className="text-center mb-6">
+                <div className="text-center mb-4">
                   <div
-                    className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center ${
-                      pkg.popular
-                        ? "bg-primary"
-                        : "bg-muted"
+                    className={`w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center ${
+                      pkg.popular ? "bg-primary" : "bg-muted"
                     }`}
                   >
-                    <Icon
-                      className={`w-8 h-8 ${
-                        pkg.popular ? "text-primary-foreground" : "text-primary"
-                      }`}
-                    />
+                    <Icon className={`w-6 h-6 ${pkg.popular ? "text-primary-foreground" : "text-primary"}`} />
                   </div>
-                  <h3 className="font-serif text-2xl text-foreground mb-1">
+                  <h3 className="font-serif text-lg md:text-xl text-foreground mb-0.5">
                     {pkg.name}
                   </h3>
-                  <p className="text-sm text-primary font-medium mb-4">
+                  <p className="text-xs text-primary font-medium mb-2">
                     {pkg.tagline}
                   </p>
                   <div className="flex items-center justify-center gap-2">
-                    <span className="text-4xl font-serif text-foreground">
-                      ${pkg.price}
-                    </span>
-                    <span className="text-lg text-muted-foreground line-through">
-                      ${pkg.originalPrice}
-                    </span>
+                    <span className="text-3xl font-serif text-foreground">${pkg.price}</span>
+                    <span className="text-sm text-muted-foreground line-through">${pkg.originalPrice}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {pkg.description}
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{pkg.description}</p>
                 </div>
 
-                <div className="space-y-3 mb-8">
+                <div className="space-y-2 mb-4">
                   {pkg.features.map((feature, index) => (
-                    <div key={index} className="flex items-start gap-3 text-foreground">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-sm">{feature}</span>
+                    <div key={index} className="flex items-start gap-2 text-foreground">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-xs md:text-sm">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -248,16 +211,16 @@ export default function PricingPage() {
                 <Button
                   onClick={() => handlePurchase(pkg.id)}
                   disabled={loading === pkg.id}
-                  className={`w-full h-12 font-medium text-base ${
+                  className={`w-full h-10 md:h-11 font-medium text-sm ${
                     pkg.popular
                       ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
                       : "bg-foreground hover:bg-foreground/90 text-background"
                   }`}
                 >
                   {loading === pkg.id ? (
-                    <div className="w-5 h-5 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                   ) : (
-                    "Book This Package"
+                    "Book Now"
                   )}
                 </Button>
               </div>
@@ -265,24 +228,24 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* Trust Section */}
-        <div className="mt-16 text-center">
-          <div className="flex flex-wrap justify-center items-center gap-6 mb-6">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              100% Money-Back Guarantee
+        {/* Trust Section - Improved 3 bullets */}
+        <div className="mt-8 md:mt-10">
+          <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
+              <Shield className="w-4 h-4 text-green-600" />
+              <span className="text-xs md:text-sm text-foreground font-medium">100% Money-Back</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              Secure Payment via Stripe
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-xs md:text-sm text-foreground font-medium">24hr Delivery</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-accent" />
-              500+ Memories Restored
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
+              <RefreshCw className="w-4 h-4 text-accent" />
+              <span className="text-xs md:text-sm text-foreground font-medium">Unlimited Revisions</span>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            &ldquo;We work until you cry.&rdquo; — Our promise to deliver a memory that truly moves them.
+          <p className="text-xs text-muted-foreground text-center mt-4 max-w-sm mx-auto">
+            We work until you cry. 500+ memories restored.
           </p>
         </div>
       </main>

@@ -1,6 +1,8 @@
 "use client"
 
-import { Quote, Star } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import useEmblaCarousel from "embla-carousel-react"
+import { Quote, Star, ChevronLeft, ChevronRight } from "lucide-react"
 
 const TESTIMONIALS = [
   {
@@ -23,97 +25,147 @@ const TESTIMONIALS = [
   },
 ]
 
-const STATS = [
-  { value: "500+", label: "Memories Restored" },
-  { value: "98%", label: "Made Them Cry" },
-  { value: "24hrs", label: "Average Delivery" },
-]
-
 export function SocialProof() {
-  return (
-    <section className="py-20 md:py-28 bg-muted/30 relative overflow-hidden">
-      {/* Subtle decorative elements */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-80 h-80 bg-accent/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true,
+    align: "start",
+    skipSnaps: false,
+  })
+  const [selectedIndex, setSelectedIndex] = useState(0)
 
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
+
+  useEffect(() => {
+    if (!emblaApi) return
+    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap())
+    emblaApi.on("select", onSelect)
+    onSelect()
+    return () => { emblaApi.off("select", onSelect) }
+  }, [emblaApi])
+
+  return (
+    <section className="py-8 md:py-14 bg-muted/30 relative overflow-hidden">
       <div className="container relative mx-auto px-4">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <span className="inline-block mb-4 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-            Why Families Choose Us
-          </span>
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground mb-4">
+        {/* Hero Stat - Prominent */}
+        <div className="text-center mb-6 md:mb-10">
+          <div className="inline-flex flex-col items-center p-4 md:p-6 rounded-2xl bg-primary/10 border border-primary/20">
+            <span className="text-4xl md:text-6xl font-serif text-primary font-bold">98%</span>
+            <span className="text-sm md:text-base text-primary font-medium mt-1">Made Them Cry</span>
+          </div>
+        </div>
+
+        {/* Section Header - Compact */}
+        <div className="text-center mb-6 md:mb-8">
+          <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-2">
             The Gift of Tears
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            We don&apos;t measure success in pixels or resolution. We measure it in the moments that take their breath away.
+          <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
+            We measure success in moments that take their breath away.
           </p>
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto mb-16">
-          {STATS.map((stat, index) => (
-            <div 
-              key={index}
-              className="text-center p-4 md:p-6 rounded-xl bg-card border border-border"
-            >
-              <p className="text-2xl md:text-4xl font-serif text-primary mb-1">
-                {stat.value}
-              </p>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                {stat.label}
-              </p>
-            </div>
-          ))}
+        {/* Mini Stats Row */}
+        <div className="flex justify-center gap-4 md:gap-8 mb-6 md:mb-10">
+          <div className="text-center">
+            <p className="text-xl md:text-2xl font-serif text-foreground">500+</p>
+            <p className="text-xs text-muted-foreground">Memories</p>
+          </div>
+          <div className="w-px bg-border" />
+          <div className="text-center">
+            <p className="text-xl md:text-2xl font-serif text-foreground">24hrs</p>
+            <p className="text-xs text-muted-foreground">Delivery</p>
+          </div>
+          <div className="w-px bg-border" />
+          <div className="text-center">
+            <p className="text-xl md:text-2xl font-serif text-foreground">100%</p>
+            <p className="text-xs text-muted-foreground">Guarantee</p>
+          </div>
         </div>
 
-        {/* Testimonials Grid */}
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+        {/* Mobile: Carousel | Desktop: Grid */}
+        {/* Mobile Carousel */}
+        <div className="md:hidden relative">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex">
+              {TESTIMONIALS.map((testimonial, index) => (
+                <div key={index} className="flex-[0_0_85%] min-w-0 pl-4 first:pl-0">
+                  <TestimonialCard testimonial={testimonial} />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Carousel Navigation */}
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <button 
+              onClick={scrollPrev}
+              className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+            </button>
+            <div className="flex gap-1.5">
+              {TESTIMONIALS.map((_, index) => (
+                <div 
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === selectedIndex ? "bg-primary" : "bg-border"
+                  }`}
+                />
+              ))}
+            </div>
+            <button 
+              onClick={scrollNext}
+              className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors"
+            >
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop: Grid */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
           {TESTIMONIALS.map((testimonial, index) => (
-            <div
-              key={index}
-              className="relative bg-card rounded-2xl p-6 md:p-8 border border-border shadow-sm hover:shadow-lg transition-shadow"
-            >
-              {/* Quote icon */}
-              <div className="absolute -top-3 left-6 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Quote className="w-5 h-5 text-primary" />
-              </div>
-
-              {/* Rating */}
-              <div className="flex gap-1 mb-4 mt-2">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-accent text-accent" />
-                ))}
-              </div>
-
-              {/* Quote */}
-              <blockquote className="text-foreground text-base md:text-lg leading-relaxed mb-6 font-serif italic">
-                &ldquo;{testimonial.quote}&rdquo;
-              </blockquote>
-
-              {/* Author */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {testimonial.author.split(" ").map(n => n[0]).join("")}
-                  </span>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">{testimonial.author}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                </div>
-              </div>
-            </div>
+            <TestimonialCard key={index} testimonial={testimonial} />
           ))}
-        </div>
-
-        {/* Trust Badge */}
-        <div className="mt-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            Join hundreds of families who have given the gift of memory
-          </p>
         </div>
       </div>
     </section>
+  )
+}
+
+function TestimonialCard({ testimonial }: { testimonial: typeof TESTIMONIALS[0] }) {
+  return (
+    <div className="relative bg-card rounded-xl p-5 md:p-6 border border-border shadow-sm h-full">
+      {/* Quote icon */}
+      <div className="absolute -top-2.5 left-4 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+        <Quote className="w-4 h-4 text-primary" />
+      </div>
+
+      {/* Rating */}
+      <div className="flex gap-0.5 mb-3 mt-1">
+        {[...Array(testimonial.rating)].map((_, i) => (
+          <Star key={i} className="w-3.5 h-3.5 fill-accent text-accent" />
+        ))}
+      </div>
+
+      {/* Quote */}
+      <blockquote className="text-foreground text-sm md:text-base leading-relaxed mb-4 font-serif italic">
+        &ldquo;{testimonial.quote}&rdquo;
+      </blockquote>
+
+      {/* Author */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+          <span className="text-xs font-medium text-muted-foreground">
+            {testimonial.author.split(" ").map(n => n[0]).join("")}
+          </span>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-foreground">{testimonial.author}</p>
+          <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+        </div>
+      </div>
+    </div>
   )
 }

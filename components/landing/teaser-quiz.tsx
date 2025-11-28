@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { X, Heart, Users, User, Sparkles, ArrowRight, ArrowLeft, Loader2 } from "lucide-react"
+import { X, Heart, Users, User, Sparkles, ArrowRight, ArrowLeft, Loader2, Home, Camera, Plane, PartyPopper, Music, Utensils } from "lucide-react"
 
 interface TeaserQuizProps {
   isOpen: boolean
@@ -11,6 +11,7 @@ interface TeaserQuizProps {
 }
 
 type HonoreeType = "dad" | "mom" | "grandparent" | "partner" | "other" | null
+type MemoryType = "childhood" | "wedding" | "holiday" | "vacation" | "celebration" | "everyday" | null
 type FeelingType = "nostalgic" | "joyful" | "peace" | "tears" | null
 
 const HONOREE_OPTIONS = [
@@ -19,6 +20,15 @@ const HONOREE_OPTIONS = [
   { id: "grandparent" as const, label: "Grandparent", icon: Users },
   { id: "partner" as const, label: "Partner", icon: Heart },
   { id: "other" as const, label: "Someone Special", icon: Sparkles },
+]
+
+const MEMORY_TYPE_OPTIONS = [
+  { id: "childhood" as const, label: "Childhood Home", icon: Home, description: "The house they grew up in" },
+  { id: "wedding" as const, label: "Wedding Day", icon: Heart, description: "Their special day" },
+  { id: "holiday" as const, label: "Holiday Memory", icon: PartyPopper, description: "Christmas, birthdays, etc." },
+  { id: "vacation" as const, label: "Vacation", icon: Plane, description: "A trip they loved" },
+  { id: "celebration" as const, label: "Celebration", icon: Music, description: "Parties & milestones" },
+  { id: "everyday" as const, label: "Everyday Moment", icon: Utensils, description: "Kitchen, garden, etc." },
 ]
 
 const FEELING_OPTIONS = [
@@ -32,9 +42,8 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [honoree, setHonoree] = useState<HonoreeType>(null)
-  const [memory, setMemory] = useState("")
+  const [memoryType, setMemoryType] = useState<MemoryType>(null)
   const [feeling, setFeeling] = useState<FeelingType>(null)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
   // Reset state when modal closes
   useEffect(() => {
@@ -42,9 +51,8 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
       const timer = setTimeout(() => {
         setStep(1)
         setHonoree(null)
-        setMemory("")
+        setMemoryType(null)
         setFeeling(null)
-        setIsAnalyzing(false)
       }, 300)
       return () => clearTimeout(timer)
     }
@@ -56,19 +64,19 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
     } else if (step === 3) {
       // Start analysis animation
       setStep(4)
-      setIsAnalyzing(true)
       
       // Store quiz data in sessionStorage for pricing page
+      const memoryLabel = MEMORY_TYPE_OPTIONS.find(m => m.id === memoryType)?.label || memoryType
       sessionStorage.setItem("giftingmoments_quiz", JSON.stringify({
         honoree,
-        memory,
+        memory: memoryLabel,
         feeling,
       }))
       
       // Simulate analysis and redirect
       setTimeout(() => {
         router.push("/pricing")
-      }, 2500)
+      }, 2000)
     }
   }
 
@@ -80,7 +88,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
 
   const canProceed = () => {
     if (step === 1) return honoree !== null
-    if (step === 2) return memory.trim().length > 10
+    if (step === 2) return memoryType !== null
     if (step === 3) return feeling !== null
     return false
   }
@@ -118,33 +126,33 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
         )}
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-6 md:p-8">
           {/* Step 1: Who are we honoring? */}
           {step === 1 && (
             <div className="animate-fade-in-slow">
-              <p className="text-sm font-medium text-primary mb-2">Step 1 of 3</p>
-              <h2 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                Who are we honoring today?
+              <p className="text-xs font-medium text-primary mb-1">Step 1 of 3</p>
+              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-1">
+                Who are we honoring?
               </h2>
-              <p className="text-muted-foreground mb-8">
-                Select the person who will receive this gift of memory.
+              <p className="text-sm text-muted-foreground mb-6">
+                Select the person who will receive this gift.
               </p>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {HONOREE_OPTIONS.map((option) => {
                   const Icon = option.icon
                   return (
                     <button
                       key={option.id}
                       onClick={() => setHonoree(option.id)}
-                      className={`p-4 rounded-xl border-2 transition-all hover:scale-[1.02] ${
+                      className={`p-3 rounded-xl border-2 transition-all hover:scale-[1.02] ${
                         honoree === option.id
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-border bg-muted/30 text-foreground hover:border-primary/50"
                       }`}
                     >
-                      <Icon className="w-6 h-6 mx-auto mb-2" />
-                      <span className="block text-sm font-medium">{option.label}</span>
+                      <Icon className="w-5 h-5 mx-auto mb-1" />
+                      <span className="block text-xs font-medium">{option.label}</span>
                     </button>
                   )
                 })}
@@ -152,25 +160,45 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
             </div>
           )}
 
-          {/* Step 2: What is the memory about? */}
+          {/* Step 2: What type of memory? (Selector Grid) */}
           {step === 2 && (
             <div className="animate-fade-in-slow">
-              <p className="text-sm font-medium text-primary mb-2">Step 2 of 3</p>
-              <h2 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                What is the memory about?
+              <p className="text-xs font-medium text-primary mb-1">Step 2 of 3</p>
+              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-1">
+                What type of memory?
               </h2>
-              <p className="text-muted-foreground mb-8">
-                Describe the moment you want to bring back to life. Be as specific as you can.
+              <p className="text-sm text-muted-foreground mb-6">
+                Select a category. You&apos;ll add details after booking.
               </p>
 
-              <textarea
-                value={memory}
-                onChange={(e) => setMemory(e.target.value)}
-                placeholder="e.g., Dad's childhood home in Brooklyn, 1955. The red bike he always talks about. Playing in the backyard with his siblings..."
-                className="w-full h-40 p-4 rounded-xl border-2 border-border bg-muted/30 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
-              />
-              <p className="mt-2 text-sm text-muted-foreground">
-                {memory.length < 10 ? `At least ${10 - memory.length} more characters` : "Perfect! The more detail, the better."}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {MEMORY_TYPE_OPTIONS.map((option) => {
+                  const Icon = option.icon
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => setMemoryType(option.id)}
+                      className={`p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.01] ${
+                        memoryType === option.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-muted/30 hover:border-primary/50"
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 mb-2 ${memoryType === option.id ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className={`block text-sm font-medium ${memoryType === option.id ? "text-primary" : "text-foreground"}`}>
+                        {option.label}
+                      </span>
+                      <span className="block text-xs text-muted-foreground mt-0.5">
+                        {option.description}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Disclaimer */}
+              <p className="mt-4 text-xs text-muted-foreground text-center bg-muted/50 p-3 rounded-lg">
+                Don&apos;t worry about details yet. You can add specific instructions after booking.
               </p>
             </div>
           )}
@@ -178,31 +206,31 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
           {/* Step 3: How do you want them to feel? */}
           {step === 3 && (
             <div className="animate-fade-in-slow">
-              <p className="text-sm font-medium text-primary mb-2">Step 3 of 3</p>
-              <h2 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-                How do you want them to feel?
+              <p className="text-xs font-medium text-primary mb-1">Step 3 of 3</p>
+              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-1">
+                How should they feel?
               </h2>
-              <p className="text-muted-foreground mb-8">
-                This helps us craft the perfect emotional tone for their memory.
+              <p className="text-sm text-muted-foreground mb-6">
+                This helps us craft the perfect emotional tone.
               </p>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 {FEELING_OPTIONS.map((option) => (
                   <button
                     key={option.id}
                     onClick={() => setFeeling(option.id)}
-                    className={`w-full p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.01] ${
+                    className={`p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.01] ${
                       feeling === option.id
                         ? "border-primary bg-primary/10"
                         : "border-border bg-muted/30 hover:border-primary/50"
                     }`}
                   >
-                    <span className={`block font-medium ${
+                    <span className={`block text-sm font-medium ${
                       feeling === option.id ? "text-primary" : "text-foreground"
                     }`}>
                       {option.label}
                     </span>
-                    <span className="block text-sm text-muted-foreground mt-1">
+                    <span className="block text-xs text-muted-foreground mt-0.5">
                       {option.description}
                     </span>
                   </button>
@@ -213,35 +241,29 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
 
           {/* Step 4: Analyzing */}
           {step === 4 && (
-            <div className="animate-fade-in-slow text-center py-8">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            <div className="animate-fade-in-slow text-center py-6">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <Loader2 className="w-7 h-7 text-primary animate-spin" />
               </div>
-              <h2 className="font-serif text-2xl md:text-3xl text-foreground mb-3">
-                Analyzing Your Story...
+              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-2">
+                Finding Your Package...
               </h2>
-              <p className="text-muted-foreground max-w-sm mx-auto">
-                This is a beautiful story. We&apos;re preparing personalized package recommendations for you.
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                This is a beautiful story. We&apos;re preparing recommendations for you.
               </p>
-              
-              <div className="mt-8 p-4 bg-muted/50 rounded-xl">
-                <p className="text-sm text-muted-foreground italic font-serif">
-                  &ldquo;{memory.slice(0, 100)}{memory.length > 100 ? "..." : ""}&rdquo;
-                </p>
-              </div>
             </div>
           )}
 
           {/* Navigation */}
           {step < 4 && (
-            <div className="mt-8 flex items-center justify-between">
+            <div className="mt-6 flex items-center justify-between">
               {step > 1 ? (
                 <Button
                   variant="ghost"
                   onClick={handleBack}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground h-10"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ArrowLeft className="w-4 h-4 mr-1" />
                   Back
                 </Button>
               ) : (
@@ -251,10 +273,10 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
               <Button
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 h-10"
               >
                 {step === 3 ? "See Packages" : "Continue"}
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           )}
