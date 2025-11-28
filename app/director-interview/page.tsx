@@ -38,6 +38,8 @@ function DirectorInterviewContent() {
 
   const sessionId = searchParams.get("session_id") || searchParams.get("checkout_session_id") || ""
   const hasAuthError = searchParams.get("auth_error")
+  const authComplete = searchParams.get("auth_complete") === "true"
+  const [initialCheckDone, setInitialCheckDone] = useState(false)
 
   useEffect(() => {
     // Get package info from session storage
@@ -86,31 +88,57 @@ function DirectorInterviewContent() {
     if (!sessionId) return
     setClaiming(true)
     setClaimError("")
-    const claimRes = await fetch("/api/orders/claim", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_id: sessionId }),
-    })
-    if (!claimRes.ok) {
-      const claimData = await claimRes.json().catch(() => ({}))
-      setClaimError(claimData?.error || "Failed to claim your order.")
+    try {
+      const claimRes = await fetch("/api/orders/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      })
+      if (!claimRes.ok) {
+        const claimData = await claimRes.json().catch(() => ({}))
+        setClaimError(claimData?.error || "Failed to claim your order.")
+      }
+    } catch {
+      setClaimError("Failed to claim your order.")
     }
     setClaiming(false)
   }
 
-  const handleAuthChange = async () => {
+  const handleAuthChange = async (retryCount = 0): Promise<void> => {
     setAuthError("")
     setAuthMessage("")
-    const { data } = await supabase.auth.getUser()
-    const loggedIn = Boolean(data.user)
-
-    if (loggedIn) {
-      setUserEmail(data.user?.email || userEmail)
+    
+    // Use getSession first (reads from storage, no network call)
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (session?.user) {
+      setUserEmail(session.user.email || userEmail)
       setUserReady(true)
       await claimOrder()
-    } else {
-      setUserReady(false)
+      return
     }
+
+    // If auth_complete flag is set, retry a few times (session might still be writing)
+    if (authComplete && retryCount < 5) {
+      await new Promise(resolve => setTimeout(resolve, 200))
+      return handleAuthChange(retryCount + 1)
+    }
+
+    // Fallback: try getUser (network call) as last resort
+    try {
+      const { data } = await supabase.auth.getUser()
+      if (data.user) {
+        setUserEmail(data.user.email || userEmail)
+        setUserReady(true)
+        await claimOrder()
+        return
+      }
+    } catch {
+      // ignore errors
+    }
+
+    setUserReady(false)
+    setInitialCheckDone(true)
   }
 
   useEffect(() => {
@@ -124,28 +152,48 @@ function DirectorInterviewContent() {
     return () => {
       subscription?.subscription?.unsubscribe()
     }
-  }, [sessionId, supabase])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, supabase, authComplete])
 
   const checkVerification = async () => {
     setCheckingSession(true)
     setAuthError("")
     setAuthMessage("")
-    try {
-      const { data, error } = await supabase.auth.getUser()
-      if (error) throw error
-      if (data?.user) {
-        setUserEmail(data.user.email || userEmail)
-        setUserReady(true)
-        await claimOrder()
-      } else {
-        setAuthMessage("Still waiting for login. Open the email link to continue.")
+    
+    // Retry a few times with small delays
+    for (let i = 0; i < 3; i++) {
+      try {
+        // Try getSession first (local storage)
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          setUserEmail(session.user.email || userEmail)
+          setUserReady(true)
+          await claimOrder()
+          setCheckingSession(false)
+          return
+        }
+        
+        // Fallback to getUser (network call)
+        const { data, error } = await supabase.auth.getUser()
+        if (error) throw error
+        if (data?.user) {
+          setUserEmail(data.user.email || userEmail)
+          setUserReady(true)
+          await claimOrder()
+          setCheckingSession(false)
+          return
+        }
+      } catch {
+        // ignore and retry
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Could not check verification"
-      setAuthError(message)
-    } finally {
-      setCheckingSession(false)
+      
+      if (i < 2) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
     }
+    
+    setAuthMessage("Still waiting for login. Open the email link to continue.")
+    setCheckingSession(false)
   }
 
   const sendMagicLink = async (e: React.FormEvent) => {

@@ -26,7 +26,12 @@ export function HashAuthListener() {
           // Redirect to interview with error
           const nextUrl = new URL("/director-interview", window.location.origin)
           // Recover session ID if possible
-          const storedSessionId = localStorage.getItem("giftingmoments_session_id")
+          let storedSessionId: string | null = null
+          try {
+            storedSessionId = localStorage.getItem("giftingmoments_session_id")
+          } catch {
+            // ignore
+          }
           const urlSessionId = url.searchParams.get("session_id") || url.searchParams.get("checkout_session_id")
           
           if (urlSessionId) nextUrl.searchParams.set("session_id", urlSessionId)
@@ -47,16 +52,37 @@ export function HashAuthListener() {
 
       if (!access_token || !refresh_token) return
 
+      // Set session and VERIFY it was stored before redirecting
       try {
-        await supabase.auth.setSession({ access_token, refresh_token })
+        const { error: setError } = await supabase.auth.setSession({ access_token, refresh_token })
+        if (setError) {
+          console.error("HashAuthListener: setSession error", setError)
+          return
+        }
+
+        // CRITICAL: Wait for session to be persisted and verify it worked
+        // This prevents the race condition where redirect happens before storage write
+        let verified = false
+        for (let i = 0; i < 5; i++) {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.access_token) {
+            verified = true
+            break
+          }
+          // Small delay before retry
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
+
+        if (!verified) {
+          console.error("HashAuthListener: session verification failed after retries")
+          return
+        }
       } catch (err) {
         console.error("HashAuthListener: failed to set session from hash", err)
         return
       }
 
-      // Attempt to claim order
-      // 1. Check URL params
-      // 2. Check LocalStorage fallback
+      // Recover session ID
       let sessionId =
         url.searchParams.get("session_id") ||
         url.searchParams.get("checkout_session_id")
@@ -70,21 +96,19 @@ export function HashAuthListener() {
         }
       }
 
+      // Claim order (don't block redirect on this)
       if (sessionId) {
-        try {
-          await fetch("/api/orders/claim", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ session_id: sessionId }),
-          })
-        } catch (err) {
-          console.error("HashAuthListener: order claim failed", err)
-        }
+        fetch("/api/orders/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId }),
+        }).catch(err => console.error("HashAuthListener: order claim failed", err))
       }
 
-      // Redirect to director interview (clean URL)
+      // Redirect to director interview with auth_complete flag
       const targetUrl = new URL("/director-interview", window.location.origin)
       if (sessionId) targetUrl.searchParams.set("session_id", sessionId)
+      targetUrl.searchParams.set("auth_complete", "true")
       
       window.location.replace(targetUrl.toString())
     }
