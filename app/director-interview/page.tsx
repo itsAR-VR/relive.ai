@@ -153,10 +153,11 @@ function DirectorInterviewContent() {
     setAuthError("")
     setAuthMessage("")
     try {
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/director-interview?session_id=${encodeURIComponent(sessionId)}`)}`
       const { error } = await supabase.auth.signInWithOtp({
         email: userEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}/director-interview?session_id=${encodeURIComponent(sessionId)}`,
+          emailRedirectTo: redirectTo,
           shouldCreateUser: true,
         },
       })
@@ -235,11 +236,11 @@ function DirectorInterviewContent() {
                 {authError && (
                   <p className="text-sm text-red-600">{authError}</p>
                 )}
-              {authMessage && (
-                <p className="text-sm text-green-600">{authMessage}</p>
-              )}
-              <button
-                type="submit"
+                {authMessage && (
+                  <p className="text-sm text-green-600">{authMessage}</p>
+                )}
+                <button
+                  type="submit"
                   disabled={sendingLink || !sessionId}
                   className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-60"
                 >
@@ -253,7 +254,7 @@ function DirectorInterviewContent() {
                   className="w-full h-11 rounded-lg border border-border text-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   {checkingSession && <Loader2 className="w-4 h-4 animate-spin" />}
-                  I already clicked the link
+                  I've verified, continue
                 </button>
               </form>
               {sessionId === "" && (
