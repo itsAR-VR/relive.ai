@@ -82,7 +82,7 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
                 </div>
 
                 {/* Badge overlay - Desktop only */}
-                <div className="hidden lg:block absolute top-3 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border shadow-lg">
+                <div className="hidden lg:block absolute top-2 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border shadow-lg">
                   <span className="text-sm font-medium text-foreground">
                     Restored by <span className="text-primary">Moments</span>
                   </span>
