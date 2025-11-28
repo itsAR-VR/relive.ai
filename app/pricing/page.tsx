@@ -3,20 +3,84 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { CREDIT_PACKAGES } from "@/lib/stripe"
-import { Check, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react"
+import { Check, Gift, ArrowLeft, Heart, Clapperboard, Film, Sparkles } from "lucide-react"
 import Link from "next/link"
 
-const PACKAGE_ICONS = {
-  starter: Zap,
-  popular: Sparkles,
-  pro: Crown,
-}
+// Service packages for GiftingMoments
+const SERVICE_PACKAGES = [
+  {
+    id: "keepsake",
+    name: "The Digital Keepsake",
+    tagline: "Just thinking of you",
+    price: 49,
+    originalPrice: 99,
+    description: "Perfect for smaller budgets or a thoughtful gesture.",
+    features: [
+      "1 Restored Memory Video",
+      "Super 8 Vintage Style",
+      "High-Resolution Download",
+      "Email Delivery",
+      "24-Hour Turnaround",
+    ],
+    icon: Heart,
+    popular: false,
+  },
+  {
+    id: "directors",
+    name: "The Director's Cut",
+    tagline: "Concierge Service & Sound Design",
+    price: 149,
+    originalPrice: 299,
+    description: "Our most popular package. Perfect for milestone birthdays.",
+    features: [
+      "Concierge Curation (20 versions, best 1 delivered)",
+      "Professional Sound Design & Music",
+      "Private Viewing Page",
+      "Unlimited Revisions",
+      "Optional Voice Note Introduction",
+      "24-Hour Priority Delivery",
+    ],
+    icon: Clapperboard,
+    popular: true,
+  },
+  {
+    id: "biography",
+    name: "The Biography",
+    tagline: "Mini-Documentary",
+    price: 299,
+    originalPrice: 800,
+    description: "Perfect for group gifts. Siblings can split the cost.",
+    features: [
+      "3 Connected Memory Scenes",
+      "30-Minute Consultation Call",
+      "Mini-Documentary Format",
+      "Custom Narration",
+      "Private Family Viewing Page",
+      "Unlimited Revisions",
+      "Physical \"Digital Ticket\" PDF",
+    ],
+    icon: Film,
+    popular: false,
+  },
+]
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; type?: "error" | "success" } | null>(null)
+  const [quizData, setQuizData] = useState<{ honoree?: string; memory?: string; feeling?: string } | null>(null)
   const supabase = createClient()
+
+  useEffect(() => {
+    // Check for quiz data from session storage
+    const stored = sessionStorage.getItem("giftingmoments_quiz")
+    if (stored) {
+      try {
+        setQuizData(JSON.parse(stored))
+      } catch {
+        // Ignore parsing errors
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!toast) return
@@ -34,23 +98,17 @@ export default function PricingPage() {
       } = await supabase.auth.getUser()
 
       if (!user) {
+        // Store the package selection before redirecting
+        sessionStorage.setItem("giftingmoments_package", packageId)
         window.location.href = "/login?redirect=/pricing"
         return
       }
 
-      const response = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageId }),
-      })
-
-      const data = await response.json()
-
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        throw new Error(data.error || "Failed to create checkout")
-      }
+      // For now, redirect to director-interview with package info
+      // In production, this would go to Stripe checkout first
+      sessionStorage.setItem("giftingmoments_package", packageId)
+      window.location.href = "/director-interview"
+      
     } catch (error) {
       console.error("Purchase error:", error)
       const message = error instanceof Error ? error.message : "Failed to start checkout. Please try again."
@@ -61,10 +119,10 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f1e6]">
+    <div className="min-h-screen bg-background">
       {toast && (
         <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 rounded-lg px-4 py-3 shadow-lg border ${
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-lg px-4 py-3 shadow-lg border ${
             toast.type === "error"
               ? "bg-red-50 border-red-200 text-red-800"
               : "bg-green-50 border-green-200 text-green-800"
@@ -73,65 +131,73 @@ export default function PricingPage() {
           {toast.message}
         </div>
       )}
+
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-[#e2d8c3]">
+      <header className="bg-card/80 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#a67c52] to-[#8d6e4c] rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center group-hover:shadow-lg transition-shadow">
+              <Gift className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold text-[#3d3632]">Relive</span>
+            <div>
+              <span className="text-lg font-serif text-foreground">GiftingMoments</span>
+              <p className="text-xs text-muted-foreground">Memory Restoration Studio</p>
+            </div>
           </Link>
           <Link
-            href="/dashboard"
-            className="text-sm text-[#7d6b56] hover:text-[#a67c52] flex items-center gap-1"
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            Back to Home
           </Link>
         </div>
       </header>
 
       {/* Pricing Content */}
-      <main className="max-w-5xl mx-auto px-4 py-16">
+      <main className="max-w-6xl mx-auto px-4 py-16">
+        {/* Quiz Summary (if available) */}
+        {quizData && quizData.memory && (
+          <div className="mb-12 p-6 bg-muted/50 rounded-2xl border border-border max-w-2xl mx-auto">
+            <p className="text-sm text-muted-foreground mb-2">Creating a memory for:</p>
+            <p className="font-serif text-lg text-foreground capitalize mb-3">
+              {quizData.honoree || "Someone Special"}
+            </p>
+            <p className="text-sm text-muted-foreground italic">
+              &ldquo;{quizData.memory.slice(0, 150)}{quizData.memory.length > 150 ? "..." : ""}&rdquo;
+            </p>
+          </div>
+        )}
+
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[#3d3632] mb-4">
-            Get More Credits
+          <span className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-accent/20 text-accent-foreground text-sm font-medium border border-accent/30">
+            <Sparkles className="w-4 h-4" />
+            Black Friday Special — Up to 60% Off
+          </span>
+          <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+            Choose Your Memory Package
           </h1>
-          <p className="text-lg text-[#7d6b56] max-w-2xl mx-auto">
-            Choose a credit pack to continue bringing your memories to life.
-            Credits never expire.
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Every package includes our &ldquo;Memory Haze&rdquo; aesthetic—warm, nostalgic, and designed to feel like a cherished memory.
           </p>
         </div>
 
-        {/* Credit Usage Info */}
-        <div className="flex justify-center gap-8 mb-12 text-sm text-[#7d6b56]">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-[#a67c52] rounded-full" />
-            <span>1 credit = 1 photo enhancement</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-[#3d3632] rounded-full" />
-            <span>5 credits = 1 video generation</span>
-          </div>
-        </div>
-
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {CREDIT_PACKAGES.map((pkg) => {
-            const Icon = PACKAGE_ICONS[pkg.id as keyof typeof PACKAGE_ICONS]
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          {SERVICE_PACKAGES.map((pkg) => {
+            const Icon = pkg.icon
             return (
               <div
                 key={pkg.id}
-                className={`relative bg-white rounded-2xl border-2 p-6 transition-all hover:shadow-lg ${
+                className={`relative bg-card rounded-2xl border-2 p-6 lg:p-8 transition-all hover:shadow-xl ${
                   pkg.popular
-                    ? "border-[#a67c52] shadow-lg scale-105"
-                    : "border-[#e2d8c3]"
+                    ? "border-primary shadow-lg md:scale-105"
+                    : "border-border hover:border-primary/50"
                 }`}
               >
                 {pkg.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-[#a67c52] text-white text-xs font-medium px-3 py-1 rounded-full">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <span className="bg-primary text-primary-foreground text-sm font-medium px-4 py-1.5 rounded-full shadow-lg">
                       Most Popular
                     </span>
                   </div>
@@ -139,64 +205,59 @@ export default function PricingPage() {
 
                 <div className="text-center mb-6">
                   <div
-                    className={`w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center ${
+                    className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center ${
                       pkg.popular
-                        ? "bg-gradient-to-br from-[#a67c52] to-[#8d6e4c]"
-                        : "bg-[#f5f1e6]"
+                        ? "bg-primary"
+                        : "bg-muted"
                     }`}
                   >
                     <Icon
-                      className={`w-7 h-7 ${
-                        pkg.popular ? "text-white" : "text-[#a67c52]"
+                      className={`w-8 h-8 ${
+                        pkg.popular ? "text-primary-foreground" : "text-primary"
                       }`}
                     />
                   </div>
-                  <h3 className="text-xl font-semibold text-[#3d3632] mb-1">
+                  <h3 className="font-serif text-2xl text-foreground mb-1">
                     {pkg.name}
                   </h3>
-                  <p className="text-3xl font-bold text-[#3d3632]">
-                    ${pkg.price}
+                  <p className="text-sm text-primary font-medium mb-4">
+                    {pkg.tagline}
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-4xl font-serif text-foreground">
+                      ${pkg.price}
+                    </span>
+                    <span className="text-lg text-muted-foreground line-through">
+                      ${pkg.originalPrice}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {pkg.description}
                   </p>
                 </div>
 
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-2 text-[#5c4d3f]">
-                    <Check className="w-5 h-5 text-[#a67c52]" />
-                    <span>
-                      <strong>{pkg.credits}</strong> credits
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[#5c4d3f]">
-                    <Check className="w-5 h-5 text-[#a67c52]" />
-                    <span>
-                      {pkg.credits} photo restorations
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[#5c4d3f]">
-                    <Check className="w-5 h-5 text-[#a67c52]" />
-                    <span>
-                      {Math.floor(pkg.credits / 5)} video generations
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[#5c4d3f]">
-                    <Check className="w-5 h-5 text-[#a67c52]" />
-                    <span>Credits never expire</span>
-                  </div>
+                <div className="space-y-3 mb-8">
+                  {pkg.features.map((feature, index) => (
+                    <div key={index} className="flex items-start gap-3 text-foreground">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-sm">{feature}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <Button
                   onClick={() => handlePurchase(pkg.id)}
                   disabled={loading === pkg.id}
-                  className={`w-full h-12 font-medium ${
+                  className={`w-full h-12 font-medium text-base ${
                     pkg.popular
-                      ? "bg-gradient-to-r from-[#a67c52] to-[#8d6e4c] hover:from-[#8d6e4c] hover:to-[#735a3a] text-white"
-                      : "bg-[#3d3632] hover:bg-[#2a2522] text-white"
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+                      : "bg-foreground hover:bg-foreground/90 text-background"
                   }`}
                 >
                   {loading === pkg.id ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                   ) : (
-                    `Buy ${pkg.credits} Credits`
+                    "Book This Package"
                   )}
                 </Button>
               </div>
@@ -204,20 +265,25 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* Trust Badges */}
-        <div className="mt-12 text-center">
-          <p className="text-sm text-[#8a7e72] mb-4">
-            Secure payment powered by Stripe
-          </p>
-          <div className="flex justify-center items-center gap-4 opacity-50">
-            <svg className="h-8" viewBox="0 0 60 25" fill="currentColor">
-              <path d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a12.5 12.5 0 01-4.73.94c-4.44 0-7.27-2.42-7.27-7.13 0-4.22 2.5-7.13 6.52-7.13 4.34 0 6.29 3.17 6.29 7.13v1.27zm-4.77-5.57c-1.13 0-2.12.7-2.12 2.48h4.05c0-1.61-.72-2.48-1.93-2.48z" />
-              <path d="M42.84 3.16l4.56-.62v4.72h4.78v3.47h-4.78v5.88c0 1.8.76 2.52 2.03 2.52.7 0 1.53-.17 2.17-.4v3.3c-.87.35-2.13.61-3.68.61-3.6 0-5.08-2.04-5.08-5.48V10.73h-2.47V7.26h2.47V3.16z" />
-              <path d="M29.53 20.64c-4.56 0-7.1-2.83-7.1-7.16 0-4.34 2.54-7.16 7.1-7.16s7.1 2.82 7.1 7.16c0 4.33-2.54 7.16-7.1 7.16zm0-10.87c-1.86 0-2.51 1.58-2.51 3.71 0 2.12.65 3.71 2.51 3.71 1.85 0 2.5-1.59 2.5-3.71 0-2.13-.65-3.71-2.5-3.71z" />
-              <path d="M18.43 11.98c1.33-.7 2.27-1.86 2.27-3.58 0-2.82-2.38-4.02-5.57-4.02H8.26v15.91h7.1c3.47 0 5.8-1.46 5.8-4.73 0-1.95-1.08-3.22-2.73-3.58zm-5.95-4.63h2.49c1.21 0 1.94.53 1.94 1.53 0 1.05-.73 1.67-1.94 1.67h-2.49V7.35zm2.72 9.5h-2.72v-3.68h2.72c1.39 0 2.24.64 2.24 1.84 0 1.19-.85 1.84-2.24 1.84z" />
-              <path d="M0 4.37h4.56v15.92H0z" />
-            </svg>
+        {/* Trust Section */}
+        <div className="mt-16 text-center">
+          <div className="flex flex-wrap justify-center items-center gap-6 mb-6">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              100% Money-Back Guarantee
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-2 h-2 rounded-full bg-primary" />
+              Secure Payment via Stripe
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-2 h-2 rounded-full bg-accent" />
+              500+ Memories Restored
+            </div>
           </div>
+          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+            &ldquo;We work until you cry.&rdquo; — Our promise to deliver a memory that truly moves them.
+          </p>
         </div>
       </main>
     </div>

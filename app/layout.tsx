@@ -5,35 +5,26 @@ import { Toaster } from "sonner"
 
 import "./globals.css"
 
-import { Libre_Baskerville, IBM_Plex_Mono, Lora, Libre_Baskerville as V0_Font_Libre_Baskerville, IBM_Plex_Mono as V0_Font_IBM_Plex_Mono, Lora as V0_Font_Lora } from 'next/font/google'
+import { Playfair_Display, Inter } from 'next/font/google'
 
-// Initialize fonts
-const _libreBaskerville = V0_Font_Libre_Baskerville({ subsets: ['latin'], weight: ["400","700"] })
-const _ibmPlexMono = V0_Font_IBM_Plex_Mono({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700"] })
-const _lora = V0_Font_Lora({ subsets: ['latin'], weight: ["400","500","600","700"] })
-
-const libreBaskerville = Libre_Baskerville({
+// Serif font for headings - high-end, story-driven feel
+const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-serif",
 })
 
-const ibmPlexMono = IBM_Plex_Mono({
+// Sans-serif font for body text - clean readability
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-mono",
-})
-
-const lora = Lora({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-sans",
 })
 
 export const metadata: Metadata = {
-  title: "Relive — Bring Your Memories Back to Life",
+  title: "GiftingMoments — Give the Gift of a Relived Memory",
   description:
-    "Transform cherished photographs into living, breathing moments. Help loved ones see their precious memories come alive with AI-powered video generation.",
+    "The hardest person to buy for has everything they need. Except their childhood. Tell us your story, and our directors will bring the memory back to life.",
   generator: "v0.app",
   icons: {
     icon: [
@@ -66,8 +57,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${libreBaskerville.variable} ${ibmPlexMono.variable} ${lora.variable}`}>
-      <body className="font-serif antialiased">
+    <html lang="en" className={`${playfairDisplay.variable} ${inter.variable}`}>
+      <body className="font-sans antialiased">
         {children}
         <Analytics />
         <Toaster richColors position="top-center" closeButton />
