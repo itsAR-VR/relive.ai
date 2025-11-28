@@ -46,6 +46,20 @@ Transform faded photographs into living, breathing moments. Help grandparents se
 | `STRIPE_PRICE_PREMIUM` | Stripe Price ID for the Premium gift tier ($149) |
 | `STRIPE_PRICE_BIO` | Stripe Price ID for the Biography gift tier ($299) |
 | `NEXT_PUBLIC_APP_URL` | Your deployed app URL |
+| `META_PIXEL_ID` | Meta Pixel ID used for server-side Conversions API calls |
+| `META_CAPI_ACCESS_TOKEN` | Meta Conversions API access token |
+| `META_CAPI_API_VERSION` | Optional, defaults to `v20.0` |
+| `META_CAPI_TEST_EVENT_CODE` | Optional test event code for QA events |
+
+## Meta Conversions API
+
+- Server helper: `lib/meta.ts` handles hashing and posting to the Meta Graph `/events` edge.
+- Proxy endpoint: `POST /api/meta/conversions` lets the client send structured events; it auto-attaches `_fbp`/`_fbc`, IP, and UA from the request.
+- Wired events:
+  - `InitiateCheckout` (server) on Stripe checkout session creation with event_id = session id for deduping.
+  - `Purchase` (server) on `checkout.session.completed` webhook with value/currency from Stripe.
+  - `SubmitApplication` (server) when the director interview is submitted.
+- Add other events (Lead, ViewContent, etc.) by calling the proxy with `event_name`, `event_source_url`, and `user_data` (email/phone optional) from the relevant UI interactions.
 
 ## Kie.ai Integration (current)
 

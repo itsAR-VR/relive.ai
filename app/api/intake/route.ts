@@ -2,6 +2,7 @@ import { randomUUID } from "crypto"
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js"
+import { extractMetaCookies, sendConversionEvent } from "@/lib/meta"
 
 const BUCKET = "order-assets"
 
@@ -79,6 +80,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL
+    const referer = request.headers.get("referer") || origin || undefined
+    const forwardedFor = request.headers.get("x-forwarded-for")
+    const clientIpAddress = forwardedFor?.split(",")[0]?.trim()
+    const clientUserAgent = request.headers.get("user-agent") || undefined
+    const metaCookies = extractMetaCookies(request.headers.get("cookie"))
+
     const formData = await request.formData()
     const orderIdentifier =
       formData.get("order_id") ||
@@ -150,6 +158,26 @@ export async function POST(request: Request) {
       console.error("Failed to update order intake", updateError)
       return NextResponse.json({ error: "Failed to save interview" }, { status: 500 })
     }
+
+    sendConversionEvent({
+      eventName: "SubmitApplication",
+      eventSourceUrl: referer,
+      eventId: `interview-${order.id}`,
+      userData: {
+        email: user.email,
+        externalId: user.id,
+        clientIpAddress,
+        clientUserAgent,
+        fbp: metaCookies.fbp,
+        fbc: metaCookies.fbc,
+      },
+      customData: {
+        content_category: "director_interview",
+        content_ids: [order.id],
+      },
+    }).catch((error) => {
+      console.error("Failed to send SubmitApplication to Meta", error)
+    })
 
     return NextResponse.json({
       success: true,

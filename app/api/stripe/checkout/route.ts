@@ -1,18 +1,31 @@
 import { createClient } from "@/lib/supabase/server"
+import { extractMetaCookies, sendConversionEvent } from "@/lib/meta"
 import { getServiceTierById, getStripe } from "@/lib/stripe"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let supabase: Awaited<ReturnType<typeof createClient>> | null = null
+    let user: { id: string; email?: string | null } | null = null
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    try {
+      supabase = await createClient()
+      const {
+        data: { user: supabaseUser },
+        error: authError,
+      } = await supabase.auth.getUser()
+
+      if (authError) {
+        console.warn("Supabase auth lookup failed, proceeding as guest", authError)
+      } else {
+        user = supabaseUser
+      }
+    } catch (authInitError) {
+      console.warn("Supabase client unavailable, proceeding as guest", authInitError)
     }
 
     const body = await request.json()
-    const { tierId, tier, packageId } = body
+    const { tierId, tier, packageId, quizData } = body
     const serviceTierId: string | undefined = tierId || tier || packageId
 
     if (!serviceTierId) {
@@ -35,40 +48,86 @@ export async function POST(request: Request) {
 
     const stripe = getStripe()
     let stripeCustomerId: string | undefined
+    let customerEmail: string | undefined
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("stripe_customer_id")
-      .eq("id", user.id)
-      .single()
-
-    if (profile?.stripe_customer_id) {
-      stripeCustomerId = profile.stripe_customer_id
-    } else {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { supabase_user_id: user.id },
-      })
-      stripeCustomerId = customer.id
-
-      await supabase
+    if (user && supabase) {
+      const { data: profile } = await supabase
         .from("profiles")
-        .update({ stripe_customer_id: stripeCustomerId })
+        .select("stripe_customer_id")
         .eq("id", user.id)
+        .single()
+
+      if (profile?.stripe_customer_id) {
+        stripeCustomerId = profile.stripe_customer_id
+      } else {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: { supabase_user_id: user.id },
+        })
+        stripeCustomerId = customer.id
+
+        await supabase
+          .from("profiles")
+          .update({ stripe_customer_id: stripeCustomerId })
+          .eq("id", user.id)
+      }
+
+      customerEmail = user.email || undefined
     }
 
     const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL
 
+    const metadata: Record<string, string> = { tier: serviceTier.id }
+
+    if (user?.id) {
+      metadata.user_id = user.id
+    }
+
+    if (quizData) {
+      try {
+        metadata.quiz_data =
+          typeof quizData === "string" ? quizData : JSON.stringify(quizData)
+      } catch {
+        // ignore serialization errors; omit quiz data if it can't be stringified
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
-      customer: stripeCustomerId,
+      ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
       line_items: [{ price: serviceTier.priceId, quantity: 1 }],
       mode: "payment",
       success_url: `${origin}/director-interview?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard?canceled=true`,
-      metadata: {
-        user_id: user.id,
-        tier: serviceTier.id,
+      metadata,
+    })
+
+    const referer = request.headers.get("referer") || origin
+    const forwardedFor = request.headers.get("x-forwarded-for")
+    const clientIpAddress = forwardedFor?.split(",")[0]?.trim()
+    const clientUserAgent = request.headers.get("user-agent") || undefined
+    const metaCookies = extractMetaCookies(request.headers.get("cookie"))
+
+    sendConversionEvent({
+      eventName: "InitiateCheckout",
+      eventSourceUrl: referer,
+      eventId: session.id,
+      userData: {
+        email: customerEmail,
+        externalId: user?.id || undefined,
+        clientIpAddress,
+        clientUserAgent,
+        fbp: metaCookies.fbp,
+        fbc: metaCookies.fbc,
       },
+      customData: {
+        currency: "USD",
+        value: serviceTier.price,
+        content_category: "gift_package",
+        content_ids: [serviceTier.id],
+        content_name: serviceTier.name,
+      },
+    }).catch((error) => {
+      console.error("Failed to send InitiateCheckout to Meta", error)
     })
 
     return NextResponse.json({ url: session.url })

@@ -57,6 +57,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const analyticsEnabled =
+    process.env.NEXT_PUBLIC_ENABLE_VERCEL_ANALYTICS === "true" ||
+    Boolean(process.env.VERCEL_ANALYTICS_ID)
+
   return (
     <html lang="en" className={`${playfairDisplay.variable} ${inter.variable}`}>
       <head>
@@ -90,7 +94,7 @@ fbq('track', 'PageView');
           />
         </noscript>
         {children}
-        <Analytics />
+        {analyticsEnabled ? <Analytics /> : null}
         <Toaster richColors position="top-center" closeButton />
       </body>
     </html>
