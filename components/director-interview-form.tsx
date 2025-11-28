@@ -14,7 +14,11 @@ import {
   Check,
   Loader2
 } from "lucide-react"
-import { useSearchParams } from "next/navigation"
+
+interface DirectorInterviewFormProps {
+  orderId: string
+  initialQuizData?: { honoree?: string; who?: string; memory?: string; vibe?: string } | null
+}
 
 type FormData = {
   honoree: string
@@ -57,8 +61,7 @@ const STYLE_OPTIONS = [
   },
 ]
 
-export function DirectorInterviewForm() {
-  const searchParams = useSearchParams()
+export function DirectorInterviewForm({ orderId, initialQuizData }: DirectorInterviewFormProps) {
   const [step, setStep] = useState(1)
   const [isRecording, setIsRecording] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -87,18 +90,38 @@ export function DirectorInterviewForm() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  // Prefill from teaser quiz draft
+  // Prefill from props (initialQuizData from database) or localStorage draft
   useEffect(() => {
+    const vibeStyleMap: Record<string, FormData["style"]> = {
+      nostalgic: "super8",
+      joyful: "painting",
+      peace: "dreamhaze",
+      tears: "super8",
+    }
+
+    // Priority 1: Use initialQuizData from props (from database)
+    if (initialQuizData) {
+      const parsed = initialQuizData
+      setDraftData(parsed)
+      setFormData((prev) => ({
+        ...prev,
+        honoree: parsed.honoree || parsed.who || prev.honoree,
+        scene:
+          prev.scene ||
+          (parsed.memory
+            ? `I want to relive a ${parsed.memory} memory. Specifically...`
+            : prev.scene),
+        style: prev.style || (parsed.vibe ? vibeStyleMap[parsed.vibe] || prev.style : prev.style),
+      }))
+      setDraftLoaded(Boolean(parsed.honoree || parsed.who || parsed.memory || parsed.vibe))
+      return
+    }
+
+    // Priority 2: Fallback to localStorage draft
     try {
       const stored = localStorage.getItem("gifter_draft")
       if (stored) {
         const parsed = JSON.parse(stored) as { who?: string; memory?: string; vibe?: string }
-        const vibeStyleMap: Record<string, FormData["style"]> = {
-          nostalgic: "super8",
-          joyful: "painting",
-          peace: "dreamhaze",
-          tears: "super8",
-        }
 
         setDraftData(parsed)
         setFormData((prev) => ({
@@ -117,7 +140,7 @@ export function DirectorInterviewForm() {
     } catch {
       // ignore parse errors
     }
-  }, [])
+  }, [initialQuizData])
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -166,11 +189,6 @@ export function DirectorInterviewForm() {
 
   const handleSubmit = async () => {
     setError(null)
-    const orderId =
-      searchParams.get("order_id") ||
-      searchParams.get("session_id") ||
-      searchParams.get("checkout_session_id") ||
-      ""
 
     if (!orderId) {
       setError("Missing order ID. Please return from Stripe and try again.")

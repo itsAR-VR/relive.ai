@@ -33,6 +33,7 @@ function DirectorInterviewContent() {
   const [claimError, setClaimError] = useState<string>("")
   const [checkingSession, setCheckingSession] = useState<boolean>(false)
   const [authErrorFlag, setAuthErrorFlag] = useState<boolean>(false)
+  const [orderId, setOrderId] = useState<string>("")
   const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
 
@@ -85,21 +86,50 @@ function DirectorInterviewContent() {
   }, [hasAuthError])
 
   const claimOrder = async () => {
-    if (!sessionId) return
     setClaiming(true)
     setClaimError("")
+    
     try {
-      const claimRes = await fetch("/api/orders/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
-      })
-      if (!claimRes.ok) {
-        const claimData = await claimRes.json().catch(() => ({}))
-        setClaimError(claimData?.error || "Failed to claim your order.")
+      // First try to claim by session_id if we have it
+      if (sessionId) {
+        const claimRes = await fetch("/api/orders/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId }),
+        })
+        if (claimRes.ok) {
+          const claimData = await claimRes.json()
+          if (claimData.order?.id) {
+            setOrderId(claimData.order.id)
+            setClaiming(false)
+            return
+          }
+        }
+      }
+
+      // Fallback: Fetch the user's pending order from database
+      const pendingRes = await fetch("/api/orders/pending")
+      if (pendingRes.ok) {
+        const pendingData = await pendingRes.json()
+        if (pendingData.order?.id) {
+          setOrderId(pendingData.order.id)
+          // Also load quiz data from the order if available
+          if (pendingData.order.quiz_data) {
+            setQuizData(pendingData.order.quiz_data)
+          }
+          setClaiming(false)
+          return
+        }
+      }
+
+      // If we still don't have an order, show error
+      if (!sessionId) {
+        setClaimError("No pending order found. Please complete checkout first.")
+      } else {
+        setClaimError("Could not find your order. Please try again or contact support.")
       }
     } catch {
-      setClaimError("Failed to claim your order.")
+      setClaimError("Failed to load your order.")
     }
     setClaiming(false)
   }
@@ -336,14 +366,19 @@ function DirectorInterviewContent() {
                 Please use the email you used at checkout so we can attach your order.
               </p>
             </div>
-          ) : (
+          ) : orderId ? (
             <Suspense fallback={
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
               </div>
             }>
-              <DirectorInterviewForm />
+              <DirectorInterviewForm orderId={orderId} initialQuizData={quizData} />
             </Suspense>
+          ) : (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <span className="ml-3 text-sm text-muted-foreground">Loading your order...</span>
+            </div>
           )}
         </div>
 
