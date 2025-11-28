@@ -15,9 +15,22 @@ import {
   Loader2
 } from "lucide-react"
 
+interface SavedInterviewData {
+  honoree?: string
+  scene?: string
+  weather?: string
+  smell?: string
+  sounds?: string
+  anchorObject?: string
+  style?: "super8" | "painting" | "dreamhaze"
+  last_step?: number
+  [key: string]: unknown
+}
+
 interface DirectorInterviewFormProps {
   orderId: string
   initialQuizData?: { honoree?: string; who?: string; memory?: string; vibe?: string } | null
+  savedInterviewData?: SavedInterviewData | null
 }
 
 type FormData = {
@@ -61,8 +74,10 @@ const STYLE_OPTIONS = [
   },
 ]
 
-export function DirectorInterviewForm({ orderId, initialQuizData }: DirectorInterviewFormProps) {
-  const [step, setStep] = useState(1)
+export function DirectorInterviewForm({ orderId, initialQuizData, savedInterviewData }: DirectorInterviewFormProps) {
+  const [step, setStep] = useState(savedInterviewData?.last_step || 1)
+  const [isSaving, setIsSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<string | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
@@ -74,20 +89,61 @@ export function DirectorInterviewForm({ orderId, initialQuizData }: DirectorInte
   const audioChunksRef = useRef<Blob[]>([])
 
   const [formData, setFormData] = useState<FormData>({
-    honoree: "",
-    scene: "",
-    weather: "",
-    smell: "",
-    sounds: "",
-    anchorObject: "",
+    honoree: savedInterviewData?.honoree || "",
+    scene: savedInterviewData?.scene || "",
+    weather: savedInterviewData?.weather || "",
+    smell: savedInterviewData?.smell || "",
+    sounds: savedInterviewData?.sounds || "",
+    anchorObject: savedInterviewData?.anchorObject || "",
     photoFile: null,
     photoPreview: null,
     audioFile: null,
-    style: null,
+    style: savedInterviewData?.style || null,
   })
 
   const updateField = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  // Auto-save interview progress to database
+  const saveProgress = async (currentStep: number) => {
+    if (!orderId) return
+    
+    setIsSaving(true)
+    try {
+      const interviewDataToSave = {
+        honoree: formData.honoree,
+        scene: formData.scene,
+        weather: formData.weather,
+        smell: formData.smell,
+        sounds: formData.sounds,
+        anchorObject: formData.anchorObject,
+        style: formData.style,
+      }
+
+      const res = await fetch(`/api/orders/${orderId}/interview`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interview_data: interviewDataToSave,
+          step: currentStep,
+        }),
+      })
+
+      if (res.ok) {
+        setLastSaved(new Date().toLocaleTimeString())
+      }
+    } catch (err) {
+      console.error("Failed to save progress:", err)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Auto-save when navigating steps
+  const handleStepChange = async (newStep: number) => {
+    await saveProgress(newStep)
+    setStep(newStep)
   }
 
   // Prefill from props (initialQuizData from database) or localStorage draft
@@ -306,7 +362,12 @@ export function DirectorInterviewForm({ orderId, initialQuizData }: DirectorInte
 
   return (
     <div className="max-w-2xl mx-auto">
-      {draftLoaded && (
+      {savedInterviewData?.last_step && (
+        <div className="mb-6 rounded-xl border border-green-600/30 bg-green-50 text-green-800 px-4 py-3 text-sm">
+          Welcome back! We&apos;ve restored your progress. Continue where you left off.
+        </div>
+      )}
+      {draftLoaded && !savedInterviewData?.last_step && (
         <div className="mb-6 rounded-xl border border-primary/30 bg-primary/10 text-primary px-4 py-3 text-sm">
           We&apos;ve loaded your story draft. Please add the details below.
         </div>
@@ -316,7 +377,18 @@ export function DirectorInterviewForm({ orderId, initialQuizData }: DirectorInte
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-muted-foreground">Step {step} of 4</span>
-          <span className="text-sm text-muted-foreground">{Math.round((step / 4) * 100)}% Complete</span>
+          <div className="flex items-center gap-3">
+            {isSaving && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Saving...
+              </span>
+            )}
+            {lastSaved && !isSaving && (
+              <span className="text-xs text-green-600">Saved at {lastSaved}</span>
+            )}
+            <span className="text-sm text-muted-foreground">{Math.round((step / 4) * 100)}% Complete</span>
+          </div>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div 
@@ -620,7 +692,7 @@ export function DirectorInterviewForm({ orderId, initialQuizData }: DirectorInte
         {step > 1 ? (
           <Button
             variant="ghost"
-            onClick={() => setStep(step - 1)}
+            onClick={() => handleStepChange(step - 1)}
             className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -632,7 +704,7 @@ export function DirectorInterviewForm({ orderId, initialQuizData }: DirectorInte
 
         {step < 4 ? (
           <Button
-            onClick={() => setStep(step + 1)}
+            onClick={() => handleStepChange(step + 1)}
             disabled={!canProceed()}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
           >

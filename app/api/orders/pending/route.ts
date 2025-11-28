@@ -12,10 +12,10 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Get user's most recent pending order
+    // Get user's most recent pending order with all relevant data
     const { data: order, error } = await supabase
       .from("orders")
-      .select("id, tier, status, quiz_data, stripe_checkout_session_id, created_at")
+      .select("id, tier, status, quiz_data, interview_data, stripe_checkout_session_id, created_at")
       .eq("user_id", user.id)
       .in("status", ["pending_interview", "pending"])
       .order("created_at", { ascending: false })

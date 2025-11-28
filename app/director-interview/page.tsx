@@ -34,6 +34,7 @@ function DirectorInterviewContent() {
   const [checkingSession, setCheckingSession] = useState<boolean>(false)
   const [authErrorFlag, setAuthErrorFlag] = useState<boolean>(false)
   const [orderId, setOrderId] = useState<string>("")
+  const [interviewData, setInterviewData] = useState<Record<string, unknown> | null>(null)
   const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
 
@@ -113,9 +114,13 @@ function DirectorInterviewContent() {
         const pendingData = await pendingRes.json()
         if (pendingData.order?.id) {
           setOrderId(pendingData.order.id)
-          // Also load quiz data from the order if available
+          // Load quiz data from the order if available
           if (pendingData.order.quiz_data) {
             setQuizData(pendingData.order.quiz_data)
+          }
+          // Load saved interview progress if available
+          if (pendingData.order.interview_data) {
+            setInterviewData(pendingData.order.interview_data)
           }
           setClaiming(false)
           return
@@ -372,7 +377,11 @@ function DirectorInterviewContent() {
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
               </div>
             }>
-              <DirectorInterviewForm orderId={orderId} initialQuizData={quizData} />
+              <DirectorInterviewForm 
+                orderId={orderId} 
+                initialQuizData={quizData} 
+                savedInterviewData={interviewData}
+              />
             </Suspense>
           ) : (
             <div className="flex items-center justify-center py-16">
