@@ -1,61 +1,94 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { User } from "@supabase/supabase-js"
-import {
-  Sparkles,
-  CreditCard,
-  Image as ImageIcon,
-  Video,
-  LogOut,
-  Plus,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Loader2,
-} from "lucide-react"
 import { useEffect } from "react"
-
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
+import {
+  Sparkles,
+  LogOut,
+  Gift,
+  Clock3,
+  CheckCircle2,
+  Loader2,
+  Video,
+  ClipboardList,
+} from "lucide-react"
+
+type OrderStatus = "pending_interview" | "in_production" | "ready"
+type OrderTier = "standard" | "premium" | "bio"
 
 interface Profile {
   id: string
   email: string
   full_name: string | null
-  avatar_url: string | null
-  credits: number
-  tier: string
 }
 
-interface Generation {
+interface Order {
   id: string
-  type: "image_enhance" | "video_generate"
-  status: "pending" | "processing" | "completed" | "failed"
-  original_image_url: string | null
-  result_url: string | null
-  prompt: string | null
-  credits_used: number
+  status: OrderStatus
+  tier: OrderTier
   created_at: string
+  stripe_checkout_session_id?: string | null
+  final_video_url?: string | null
+  interview_data?: Record<string, unknown> | null
 }
 
 interface DashboardContentProps {
   user: User
   profile: Profile | null
-  generations: Generation[]
+  orders: Order[]
 }
 
-export function DashboardContent({
-  user,
-  profile,
-  generations,
-}: DashboardContentProps) {
+function statusMeta(status: OrderStatus) {
+  switch (status) {
+    case "pending_interview":
+      return {
+        label: "Action Required",
+        description: "Complete your Director's Interview so we can start production.",
+        tone: "bg-amber-50 border-amber-200 text-amber-800",
+        icon: <ClipboardList className="w-4 h-4" />,
+      }
+    case "in_production":
+      return {
+        label: "In Production",
+        description: "Our directors are working on your memory.",
+        tone: "bg-blue-50 border-blue-200 text-blue-800",
+        icon: <Loader2 className="w-4 h-4 animate-spin" />,
+      }
+    case "ready":
+    default:
+      return {
+        label: "Ready",
+        description: "Your gift is ready to share.",
+        tone: "bg-green-50 border-green-200 text-green-800",
+        icon: <CheckCircle2 className="w-4 h-4" />,
+      }
+  }
+}
+
+function tierLabel(tier: OrderTier) {
+  switch (tier) {
+    case "premium":
+      return "Premium Gift"
+    case "bio":
+      return "Biography Gift"
+    default:
+      return "Standard Gift"
+  }
+}
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString)
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+}
+
+export function DashboardContent({ user, profile, orders }: DashboardContentProps) {
   const router = useRouter()
   const supabase = createClient()
 
-  // Force-disable the Christmas palette on the dashboard so contrast stays neutral.
   useEffect(() => {
     document.documentElement.classList.remove("christmas-theme")
   }, [])
@@ -66,18 +99,8 @@ export function DashboardContent({
     router.refresh()
   }
 
-  const getStatusIcon = (status: Generation["status"]) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="w-4 h-4 text-green-600" />
-      case "failed":
-        return <XCircle className="w-4 h-4 text-red-600" />
-      case "processing":
-        return <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
-      default:
-        return <Clock className="w-4 h-4 text-gray-400" />
-    }
-  }
+  const interviewLink = (order: Order) =>
+    `/director-interview?order_id=${order.stripe_checkout_session_id || order.id}`
 
   return (
     <div className="min-h-screen bg-[#f5f1e6]">
@@ -91,187 +114,131 @@ export function DashboardContent({
             <span className="text-lg font-bold text-[#3d3632]">Relive</span>
           </Link>
 
-          <div className="flex items-center gap-4">
-            {/* Credits Display */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#f5f1e6] rounded-full border border-[#e2d8c3]">
-              <CreditCard className="w-4 h-4 text-[#a67c52]" />
-              <span className="text-sm font-medium text-[#3d3632]">
-                {profile?.credits ?? 0} credits
-              </span>
-            </div>
-
-            {/* User Menu */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-[#7d6b56] hidden sm:block">
-                {user.email}
-              </span>
-              <Button
-                onClick={handleSignOut}
-                variant="outline"
-                size="sm"
-                className="border-[#dbd0ba] text-[#7d6b56] hover:bg-[#f5f1e6]"
-              >
-                <LogOut className="w-4 h-4 mr-1" />
-                Sign out
-              </Button>
-            </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-[#7d6b56] hidden sm:block">
+              {profile?.full_name || user.email}
+            </span>
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              size="sm"
+              className="border-[#dbd0ba] text-[#7d6b56] hover:bg-[#f5f1e6]"
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              Sign out
+            </Button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#3d3632]">
-            Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
-          </h1>
-          <p className="mt-1 text-[#7d6b56]">
-            Ready to bring more memories to life?
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <Link href="/#live-demo">
-            <div className="bg-gradient-to-br from-[#8d6e4c] to-[#3d3632] rounded-xl p-6 text-white shadow-md hover:shadow-lg transition-shadow cursor-pointer group">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center ring-1 ring-white/15">
-                  <ImageIcon className="w-6 h-6" />
-                </div>
-                <Plus className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <h3 className="text-xl font-semibold mb-1">Enhance Photo</h3>
-              <p className="text-white/90 text-sm">
-                Restore and colorize old photos with AI
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+        <section className="bg-white/70 border border-[#e2d8c3] rounded-2xl p-6 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p className="text-sm uppercase tracking-wide text-[#8a7e72]">Gifter dashboard</p>
+              <h1 className="text-3xl font-bold text-[#3d3632] mt-1">
+                Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}.
+              </h1>
+              <p className="text-[#7d6b56] mt-2">
+                Track your gifts and finish any Director Interviews to start production.
               </p>
-              <p className="mt-3 text-xs text-white/80">Uses 1 credit</p>
-            </div>
-          </Link>
-
-          <Link href="/#live-demo">
-            <div className="bg-gradient-to-br from-[#3d3632] to-[#2a2522] rounded-xl p-6 text-white shadow-md hover:shadow-lg transition-shadow cursor-pointer group">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center ring-1 ring-white/15">
-                  <Video className="w-6 h-6" />
-                </div>
-                <Plus className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <h3 className="text-xl font-semibold mb-1">Generate Video</h3>
-              <p className="text-white/90 text-sm">
-                Bring still photos to life with motion
-              </p>
-              <p className="mt-3 text-xs text-white/80">Uses 5 credits</p>
-            </div>
-          </Link>
-        </div>
-
-        {/* Buy Credits CTA */}
-        {(profile?.credits ?? 0) < 5 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-5 h-5 text-amber-600" />
-              <div>
-                <p className="text-amber-800 font-medium">Running low on credits</p>
-                <p className="text-amber-600 text-sm">Get more credits to continue creating</p>
-              </div>
             </div>
             <Link href="/pricing">
-              <Button className="bg-amber-600 hover:bg-amber-700 text-white">
-                Buy Credits
+              <Button className="bg-[#a67c52] hover:bg-[#8d6e4c] text-white">
+                <Gift className="w-4 h-4 mr-2" />
+                Start a new gift
               </Button>
             </Link>
           </div>
-        )}
+        </section>
 
-        {/* Recent Generations */}
-        <div>
-          <h2 className="text-xl font-semibold text-[#3d3632] mb-4">
-            Recent Creations
-          </h2>
-
-          {generations.length === 0 ? (
-            <div className="bg-white/60 border border-[#e2d8c3] rounded-xl p-12 text-center">
-              <div className="w-16 h-16 bg-[#f5f1e6] rounded-full flex items-center justify-center mx-auto mb-4">
-                <ImageIcon className="w-8 h-8 text-[#8a7e72]" />
+        {orders.length === 0 ? (
+          <section className="bg-white/70 border border-dashed border-[#e2d8c3] rounded-2xl p-10 text-center">
+            <div className="w-16 h-16 bg-[#f5f1e6] rounded-full flex items-center justify-center mx-auto mb-4">
+              <Video className="w-7 h-7 text-[#8a7e72]" />
+            </div>
+            <h3 className="text-xl font-semibold text-[#3d3632] mb-2">No gifts yet</h3>
+            <p className="text-[#7d6b56] mb-6">
+              Purchase a gift tier to begin and complete the Director&apos;s Interview when prompted.
+            </p>
+            <Link href="/pricing">
+              <Button className="bg-[#3d3632] hover:bg-[#2a2522] text-white">
+                Choose a gift tier
+              </Button>
+            </Link>
+          </section>
+        ) : (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-wide text-[#8a7e72]">Your gifts</p>
+                <h2 className="text-2xl font-semibold text-[#3d3632]">Order status</h2>
               </div>
-              <h3 className="text-lg font-medium text-[#3d3632] mb-1">
-                No creations yet
-              </h3>
-              <p className="text-[#7d6b56] mb-4">
-                Start by enhancing a photo or generating a video
-              </p>
-              <Link href="/#live-demo">
-                <Button className="bg-[#a67c52] hover:bg-[#8d6e4c] text-white">
-                  Create Your First
-                </Button>
-              </Link>
+              <div className="text-sm text-[#7d6b56]">
+                {orders.length} {orders.length === 1 ? "order" : "orders"}
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {generations.map((gen) => (
-                <div
-                  key={gen.id}
-                  className="bg-white/80 border border-[#e2d8c3] rounded-xl overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  {/* Thumbnail */}
-                  <div className="aspect-video bg-[#e2d8c3] relative">
-                    {gen.result_url ? (
-                      <Image
-                        src={gen.result_url}
-                        alt="Generation result"
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 33vw"
-                        className="object-cover"
-                      />
-                    ) : gen.original_image_url ? (
-                      <Image
-                        src={gen.original_image_url}
-                        alt="Original upload"
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 33vw"
-                        className="object-cover opacity-50"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        {gen.type === "image_enhance" ? (
-                          <ImageIcon className="w-8 h-8 text-[#8a7e72]" />
-                        ) : (
-                          <Video className="w-8 h-8 text-[#8a7e72]" />
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Type Badge */}
-                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/50 rounded text-xs text-white">
-                      {gen.type === "image_enhance" ? "Photo" : "Video"}
-                    </div>
-                  </div>
 
-                  {/* Info */}
-                  <div className="p-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {orders.map((order) => {
+                const meta = statusMeta(order.status)
+                return (
+                  <div
+                    key={order.id}
+                    className="bg-white/80 border border-[#e2d8c3] rounded-xl p-5 shadow-sm flex flex-col gap-4"
+                  >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        {getStatusIcon(gen.status)}
-                        <span className="text-sm text-[#7d6b56] capitalize">
-                          {gen.status}
-                        </span>
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-[#8a7e72]">Tier</p>
+                        <p className="text-lg font-semibold text-[#3d3632]">
+                          {tierLabel(order.tier)}
+                        </p>
+                        <p className="text-xs text-[#8a7e72] mt-0.5">
+                          Created {formatDate(order.created_at)}
+                        </p>
                       </div>
-                      <span className="text-xs text-[#8a7e72]">
-                        {new Date(gen.created_at).toLocaleDateString()}
-                      </span>
+                      <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm border ${meta.tone}`}>
+                        {meta.icon}
+                        <span>{meta.label}</span>
+                      </div>
                     </div>
-                    {gen.prompt && (
-                      <p className="mt-2 text-xs text-[#7d6b56] line-clamp-2">
-                        {gen.prompt}
-                      </p>
-                    )}
+
+                    <p className="text-sm text-[#5c4d3f]">{meta.description}</p>
+
+                    <div className="flex items-center gap-3">
+                      {order.status === "pending_interview" && (
+                        <Link href={interviewLink(order)} className="flex-1">
+                          <Button className="w-full bg-[#a67c52] hover:bg-[#8d6e4c] text-white">
+                            Complete Director Interview
+                          </Button>
+                        </Link>
+                      )}
+
+                      {order.status === "in_production" && (
+                        <Button
+                          variant="outline"
+                          disabled
+                          className="flex-1 border-[#dbd0ba] text-[#7d6b56]"
+                        >
+                          <Clock3 className="w-4 h-4 mr-2" />
+                          In production
+                        </Button>
+                      )}
+
+                      {order.status === "ready" && (
+                        <Link href={`/view/${order.id}`} className="flex-1">
+                          <Button className="w-full bg-[#3d3632] hover:bg-[#2a2522] text-white">
+                            View gift
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
-          )}
-        </div>
+          </section>
+        )}
       </main>
     </div>
   )

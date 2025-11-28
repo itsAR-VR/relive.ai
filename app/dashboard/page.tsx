@@ -13,27 +13,25 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
-  // Get user profile with credits
+  // Get user profile for greeting
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single()
 
-  // Get recent generations
-  const { data: generations } = await supabase
-    .from("generations")
+  // Get orders for this gifter
+  const { data: orders } = await supabase
+    .from("orders")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(10)
 
   return (
     <DashboardContent
       user={user}
       profile={profile}
-      generations={generations || []}
+      orders={orders || []}
     />
   )
 }
-

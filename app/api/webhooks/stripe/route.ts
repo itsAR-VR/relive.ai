@@ -1,4 +1,4 @@
-import { getStripe } from "@/lib/stripe"
+import { getServiceTierById, getStripe } from "@/lib/stripe"
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
@@ -38,57 +38,32 @@ export async function POST(request: Request) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session
       const userId = session.metadata?.user_id
-      const credits = parseInt(session.metadata?.credits || "0", 10)
+      const tierId = session.metadata?.tier
+      const tier = tierId ? getServiceTierById(tierId) : null
 
-      if (!userId || !credits) break
+      if (!userId || !tier) break
 
-      await supabaseAdmin.rpc("add_credits", { user_uuid: userId, amount: credits })
+      const { error } = await supabaseAdmin
+        .from("orders")
+        .upsert(
+          {
+            user_id: userId,
+            tier: tier.id,
+            status: "pending_interview",
+            stripe_checkout_session_id: session.id,
+          },
+          { onConflict: "stripe_checkout_session_id" }
+        )
 
-      await supabaseAdmin
-        .from("transactions")
-        .update({
-          status: "completed",
-          stripe_payment_intent_id: session.payment_intent as string,
-        })
-        .eq("stripe_checkout_session_id", session.id)
+      if (error) {
+        console.error("Failed to create order from checkout.session.completed", error)
+      }
 
-      console.log(`Added ${credits} credits to user ${userId}`)
       break
     }
 
     case "checkout.session.expired":
     case "checkout.session.async_payment_failed": {
-      const session = event.data.object as Stripe.Checkout.Session
-      await supabaseAdmin
-        .from("transactions")
-        .update({ status: "failed" })
-        .eq("stripe_checkout_session_id", session.id)
-      break
-    }
-
-    case "charge.refunded": {
-      const charge = event.data.object as Stripe.Charge
-      const paymentIntentId = charge.payment_intent as string
-
-      if (!paymentIntentId) break
-
-      const { data: transaction } = await supabaseAdmin
-        .from("transactions")
-        .select("*")
-        .eq("stripe_payment_intent_id", paymentIntentId)
-        .single()
-
-      if (transaction) {
-        await supabaseAdmin.rpc("deduct_credits", {
-          user_uuid: transaction.user_id,
-          amount: transaction.credits_purchased,
-        })
-
-        await supabaseAdmin
-          .from("transactions")
-          .update({ status: "refunded" })
-          .eq("id", transaction.id)
-      }
       break
     }
   }

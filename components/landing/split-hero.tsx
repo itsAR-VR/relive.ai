@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Gift, Sparkles } from "lucide-react"
+import { Gift, ArrowDown, Sparkles } from "lucide-react"
 
 interface SplitHeroProps {
   onStartGift: () => void
@@ -10,123 +10,107 @@ interface SplitHeroProps {
 
 export function SplitHero({ onStartGift }: SplitHeroProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
+    // Trigger animations after mount
+    setIsVisible(true)
     if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Autoplay might be blocked, that's okay
-      })
+      videoRef.current.play()
     }
-    // Trigger fade-in animation after mount
-    const timer = setTimeout(() => setIsLoaded(true), 100)
-    return () => clearTimeout(timer)
   }, [])
 
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-background">
+    <section className="relative min-h-[90vh] overflow-hidden bg-background">
       {/* Subtle paper texture overlay */}
       <div className="absolute inset-0 opacity-[0.02] bg-[url('/paper-texture.jpg')] bg-repeat pointer-events-none" />
       
       {/* Warm gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/50 pointer-events-none" />
 
-      <div className="container relative mx-auto px-4 py-16 md:py-24">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="container relative mx-auto px-4 py-16 lg:py-24">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[70vh]">
           
-          {/* Left Column - Copy */}
+          {/* Left: Copy and CTA */}
           <div 
-            className={`text-center lg:text-left transition-all duration-1000 ${
-              isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            className={`order-2 lg:order-1 text-center lg:text-left transition-all duration-1000 ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
             {/* Badge */}
             <span className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium tracking-wide border border-primary/20">
               <Gift className="w-4 h-4" />
-              The Hardest Person to Buy For
+              The hardest person to buy for
             </span>
 
             {/* Main Headline - Serif */}
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-foreground leading-[1.1] tracking-tight">
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-foreground leading-[1.1] tracking-tight mb-6">
               They have everything they need.
-              <span className="block mt-2 text-primary">
-                Except their childhood.
-              </span>
+              <span className="block mt-2 text-primary">Except their childhood.</span>
             </h1>
 
             {/* Subheadline - Sans */}
-            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed font-sans">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed mb-8">
               Give the gift of a relived memory. Tell us the story, and our directors will bring it back to life.
             </p>
 
-            {/* Value Proposition */}
-            <p className="mt-4 text-base text-muted-foreground/80 max-w-lg mx-auto lg:mx-0 font-sans">
-              We don&apos;t sell video generation. We act as your personal memory directors. You don&apos;t need to know how to use AI—you just need to know the story. We handle the rest.
-            </p>
-
-            {/* CTA */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4">
+            {/* CTA Button */}
+            <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4">
               <Button
                 onClick={onStartGift}
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-10 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] group"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 py-6 text-lg rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group"
               >
                 <Sparkles className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
                 Start Their Gift
               </Button>
               <p className="text-sm text-muted-foreground">
-                From $49 · Ready in 24 hours
+                50% off Black Friday Special
               </p>
             </div>
 
             {/* Trust Signal */}
-            <div className="mt-8 flex items-center justify-center lg:justify-start gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span>100% Money-Back Guarantee</span>
-              </div>
+            <div className="mt-10 flex items-center justify-center lg:justify-start gap-6 text-sm text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-accent rounded-full" />
+                No AI skills needed
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-accent rounded-full" />
+                Delivered in 24 hours
+              </span>
             </div>
           </div>
 
-          {/* Right Column - Split Screen Visual */}
+          {/* Right: Split Screen Visual - Before/After */}
           <div 
-            className={`relative transition-all duration-1000 delay-300 ${
-              isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            className={`order-1 lg:order-2 transition-all duration-1000 delay-300 ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
             <div className="relative max-w-lg mx-auto">
-              {/* Decorative frame */}
-              <div className="absolute -inset-4 bg-gradient-to-br from-accent/20 via-primary/10 to-accent/20 rounded-2xl blur-xl opacity-60" />
+              {/* Glow effect */}
+              <div className="absolute -inset-4 bg-gradient-to-br from-accent/20 via-primary/10 to-accent/20 rounded-3xl blur-2xl opacity-60" />
               
-              {/* Split screen container */}
-              <div className="relative bg-card rounded-xl shadow-2xl overflow-hidden border border-border">
-                {/* Top label */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
-                  <span className="px-3 py-1.5 bg-foreground/90 text-background text-xs font-medium rounded-full backdrop-blur-sm">
-                    Before & After
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2">
-                  {/* Left - B&W Photo */}
-                  <div className="relative aspect-[3/4] overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/10 z-10" />
+              {/* Split container */}
+              <div className="relative bg-card rounded-2xl shadow-2xl overflow-hidden border border-border/50">
+                {/* Before/After Split */}
+                <div className="grid grid-cols-2 aspect-[4/3]">
+                  {/* Left: B&W Photo */}
+                  <div className="relative overflow-hidden">
                     <img
                       src="/vintage-sepia-old-wedding-photograph-1950s-couple.jpg"
                       alt="Original vintage photograph"
-                      className="w-full h-full object-cover grayscale contrast-110"
+                      className="w-full h-full object-cover grayscale"
                     />
-                    <span className="absolute bottom-3 left-3 px-2 py-1 bg-black/60 text-white text-xs rounded backdrop-blur-sm z-20">
-                      Original
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20" />
+                    <span className="absolute bottom-3 left-3 text-xs font-medium text-white/80 bg-black/40 px-2 py-1 rounded">
+                      Before
                     </span>
                   </div>
-
-                  {/* Divider */}
-                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/50 to-transparent z-10" />
-
-                  {/* Right - Colorized/Moving */}
-                  <div className="relative aspect-[3/4] overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/10 z-10" />
+                  
+                  {/* Right: Colorized/Animated Video */}
+                  <div className="relative overflow-hidden">
                     <video
                       ref={videoRef}
                       src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Wealth%20Video%20Crop-ZuwydYNC0E3xso5q3g1vtPBv2CoHS4.mp4"
@@ -135,29 +119,34 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
                       muted
                       playsInline
                       autoPlay
-                      poster="/restored-colorized-vintage-wedding-photograph-high.jpg"
                     />
-                    <span className="absolute bottom-3 right-3 px-2 py-1 bg-primary/90 text-primary-foreground text-xs rounded backdrop-blur-sm z-20">
+                    <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/10" />
+                    <span className="absolute bottom-3 right-3 text-xs font-medium text-white/80 bg-primary/80 px-2 py-1 rounded flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                       Restored
                     </span>
                   </div>
                 </div>
 
-                {/* Bottom caption */}
-                <div className="p-4 bg-muted/50 border-t border-border">
-                  <p className="text-center text-sm text-muted-foreground font-serif italic">
-                    &ldquo;It looks like a memory feels—slightly blurry, but warm.&rdquo;
-                  </p>
+                {/* Badge overlay */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-sm px-4 py-2 rounded-full border border-border shadow-lg">
+                  <span className="text-sm font-medium text-foreground">
+                    Restored by <span className="text-primary">GiftingMoments</span>
+                  </span>
                 </div>
               </div>
 
-              {/* Floating badge */}
-              <div className="absolute -bottom-4 -right-4 px-4 py-2 bg-card rounded-lg shadow-lg border border-border">
-                <p className="text-xs font-medium text-foreground">Restored by</p>
-                <p className="text-sm font-serif text-primary">GiftingMoments</p>
-              </div>
+              {/* Caption */}
+              <p className="text-center text-sm text-muted-foreground mt-4 italic">
+                "It looks like a memory feels—slightly blurry, but warm."
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <ArrowDown className="w-5 h-5 text-muted-foreground" />
         </div>
       </div>
     </section>

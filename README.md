@@ -10,7 +10,7 @@ Transform faded photographs into living, breathing moments. Help grandparents se
 
 1. **Photo Enhancement** — Restore and colorize old, faded photographs using AI (Kie.ai Nano Banana Pro).
 2. **Video Generation** — Bring still photos to life with subtle, natural motion using AI video generation.
-3. **Credit System** — Users purchase credits via Stripe to use the AI features.
+3. **Service Orders** — Users purchase direct service tiers via Stripe (Standard/Premium/Biography) and complete a director interview.
 4. **User Accounts** — Secure authentication with Supabase (email/password and Google OAuth).
 
 ## Tech Stack
@@ -42,9 +42,9 @@ Transform faded photographs into living, breathing moments. Help grandparents se
 | `KIE_WEBHOOK_IP_ALLOWLIST` | Comma-separated IPs allowed to call the webhook (optional) |
 | `STRIPE_SECRET_KEY` | Stripe secret key (match test/live mode with the price IDs) |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `STRIPE_PRICE_CAPSULE` | Stripe Price ID for “Time Capsule” (starter) |
-| `STRIPE_PRICE_MEMORY` | Stripe Price ID for “Memory Bank” (popular) |
-| `STRIPE_PRICE_LEGACY` | Stripe Price ID for “Legacy” (pro) |
+| `STRIPE_PRICE_STANDARD` | Stripe Price ID for the Standard gift tier ($49) |
+| `STRIPE_PRICE_PREMIUM` | Stripe Price ID for the Premium gift tier ($149) |
+| `STRIPE_PRICE_BIO` | Stripe Price ID for the Biography gift tier ($299) |
 | `NEXT_PUBLIC_APP_URL` | Your deployed app URL |
 
 ## Kie.ai Integration (current)
@@ -57,7 +57,7 @@ Transform faded photographs into living, breathing moments. Help grandparents se
 
 ## Stripe Prices (test/live)
 
-- Test mode currently uses `STRIPE_SECRET_KEY` with test price IDs: `STRIPE_PRICE_CAPSULE`, `STRIPE_PRICE_MEMORY`, `STRIPE_PRICE_LEGACY`.
+- Set `STRIPE_PRICE_STANDARD`, `STRIPE_PRICE_PREMIUM`, and `STRIPE_PRICE_BIO` to the Price IDs for the three service tiers (Standard $49, Premium $149, Biography $299).
 - Keep secret key and price IDs aligned to the same mode (both test or both live) to avoid 500s at checkout.
 
 ## Development Checks

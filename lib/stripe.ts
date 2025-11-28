@@ -16,54 +16,39 @@ export function getStripe(): Stripe {
   return _stripe
 }
 
-// Resolve price IDs with backward-compatibility for renamed env vars.
 const priceIds = {
-  starter:
-    process.env.STRIPE_PRICE_STARTER ||
-    process.env.STRIPE_PRICE_CAPSULE ||
-    process.env.STRIPE_PRICE_SNAPSHOT,
-  popular:
-    process.env.STRIPE_PRICE_POPULAR ||
-    process.env.STRIPE_PRICE_MEMORY,
-  pro:
-    process.env.STRIPE_PRICE_PRO ||
-    process.env.STRIPE_PRICE_LEGACY,
+  standard: process.env.STRIPE_PRICE_STANDARD,
+  premium: process.env.STRIPE_PRICE_PREMIUM,
+  bio: process.env.STRIPE_PRICE_BIO,
 }
 
-// Credit packages configuration
-export const CREDIT_PACKAGES = [
+export const SERVICE_TIERS = [
   {
-    id: "starter",
-    name: "Time Capsule",
-    credits: 10,
-    price: 5, // $5
-    priceId: priceIds.starter,
-    popular: false,
+    id: "standard",
+    name: "Standard",
+    price: 49, // $49
+    priceId: priceIds.standard,
   },
   {
-    id: "popular",
-    name: "Memory Bank",
-    credits: 50,
-    price: 20, // $20
-    priceId: priceIds.popular,
-    popular: true,
+    id: "premium",
+    name: "Premium",
+    price: 149, // $149
+    priceId: priceIds.premium,
   },
   {
-    id: "pro",
-    name: "Legacy",
-    credits: 150,
-    price: 50, // $50
-    priceId: priceIds.pro,
-    popular: false,
+    id: "bio",
+    name: "Biography",
+    price: 299, // $299
+    priceId: priceIds.bio,
   },
 ] as const
 
-export type CreditPackageId = (typeof CREDIT_PACKAGES)[number]["id"]
+export type ServiceTierId = (typeof SERVICE_TIERS)[number]["id"]
 
-export function getPackageById(id: string) {
-  return CREDIT_PACKAGES.find((pkg) => pkg.id === id)
+export function getServiceTierById(id: string) {
+  return SERVICE_TIERS.find((tier) => tier.id === id)
 }
 
-export function getPackageByPriceId(priceId: string) {
-  return CREDIT_PACKAGES.find((pkg) => pkg.priceId === priceId)
+export function getServiceTierByPriceId(priceId: string) {
+  return SERVICE_TIERS.find((tier) => tier.priceId === priceId)
 }
