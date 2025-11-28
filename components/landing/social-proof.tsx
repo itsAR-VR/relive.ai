@@ -28,8 +28,8 @@ const TESTIMONIALS = [
 export function SocialProof() {
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
     loop: true,
-    align: "start",
-    skipSnaps: false,
+    align: "center",
+    containScroll: "trimSnaps",
   })
   const [selectedIndex, setSelectedIndex] = useState(0)
 
@@ -40,8 +40,9 @@ export function SocialProof() {
     if (!emblaApi) return
     const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap())
     emblaApi.on("select", onSelect)
+    emblaApi.on("reInit", onSelect)
     onSelect()
-    return () => { emblaApi.off("select", onSelect) }
+    return () => { emblaApi.off("select", onSelect); emblaApi.off("reInit", onSelect) }
   }, [emblaApi])
 
   return (
@@ -136,9 +137,9 @@ export function SocialProof() {
 
 function TestimonialCard({ testimonial }: { testimonial: typeof TESTIMONIALS[0] }) {
   return (
-    <div className="relative bg-card rounded-xl p-5 md:p-6 border border-border shadow-sm h-full">
+    <div className="relative bg-card rounded-xl p-6 pt-8 md:p-7 md:pt-9 border border-border shadow-sm h-full">
       {/* Quote icon */}
-      <div className="absolute -top-2.5 left-4 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+      <div className="absolute top-3 left-4 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
         <Quote className="w-4 h-4 text-primary" />
       </div>
 

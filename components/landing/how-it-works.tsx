@@ -112,9 +112,9 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
 
 function StepCard({ step, Icon }: { step: typeof STEPS[0], Icon: typeof MessageSquare }) {
   return (
-    <div className="relative bg-card rounded-xl p-5 md:p-6 border border-border shadow-sm h-full">
+    <div className="relative bg-card rounded-xl p-6 pt-8 md:p-7 md:pt-9 border border-border shadow-sm h-full">
       {/* Step number */}
-      <span className="absolute -top-2.5 -left-1 md:-top-3 md:-left-3 w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground text-xs md:text-sm font-bold flex items-center justify-center shadow-lg">
+      <span className="absolute top-3 left-3 md:top-4 md:left-4 w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground text-xs md:text-sm font-bold flex items-center justify-center shadow-lg">
         {step.number}
       </span>
 
