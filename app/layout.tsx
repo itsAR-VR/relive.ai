@@ -23,7 +23,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "GiftingMoments — Give the Gift of a Relived Memory",
+  title: "Moments — Give the Gift of a Relived Memory",
   description:
     "The hardest person to buy for has everything they need. Except their childhood. Tell us your story, and our directors will bring the memory back to life.",
   generator: "v0.app",

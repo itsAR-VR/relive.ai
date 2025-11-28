@@ -46,9 +46,9 @@ export default async function ViewGiftPage({ params }: { params: { id: string } 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-[#a67c52] to-[#8d6e4c] rounded-lg flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">R</span>
+              <span className="text-white font-semibold text-sm">M</span>
             </div>
-            <span className="text-lg font-bold text-[#3d3632]">Relive</span>
+            <span className="text-lg font-bold text-[#3d3632]">Moments</span>
           </Link>
           <div className="text-sm text-[#7d6b56]">
             Gift ready — {new Date(order.created_at).toLocaleDateString()}

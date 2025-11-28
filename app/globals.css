@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* GiftingMoments - "Nostalgic Warmth" Palette */
+/* Moments - "Nostalgic Warmth" Palette */
 :root {
   --background: #FDFBF7;
   --foreground: #2C2C2C;
@@ -172,7 +172,7 @@
   background: var(--muted-foreground);
 }
 
-/* GiftingMoments - Slow fade animations for boutique feel */
+/* Moments - Slow fade animations for boutique feel */
 @keyframes fade-in-slow {
   from {
     opacity: 0;

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Check, Gift, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, RefreshCw } from "lucide-react"
 import Link from "next/link"
 
-// Service packages for GiftingMoments - condensed features
+// Service packages for Moments - condensed features
 const SERVICE_PACKAGES = [
   {
     id: "keepsake",
@@ -143,7 +143,7 @@ export default function PricingPage() {
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <Gift className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="text-base font-serif text-foreground">GiftingMoments</span>
+            <span className="text-base font-serif text-foreground">Moments</span>
           </Link>
           <Link
             href="/"

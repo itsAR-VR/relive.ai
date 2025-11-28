@@ -36,7 +36,7 @@ export default function Home() {
                 <Gift className="w-4 h-4" />
               </div>
               <div>
-                <p className="font-serif text-base text-foreground">GiftingMoments</p>
+                <p className="font-serif text-base text-foreground">Moments</p>
               </div>
             </div>
 
@@ -53,7 +53,7 @@ export default function Home() {
 
           <div className="mt-4 pt-4 border-t border-border text-center">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} GiftingMoments
+              © {new Date().getFullYear()} Moments
             </p>
           </div>
         </div>

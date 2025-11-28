@@ -83,7 +83,7 @@ export default function LoginPage() {
             <div className="w-12 h-12 bg-gradient-to-br from-[#a67c52] to-[#8d6e4c] rounded-lg flex items-center justify-center shadow-lg">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-[#3d3632] tracking-tight">Relive</span>
+            <span className="text-2xl font-bold text-[#3d3632] tracking-tight">Moments</span>
           </Link>
           <p className="mt-3 text-[#7d6b56]">
             {isSignUp ? "Create your account" : "Welcome back"}
@@ -213,4 +213,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

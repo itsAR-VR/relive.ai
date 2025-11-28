@@ -150,7 +150,7 @@ export function DashboardContent({ user, profile, orders }: DashboardContentProp
             <div className="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-[#8B2332] rounded-lg flex items-center justify-center shadow-sm">
               <Sparkles className="w-5 h-5 text-[var(--primary-foreground)]" />
             </div>
-            <span className="text-lg font-semibold tracking-tight">GiftingMoments</span>
+            <span className="text-lg font-semibold tracking-tight">Moments</span>
           </Link>
 
           <div className="flex items-center gap-3">

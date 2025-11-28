@@ -489,7 +489,7 @@ export function EnhancementStep({ originalImage, onEnhancementComplete, onBack }
           </Button>
         ) : (
           <Button onClick={handleProceed} className="bg-[#3d3632] hover:bg-[#2d2622] text-[#f5f1e6] px-8">
-            Continue to Relive
+            Continue to Moments
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         )}

@@ -17,7 +17,7 @@ export function LandingHeader() {
             <Gift className="w-5 h-5" />
           </div>
           <div className="leading-tight">
-            <p className="font-serif text-lg text-foreground">GiftingMoments</p>
+            <p className="font-serif text-lg text-foreground">Moments</p>
             <p className="text-xs text-muted-foreground">Memory Restoration Studio</p>
           </div>
         </Link>

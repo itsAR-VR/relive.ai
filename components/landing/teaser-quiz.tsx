@@ -76,6 +76,8 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
   }, [isOpen])
 
   const handleNext = () => {
+    if (!canProceed()) return
+
     if (step < 3) {
       setStep(step + 1)
     } else if (step === 3) {
@@ -123,11 +125,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
     return false
   }
 
-  const selectMemoryAndAdvance = (id: string) => {
-    setMemoryType(id)
-    // quick fade to step 3
-    setTimeout(() => setStep(3), 150)
-  }
+  const selectMemory = (id: string) => setMemoryType(id)
 
   if (!isOpen) return null
 
@@ -181,14 +179,14 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
                     <button
                       key={option.id}
                       onClick={() => setHonoree(option.id)}
-                      className={`p-3 rounded-xl border-2 transition-all hover:scale-[1.02] ${
+                      className={`w-full h-full min-h-[96px] p-3 rounded-xl border-2 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-1 text-center ${
                         honoree === option.id
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-border bg-muted/30 text-foreground hover:border-primary/50"
                       }`}
                     >
                       <Icon className="w-5 h-5 mx-auto mb-1" />
-                      <span className="block text-xs font-medium">{option.label}</span>
+                      <span className="block text-xs font-medium leading-tight">{option.label}</span>
                     </button>
                   )
                 })}
@@ -213,7 +211,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
                   return (
                     <button
                       key={option.id}
-                      onClick={() => selectMemoryAndAdvance(option.id)}
+                      onClick={() => selectMemory(option.id)}
                       className={`p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.01] ${
                         memoryType === option.id
                           ? "border-primary bg-primary/10"

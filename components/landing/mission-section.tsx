@@ -5,7 +5,7 @@ export function MissionSection() {
     <section className="bg-[#3d3632] px-4 py-12 md:py-16">
       <div className="container mx-auto max-w-4xl">
         <div className="text-center mb-10">
-          <h2 className="font-serif text-2xl md:text-3xl text-[#f5f1e6] mb-4">Why We Built Relive</h2>
+          <h2 className="font-serif text-2xl md:text-3xl text-[#f5f1e6] mb-4">Why We Built Moments</h2>
           <p className="text-[#c4b8a8] text-base leading-relaxed max-w-2xl mx-auto">
             It started with a simple wish: to let my grandmother see her parents dance at their wedding one more time.
             She had only a faded photograph, but the memory of their joy lived vividly in her heart.
@@ -52,7 +52,7 @@ export function MissionSection() {
             "Every photograph holds a moment that once lived and breathed. Our mission is to let you experience that
             moment once more."
           </p>
-          <p className="mt-3 text-[#a67c52] text-sm font-medium">— The Relive Team</p>
+          <p className="mt-3 text-[#a67c52] text-sm font-medium">— The Moments Team</p>
         </div>
       </div>
     </section>
