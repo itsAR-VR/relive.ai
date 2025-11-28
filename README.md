@@ -33,15 +33,37 @@ Transform faded photographs into living, breathing moments. Help grandparents se
 | Variable | Description |
 |----------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for webhooks) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/publishable key (use publishable default key in new Supabase UI) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Supabase publishable key (fallback in clients) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for webhooks, storage uploads) |
+| `SUPABASE_SECRET_KEY` | Supabase secret (optional; service role covers admin needs) |
 | `KIE_API_KEY` | Kie.ai API key |
-| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `KIE_WEBHOOK_SECRET` | Shared secret for verifying Kie webhooks (optional but recommended) |
+| `KIE_WEBHOOK_IP_ALLOWLIST` | Comma-separated IPs allowed to call the webhook (optional) |
+| `STRIPE_SECRET_KEY` | Stripe secret key (match test/live mode with the price IDs) |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `STRIPE_PRICE_STARTER` | Stripe Price ID for Starter pack |
-| `STRIPE_PRICE_POPULAR` | Stripe Price ID for Popular pack |
-| `STRIPE_PRICE_PRO` | Stripe Price ID for Pro pack |
+| `STRIPE_PRICE_CAPSULE` | Stripe Price ID for “Time Capsule” (starter) |
+| `STRIPE_PRICE_MEMORY` | Stripe Price ID for “Memory Bank” (popular) |
+| `STRIPE_PRICE_LEGACY` | Stripe Price ID for “Legacy” (pro) |
 | `NEXT_PUBLIC_APP_URL` | Your deployed app URL |
+
+## Kie.ai Integration (current)
+
+- Image (Nano Banana Pro): `model: "nano-banana-pro"` via `POST /api/v1/jobs/createTask` with `prompt`, `image_input` (public URL), optional `aspect_ratio` (e.g., 1:1), `resolution` (1K/2K/4K), `output_format` (png/jpg), and optional `callBackUrl`.
+- Video (Wan 2.5 image-to-video): `model: "wan/2-5-image-to-video"` via `POST /api/v1/jobs/createTask` with `prompt`, `image_url` (public URL), optional `duration` ("5"|"10"), `resolution` ("720p"|"1080p"), `negative_prompt`, `enable_prompt_expansion`, `seed`, and optional `callBackUrl`.
+- Status: `GET /api/v1/jobs/recordInfo?taskId=...` returns `state` (waiting/queuing/generating/success/fail) and `resultJson.resultUrls`.
+- Webhooks: same shape as recordInfo; optional verification via `KIE_WEBHOOK_SECRET` or `KIE_WEBHOOK_IP_ALLOWLIST`.
+- Uploads: data-URL images are uploaded to Supabase Storage (`user-uploads` bucket, public) before calling Kie to ensure publicly accessible URLs.
+
+## Stripe Prices (test/live)
+
+- Test mode currently uses `STRIPE_SECRET_KEY` with test price IDs: `STRIPE_PRICE_CAPSULE`, `STRIPE_PRICE_MEMORY`, `STRIPE_PRICE_LEGACY`.
+- Keep secret key and price IDs aligned to the same mode (both test or both live) to avoid 500s at checkout.
+
+## Development Checks
+
+- Lint: `pnpm lint`
+- Build: `pnpm build` (warnings: multiple lockfiles root inference; middleware convention deprecated)
 
 ## License
 
