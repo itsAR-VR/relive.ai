@@ -52,7 +52,7 @@ export function SocialProof() {
         <div className="text-center mb-6 md:mb-10">
           <div className="inline-flex flex-col items-center p-4 md:p-6 rounded-2xl bg-primary/10 border border-primary/20">
             <span className="text-4xl md:text-6xl font-serif text-primary font-bold">98%</span>
-            <span className="text-sm md:text-base text-primary font-medium mt-1">Made Them Cry</span>
+            <span className="text-sm md:text-base text-primary font-medium mt-1">Said it moved them to tears</span>
           </div>
         </div>
 

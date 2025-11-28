@@ -11,6 +11,9 @@ export function LandingHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/80 bg-background/90 backdrop-blur-sm">
+      <div className="bg-primary text-primary-foreground text-center text-xs sm:text-sm font-semibold px-3 py-2">
+        50% off Black Friday
+      </div>
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md group-hover:shadow-lg transition-shadow">

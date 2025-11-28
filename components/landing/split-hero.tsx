@@ -141,7 +141,7 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                98% made them cry
+                98% said it moved them to tears
               </span>
             </div>
           </div>
