@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   // Get orders for this gifter
   const { data: orders } = await supabase
     .from("orders")
-    .select("*")
+    .select("id, status, tier, created_at, stripe_checkout_session_id, final_video_url, interview_data")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 

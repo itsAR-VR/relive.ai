@@ -3,7 +3,22 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { X, Heart, Users, User, Sparkles, ArrowRight, ArrowLeft, Loader2, Home, Camera, Plane, PartyPopper, Music, Utensils } from "lucide-react"
+import {
+  X,
+  Heart,
+  Users,
+  User,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  Loader2,
+  Home,
+  Plane,
+  Gift,
+  Coffee,
+  Cake,
+  Gem,
+} from "lucide-react"
 
 interface TeaserQuizProps {
   isOpen: boolean
@@ -11,7 +26,7 @@ interface TeaserQuizProps {
 }
 
 type HonoreeType = "dad" | "mom" | "grandparent" | "partner" | "other" | null
-type MemoryType = "childhood" | "wedding" | "holiday" | "vacation" | "celebration" | "everyday" | null
+type MemoryType = string | null
 type FeelingType = "nostalgic" | "joyful" | "peace" | "tears" | null
 
 const HONOREE_OPTIONS = [
@@ -23,12 +38,12 @@ const HONOREE_OPTIONS = [
 ]
 
 const MEMORY_TYPE_OPTIONS = [
-  { id: "childhood" as const, label: "Childhood Home", icon: Home, description: "The house they grew up in" },
-  { id: "wedding" as const, label: "Wedding Day", icon: Heart, description: "Their special day" },
-  { id: "holiday" as const, label: "Holiday Memory", icon: PartyPopper, description: "Christmas, birthdays, etc." },
-  { id: "vacation" as const, label: "Vacation", icon: Plane, description: "A trip they loved" },
-  { id: "celebration" as const, label: "Celebration", icon: Music, description: "Parties & milestones" },
-  { id: "everyday" as const, label: "Everyday Moment", icon: Utensils, description: "Kitchen, garden, etc." },
+  { id: "holiday", label: "Holiday", icon: Gift, description: "Christmas, Thanksgiving, festive mornings" },
+  { id: "wedding", label: "Wedding", icon: Gem, description: "Their ceremony or reception magic" },
+  { id: "vacation", label: "Vacation", icon: Plane, description: "Beach trips, road trips, or Europe" },
+  { id: "everyday", label: "Everyday Life", icon: Coffee, description: "Kitchen laughs, porch talks" },
+  { id: "childhood", label: "Childhood Home", icon: Home, description: "The house they grew up in" },
+  { id: "birthday", label: "Birthday", icon: Cake, description: "Cakes, surprises, candles" },
 ]
 
 const FEELING_OPTIONS = [
@@ -44,6 +59,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
   const [honoree, setHonoree] = useState<HonoreeType>(null)
   const [memoryType, setMemoryType] = useState<MemoryType>(null)
   const [feeling, setFeeling] = useState<FeelingType>(null)
+  const [showCustomMemory, setShowCustomMemory] = useState(false)
 
   // Reset state when modal closes
   useEffect(() => {
@@ -53,6 +69,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
         setHonoree(null)
         setMemoryType(null)
         setFeeling(null)
+        setShowCustomMemory(false)
       }, 300)
       return () => clearTimeout(timer)
     }
@@ -65,13 +82,26 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
       // Start analysis animation
       setStep(4)
       
-      // Store quiz data in sessionStorage for pricing page
-      const memoryLabel = MEMORY_TYPE_OPTIONS.find(m => m.id === memoryType)?.label || memoryType
-      sessionStorage.setItem("giftingmoments_quiz", JSON.stringify({
-        honoree,
+      const memoryLabel = MEMORY_TYPE_OPTIONS.find((m) => m.id === memoryType)?.label || memoryType
+      const draft = {
+        who: honoree,
         memory: memoryLabel,
-        feeling,
-      }))
+        vibe: feeling,
+      }
+
+      // Persist quiz data for checkout/director handoff
+      try {
+        localStorage.setItem("gifter_draft", JSON.stringify(draft))
+      } catch {
+        // ignore
+      }
+
+      // Keep sessionStorage for existing summary UI
+      try {
+        sessionStorage.setItem("giftingmoments_quiz", JSON.stringify(draft))
+      } catch {
+        // ignore
+      }
       
       // Simulate analysis and redirect
       setTimeout(() => {
@@ -88,9 +118,15 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
 
   const canProceed = () => {
     if (step === 1) return honoree !== null
-    if (step === 2) return memoryType !== null
+    if (step === 2) return typeof memoryType === "string" && memoryType.trim().length > 0
     if (step === 3) return feeling !== null
     return false
+  }
+
+  const selectMemoryAndAdvance = (id: string) => {
+    setMemoryType(id)
+    // quick fade to step 3
+    setTimeout(() => setStep(3), 150)
   }
 
   if (!isOpen) return null
@@ -177,7 +213,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
                   return (
                     <button
                       key={option.id}
-                      onClick={() => setMemoryType(option.id)}
+                      onClick={() => selectMemoryAndAdvance(option.id)}
                       className={`p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.01] ${
                         memoryType === option.id
                           ? "border-primary bg-primary/10"
@@ -194,6 +230,30 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
                     </button>
                   )
                 })}
+              </div>
+
+              <div className="mt-4 text-center">
+                {!showCustomMemory ? (
+                  <button
+                    onClick={() => setShowCustomMemory(true)}
+                    className="text-sm text-primary underline-offset-4 hover:underline"
+                  >
+                    Something else?
+                  </button>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Tell us what kind of memory you have in mind.
+                    </p>
+                    <input
+                      type="text"
+                      value={memoryType ?? ""}
+                      onChange={(e) => setMemoryType(e.target.value)}
+                      placeholder="e.g., Military homecoming, first day of school..."
+                      className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Disclaimer */}
@@ -275,7 +335,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
                 disabled={!canProceed()}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 h-10"
               >
-                {step === 3 ? "See Packages" : "Continue"}
+                {step === 3 ? "See Options" : "Continue"}
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>

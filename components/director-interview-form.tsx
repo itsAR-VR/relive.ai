@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { 
   ArrowRight, 
   ArrowLeft, 
-  Upload, 
   Mic, 
   MicOff,
   Sun, 
@@ -15,8 +14,10 @@ import {
   Check,
   Loader2
 } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 
 type FormData = {
+  honoree: string
   scene: string
   weather: string
   smell: string
@@ -57,15 +58,20 @@ const STYLE_OPTIONS = [
 ]
 
 export function DirectorInterviewForm() {
+  const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
   const [isRecording, setIsRecording] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [draftLoaded, setDraftLoaded] = useState(false)
+  const [draftData, setDraftData] = useState<{ who?: string; memory?: string; vibe?: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
 
   const [formData, setFormData] = useState<FormData>({
+    honoree: "",
     scene: "",
     weather: "",
     smell: "",
@@ -80,6 +86,38 @@ export function DirectorInterviewForm() {
   const updateField = <K extends keyof FormData>(field: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
+
+  // Prefill from teaser quiz draft
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("gifter_draft")
+      if (stored) {
+        const parsed = JSON.parse(stored) as { who?: string; memory?: string; vibe?: string }
+        const vibeStyleMap: Record<string, FormData["style"]> = {
+          nostalgic: "super8",
+          joyful: "painting",
+          peace: "dreamhaze",
+          tears: "super8",
+        }
+
+        setDraftData(parsed)
+        setFormData((prev) => ({
+          ...prev,
+          honoree: parsed.who || prev.honoree,
+          scene:
+            prev.scene ||
+            (parsed.memory
+              ? `I want to relive a ${parsed.memory} memory. Specifically...`
+              : prev.scene),
+          style: prev.style || (parsed.vibe ? vibeStyleMap[parsed.vibe] || prev.style : prev.style),
+        }))
+
+        setDraftLoaded(Boolean(parsed.who || parsed.memory || parsed.vibe))
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -127,19 +165,78 @@ export function DirectorInterviewForm() {
   }
 
   const handleSubmit = async () => {
+    setError(null)
+    const orderId =
+      searchParams.get("order_id") ||
+      searchParams.get("session_id") ||
+      searchParams.get("checkout_session_id") ||
+      ""
+
+    if (!orderId) {
+      setError("Missing order ID. Please return from Stripe and try again.")
+      return
+    }
+
     setIsSubmitting(true)
-    
-    // Simulate submission - in production this would send to backend
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    
-    setIsSubmitting(false)
-    setIsComplete(true)
+
+    try {
+      const payload = new FormData()
+      payload.append("order_id", orderId)
+
+      const quizData = {
+        honoree: formData.honoree || draftData?.who || "",
+        memory: draftData?.memory || "",
+        vibe: draftData?.vibe || "",
+      }
+      payload.append("quiz_data", JSON.stringify(quizData))
+
+      const interviewData = {
+        scene: formData.scene,
+        weather: formData.weather,
+        smell: formData.smell,
+        sounds: formData.sounds,
+        anchor_object: formData.anchorObject,
+        style: formData.style,
+        honoree: formData.honoree,
+      }
+      payload.append("interview_data", JSON.stringify(interviewData))
+
+      if (formData.photoFile) {
+        payload.append("reference_photo", formData.photoFile)
+      }
+      if (formData.audioFile) {
+        payload.append("audio_note", formData.audioFile)
+      }
+
+      const response = await fetch("/api/intake", {
+        method: "POST",
+        body: payload,
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to submit interview")
+      }
+
+      try {
+        localStorage.removeItem("gifter_draft")
+      } catch {
+        // ignore
+      }
+
+      setIsComplete(true)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to submit interview"
+      setError(message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const canProceed = () => {
     switch (step) {
       case 1:
-        return formData.scene.trim().length > 20
+        return formData.scene.trim().length > 20 && formData.honoree.trim().length > 0
       case 2:
         return formData.weather && formData.anchorObject.trim().length > 3
       case 3:
@@ -191,6 +288,12 @@ export function DirectorInterviewForm() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      {draftLoaded && (
+        <div className="mb-6 rounded-xl border border-primary/30 bg-primary/10 text-primary px-4 py-3 text-sm">
+          We&apos;ve loaded your story draft. Please add the details below.
+        </div>
+      )}
+
       {/* Progress */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
@@ -208,18 +311,31 @@ export function DirectorInterviewForm() {
       {/* Step 1: The Scene */}
       {step === 1 && (
         <div className="animate-fade-in-slow">
-          <h2 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
-            Describe the Moment
-          </h2>
-          <p className="text-muted-foreground mb-8">
-            The more details you give us, the more real it will feel. Take your time.
-          </p>
+        <h2 className="font-serif text-2xl md:text-3xl text-foreground mb-2">
+          Describe the Moment
+        </h2>
+        <p className="text-muted-foreground mb-8">
+          The more details you give us, the more real it will feel. Take your time.
+        </p>
 
-          <label className="block mb-6">
-            <span className="text-sm font-medium text-foreground mb-2 block">
-              What was happening in this memory?
-            </span>
-            <textarea
+        <label className="block mb-6">
+          <span className="text-sm font-medium text-foreground mb-2 block">
+            Who is this gift for?
+          </span>
+          <input
+            type="text"
+            value={formData.honoree}
+            onChange={(e) => updateField("honoree", e.target.value)}
+            placeholder="e.g., Mom, Grandpa Joe, Aunt Lisa"
+            className="w-full p-3 rounded-xl border-2 border-border bg-card text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          />
+        </label>
+
+        <label className="block mb-6">
+          <span className="text-sm font-medium text-foreground mb-2 block">
+            What was happening in this memory?
+          </span>
+          <textarea
               value={formData.scene}
               onChange={(e) => updateField("scene", e.target.value)}
               placeholder="Describe the scene in detail. Who was there? What were they doing? What year was it? Be as specific as possible..."
@@ -472,6 +588,12 @@ export function DirectorInterviewForm() {
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive px-4 py-3 text-sm">
+          {error}
         </div>
       )}
 

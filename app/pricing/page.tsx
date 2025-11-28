@@ -9,6 +9,7 @@ import Link from "next/link"
 const SERVICE_PACKAGES = [
   {
     id: "keepsake",
+    tierId: "standard",
     name: "Digital Keepsake",
     tagline: "Just thinking of you",
     price: 49,
@@ -24,6 +25,7 @@ const SERVICE_PACKAGES = [
   },
   {
     id: "directors",
+    tierId: "premium",
     name: "Director's Cut",
     tagline: "The Big Gift",
     price: 149,
@@ -41,6 +43,7 @@ const SERVICE_PACKAGES = [
   },
   {
     id: "biography",
+    tierId: "bio",
     name: "The Biography",
     tagline: "Mini-Documentary",
     price: 299,
@@ -60,18 +63,31 @@ const SERVICE_PACKAGES = [
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; type?: "error" | "success" } | null>(null)
-  const [quizData, setQuizData] = useState<{ honoree?: string; memory?: string; feeling?: string } | null>(null)
+  const [quizData, setQuizData] = useState<{ honoree?: string; memory?: string; vibe?: string } | null>(null)
 
   useEffect(() => {
-    // Check for quiz data from session storage
-    const stored = sessionStorage.getItem("giftingmoments_quiz")
-    if (stored) {
-      try {
-        setQuizData(JSON.parse(stored))
-      } catch {
-        // Ignore parsing errors
+    const loadDraft = () => {
+      const sources = [
+        typeof localStorage !== "undefined" ? localStorage.getItem("gifter_draft") : null,
+        typeof sessionStorage !== "undefined" ? sessionStorage.getItem("giftingmoments_quiz") : null,
+      ]
+      for (const raw of sources) {
+        if (!raw) continue
+        try {
+          const parsed = JSON.parse(raw)
+          setQuizData({
+            honoree: parsed.who || parsed.honoree,
+            memory: parsed.memory,
+            vibe: parsed.vibe || parsed.feeling,
+          })
+          break
+        } catch {
+          // ignore
+        }
       }
     }
+
+    loadDraft()
   }, [])
 
   useEffect(() => {
@@ -80,15 +96,23 @@ export default function PricingPage() {
     return () => clearTimeout(timer)
   }, [toast])
 
-  const handlePurchase = async (packageId: string) => {
-    setLoading(packageId)
+  const handlePurchase = async (tierId: string) => {
+    setLoading(tierId)
 
     try {
-      // Store the package selection and go directly to intake (Stripe integration later)
-      // No sign-in check - account created via Stripe email matching
-      sessionStorage.setItem("giftingmoments_package", packageId)
-      window.location.href = "/director-interview"
-      
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tierId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data?.url) {
+        throw new Error(data?.error || "Failed to start checkout. Please try again.")
+      }
+
+      window.location.href = data.url
     } catch (error) {
       console.error("Purchase error:", error)
       const message = error instanceof Error ? error.message : "Failed to start checkout. Please try again."
@@ -209,15 +233,15 @@ export default function PricingPage() {
                 </div>
 
                 <Button
-                  onClick={() => handlePurchase(pkg.id)}
-                  disabled={loading === pkg.id}
+                  onClick={() => handlePurchase(pkg.tierId)}
+                  disabled={loading === pkg.tierId}
                   className={`w-full h-10 md:h-11 font-medium text-sm ${
                     pkg.popular
                       ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
                       : "bg-foreground hover:bg-foreground/90 text-background"
                   }`}
                 >
-                  {loading === pkg.id ? (
+                  {loading === pkg.tierId ? (
                     <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                   ) : (
                     "Book Now"

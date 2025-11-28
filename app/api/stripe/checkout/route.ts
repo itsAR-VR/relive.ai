@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       customer: stripeCustomerId,
       line_items: [{ price: serviceTier.priceId, quantity: 1 }],
       mode: "payment",
-      success_url: `${origin}/director-interview?order_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/director-interview?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard?canceled=true`,
       metadata: {
         user_id: user.id,
