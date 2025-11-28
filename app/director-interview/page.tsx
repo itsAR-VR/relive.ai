@@ -32,10 +32,12 @@ function DirectorInterviewContent() {
   const [claiming, setClaiming] = useState<boolean>(false)
   const [claimError, setClaimError] = useState<string>("")
   const [checkingSession, setCheckingSession] = useState<boolean>(false)
+  const [authErrorFlag, setAuthErrorFlag] = useState<boolean>(false)
   const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
 
   const sessionId = searchParams.get("session_id") || searchParams.get("checkout_session_id") || ""
+  const hasAuthError = searchParams.get("auth_error")
 
   useEffect(() => {
     // Get package info from session storage
@@ -77,36 +79,52 @@ function DirectorInterviewContent() {
   }, [sessionId])
 
   useEffect(() => {
-    const bootstrapAuth = async () => {
-      setAuthError("")
-      setAuthMessage("")
-      const { data } = await supabase.auth.getUser()
-      const loggedIn = Boolean(data.user)
+    if (hasAuthError) setAuthErrorFlag(true)
+  }, [hasAuthError])
 
-      if (loggedIn) {
-        setUserEmail(data.user?.email || userEmail)
-        setUserReady(true)
-        if (sessionId) {
-          setClaiming(true)
-          setClaimError("")
-          const claimRes = await fetch("/api/orders/claim", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ session_id: sessionId }),
-          })
-          if (!claimRes.ok) {
-            const claimData = await claimRes.json().catch(() => ({}))
-            setClaimError(claimData?.error || "Failed to claim your order.")
-          }
-          setClaiming(false)
-        }
-      } else {
-        setUserReady(false)
-      }
+  const claimOrder = async () => {
+    if (!sessionId) return
+    setClaiming(true)
+    setClaimError("")
+    const claimRes = await fetch("/api/orders/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId }),
+    })
+    if (!claimRes.ok) {
+      const claimData = await claimRes.json().catch(() => ({}))
+      setClaimError(claimData?.error || "Failed to claim your order.")
     }
+    setClaiming(false)
+  }
 
-    bootstrapAuth()
-  }, [sessionId, supabase, userEmail])
+  const handleAuthChange = async () => {
+    setAuthError("")
+    setAuthMessage("")
+    const { data } = await supabase.auth.getUser()
+    const loggedIn = Boolean(data.user)
+
+    if (loggedIn) {
+      setUserEmail(data.user?.email || userEmail)
+      setUserReady(true)
+      await claimOrder()
+    } else {
+      setUserReady(false)
+    }
+  }
+
+  useEffect(() => {
+    handleAuthChange()
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        handleAuthChange()
+      }
+    })
+
+    return () => {
+      subscription?.subscription?.unsubscribe()
+    }
+  }, [sessionId, supabase])
 
   const checkVerification = async () => {
     setCheckingSession(true)
@@ -118,20 +136,7 @@ function DirectorInterviewContent() {
       if (data?.user) {
         setUserEmail(data.user.email || userEmail)
         setUserReady(true)
-        if (sessionId) {
-          setClaiming(true)
-          setClaimError("")
-          const claimRes = await fetch("/api/orders/claim", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ session_id: sessionId }),
-          })
-          if (!claimRes.ok) {
-            const claimData = await claimRes.json().catch(() => ({}))
-            setClaimError(claimData?.error || "Failed to claim your order.")
-          }
-          setClaiming(false)
-        }
+        await claimOrder()
       } else {
         setAuthMessage("Still waiting for login. Open the email link to continue.")
       }
@@ -181,7 +186,7 @@ function DirectorInterviewContent() {
               <Gift className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <span className="text-lg font-serif text-foreground">GiftingMoments</span>
+              <span className="text-lg font-serif text-foreground">Moments</span>
               <p className="text-xs text-muted-foreground">Memory Restoration Studio</p>
             </div>
           </Link>
