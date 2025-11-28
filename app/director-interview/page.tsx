@@ -158,7 +158,7 @@ function DirectorInterviewContent() {
     setAuthError("")
     setAuthMessage("")
     try {
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/director-interview?session_id=${encodeURIComponent(sessionId)}`)}`
+      const redirectTo = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(`/director-interview?session_id=${encodeURIComponent(sessionId)}`)}`
       const { error } = await supabase.auth.signInWithOtp({
         email: userEmail,
         options: {
