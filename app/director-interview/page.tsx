@@ -8,6 +8,20 @@ import { useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
 export default function DirectorInterviewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <DirectorInterviewContent />
+    </Suspense>
+  )
+}
+
+function DirectorInterviewContent() {
   const [packageName, setPackageName] = useState<string>("Memory Package")
   const [quizData, setQuizData] = useState<{ honoree?: string } | null>(null)
   const [userEmail, setUserEmail] = useState<string>("")
@@ -59,7 +73,7 @@ export default function DirectorInterviewPage() {
     }
 
     preloadSession()
-  }, [])
+  }, [sessionId])
 
   useEffect(() => {
     const bootstrapAuth = async () => {
