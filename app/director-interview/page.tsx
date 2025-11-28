@@ -1,13 +1,26 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Gift, ArrowLeft, Loader2 } from "lucide-react"
 import { DirectorInterviewForm } from "@/components/director-interview-form"
+import { useSearchParams } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 
 export default function DirectorInterviewPage() {
   const [packageName, setPackageName] = useState<string>("Memory Package")
   const [quizData, setQuizData] = useState<{ honoree?: string } | null>(null)
+  const [userEmail, setUserEmail] = useState<string>("")
+  const [userReady, setUserReady] = useState<boolean>(false)
+  const [sendingLink, setSendingLink] = useState<boolean>(false)
+  const [authMessage, setAuthMessage] = useState<string>("")
+  const [authError, setAuthError] = useState<string>("")
+  const [claiming, setClaiming] = useState<boolean>(false)
+  const [claimError, setClaimError] = useState<string>("")
+  const searchParams = useSearchParams()
+  const supabase = useMemo(() => createClient(), [])
+
+  const sessionId = searchParams.get("session_id") || searchParams.get("checkout_session_id") || ""
 
   useEffect(() => {
     // Get package info from session storage
@@ -30,7 +43,82 @@ export default function DirectorInterviewPage() {
         // Ignore parsing errors
       }
     }
+
+    // Prefill email from Stripe session
+    const preloadSession = async () => {
+      if (!sessionId) return
+      try {
+        const res = await fetch(`/api/stripe/session?session_id=${encodeURIComponent(sessionId)}`)
+        const data = await res.json()
+        if (data?.email) {
+          setUserEmail(data.email)
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    preloadSession()
   }, [])
+
+  useEffect(() => {
+    const bootstrapAuth = async () => {
+      setAuthError("")
+      setAuthMessage("")
+      const { data } = await supabase.auth.getUser()
+      const loggedIn = Boolean(data.user)
+
+      if (loggedIn) {
+        setUserEmail(data.user?.email || userEmail)
+        setUserReady(true)
+        if (sessionId) {
+          setClaiming(true)
+          setClaimError("")
+          const claimRes = await fetch("/api/orders/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId }),
+          })
+          if (!claimRes.ok) {
+            const claimData = await claimRes.json().catch(() => ({}))
+            setClaimError(claimData?.error || "Failed to claim your order.")
+          }
+          setClaiming(false)
+        }
+      } else {
+        setUserReady(false)
+      }
+    }
+
+    bootstrapAuth()
+  }, [sessionId, supabase, userEmail])
+
+  const sendMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!userEmail) {
+      setAuthError("Email is required")
+      return
+    }
+    setSendingLink(true)
+    setAuthError("")
+    setAuthMessage("")
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: userEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/director-interview?session_id=${encodeURIComponent(sessionId)}`,
+          shouldCreateUser: true,
+        },
+      })
+      if (error) throw error
+      setAuthMessage("Magic link sent. Check your email to continue.")
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to send magic link"
+      setAuthError(message)
+    } finally {
+      setSendingLink(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,13 +163,65 @@ export default function DirectorInterviewPage() {
 
         {/* Form */}
         <div className="bg-card rounded-2xl border border-border shadow-lg p-6 md:p-10">
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          {!userReady ? (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-serif text-foreground mb-2">Confirm your email to continue</h2>
+                <p className="text-sm text-muted-foreground">
+                  We&apos;ll send you a magic link to secure your order and save your interview progress.
+                </p>
+              </div>
+              <form onSubmit={sendMagicLink} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground">Email</label>
+                  <input
+                    type="email"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    required
+                    className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+                {authError && (
+                  <p className="text-sm text-red-600">{authError}</p>
+                )}
+                {authMessage && (
+                  <p className="text-sm text-green-600">{authMessage}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={sendingLink || !sessionId}
+                  className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {sendingLink && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Send magic link
+                </button>
+              </form>
+              {sessionId === "" && (
+                <p className="text-sm text-red-600">Missing checkout session. Please return from Stripe.</p>
+              )}
             </div>
-          }>
-            <DirectorInterviewForm />
-          </Suspense>
+          ) : claiming ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <span className="ml-3 text-sm text-muted-foreground">Preparing your interview...</span>
+            </div>
+          ) : claimError ? (
+            <div className="space-y-3">
+              <p className="text-sm text-red-600">{claimError}</p>
+              <p className="text-sm text-muted-foreground">
+                Please use the email you used at checkout so we can attach your order.
+              </p>
+            </div>
+          ) : (
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              </div>
+            }>
+              <DirectorInterviewForm />
+            </Suspense>
+          )}
         </div>
 
         {/* Trust Footer */}
