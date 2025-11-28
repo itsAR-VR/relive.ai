@@ -51,6 +51,70 @@ function isFile(value: FormDataEntryValue | null): value is File {
   return value instanceof File
 }
 
+async function getOrCreateUserIdFromSession(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  session: Stripe.Checkout.Session
+) {
+  const email = session.customer_details?.email || session.customer_email || null
+  const stripeCustomerId = typeof session.customer === "string" ? session.customer : null
+  const fullName = session.customer_details?.name || undefined
+
+  if (!email) return null
+
+  const { data: existingProfile } = await admin
+    .from("profiles")
+    .select("id, stripe_customer_id")
+    .eq("email", email)
+    .maybeSingle()
+
+  if (existingProfile?.id) {
+    if (!existingProfile.stripe_customer_id && stripeCustomerId) {
+      await admin
+        .from("profiles")
+        .update({ stripe_customer_id: stripeCustomerId })
+        .eq("id", existingProfile.id)
+    }
+    return existingProfile.id
+  }
+
+  const redirectTo = process.env.NEXT_PUBLIC_APP_URL
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+    : undefined
+
+  const { data: inviteData, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+    data: {
+      full_name: fullName,
+      stripe_customer_id: stripeCustomerId,
+      source: "stripe_checkout",
+    },
+    redirectTo,
+  })
+
+  if (inviteError || !inviteData?.user?.id) {
+    console.error("Intake: Failed to create user from Stripe checkout session", { email, inviteError })
+    return null
+  }
+
+  const newUserId = inviteData.user.id
+
+  if (stripeCustomerId) {
+    const { error: profileUpdateError } = await admin
+      .from("profiles")
+      .update({ stripe_customer_id: stripeCustomerId })
+      .eq("id", newUserId)
+
+    if (profileUpdateError) {
+      console.error("Intake: Failed to attach stripe_customer_id to profile", {
+        userId: newUserId,
+        stripeCustomerId,
+        profileUpdateError,
+      })
+    }
+  }
+
+  return newUserId
+}
+
 async function uploadAsset(
   admin: ReturnType<typeof createSupabaseAdminClient>,
   file: File,
@@ -125,7 +189,7 @@ export async function POST(request: Request) {
         const tierId = session.metadata?.tier
         const tier = tierId ? getServiceTierById(tierId) : null
         const quizData = parseMetadataJson(session.metadata?.quiz_data)
-        const orderUserId = session.metadata?.user_id
+        let orderUserId = session.metadata?.user_id
         const sessionEmail = session.customer_details?.email || session.customer_email || undefined
 
         if (!tier) {
@@ -134,14 +198,21 @@ export async function POST(request: Request) {
         }
 
         if (!orderUserId) {
-          console.error("Intake fallback: Missing user_id in Stripe session metadata", { identifier })
+          orderUserId = await getOrCreateUserIdFromSession(admin, session)
+          if (!orderUserId) {
+            console.error("Intake fallback: Could not resolve user from Stripe session", {
+              identifier,
+              email: sessionEmail,
+            })
+            return NextResponse.json({ error: "Order not found" }, { status: 404 })
+          }
         }
 
         const upsertResult = await admin
           .from("orders")
           .upsert(
             {
-              user_id: orderUserId || null,
+              user_id: orderUserId,
               tier: tier.id,
               status: "pending_interview",
               quiz_data: quizData,
@@ -158,14 +229,6 @@ export async function POST(request: Request) {
         }
 
         order = upsertResult.data
-
-        // If we created a guest order without user_id, at least log context
-        if (!order.user_id) {
-          console.warn("Intake fallback: order created without user_id", {
-            session_id: session.id,
-            email: sessionEmail,
-          })
-        }
       } catch (stripeError) {
         console.error("Intake fallback: Failed to retrieve Stripe session for intake", stripeError)
         return NextResponse.json({ error: "Order not found" }, { status: 404 })
