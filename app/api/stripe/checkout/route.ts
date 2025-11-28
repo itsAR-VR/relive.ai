@@ -3,7 +3,7 @@ import { extractMetaCookies, sendConversionEvent } from "@/lib/meta"
 import { getServiceTierById, getStripe } from "@/lib/stripe"
 import { NextResponse } from "next/server"
 
-const testEventCode = process.env.META_CAPI_TEST_EVENT_CODE
+const testEventCode = process.env.TEST_EVENT_CODE || process.env.META_CAPI_TEST_EVENT_CODE
 
 export async function POST(request: Request) {
   try {

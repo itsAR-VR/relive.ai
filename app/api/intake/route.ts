@@ -6,7 +6,7 @@ import { extractMetaCookies, sendConversionEvent } from "@/lib/meta"
 import { getServiceTierById, getStripe } from "@/lib/stripe"
 
 const BUCKET = "order-assets"
-const testEventCode = process.env.META_CAPI_TEST_EVENT_CODE
+const testEventCode = process.env.TEST_EVENT_CODE || process.env.META_CAPI_TEST_EVENT_CODE
 
 function getSupabaseAdmin() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {

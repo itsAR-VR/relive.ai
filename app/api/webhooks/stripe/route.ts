@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const testEventCode = process.env.META_CAPI_TEST_EVENT_CODE
+const testEventCode = process.env.TEST_EVENT_CODE || process.env.META_CAPI_TEST_EVENT_CODE
 
 // Lazy-load supabase admin client
 function getSupabaseAdmin() {
