@@ -31,6 +31,7 @@ function DirectorInterviewContent() {
   const [authError, setAuthError] = useState<string>("")
   const [claiming, setClaiming] = useState<boolean>(false)
   const [claimError, setClaimError] = useState<string>("")
+  const [checkingSession, setCheckingSession] = useState<boolean>(false)
   const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
 
@@ -106,6 +107,41 @@ function DirectorInterviewContent() {
 
     bootstrapAuth()
   }, [sessionId, supabase, userEmail])
+
+  const checkVerification = async () => {
+    setCheckingSession(true)
+    setAuthError("")
+    setAuthMessage("")
+    try {
+      const { data, error } = await supabase.auth.getUser()
+      if (error) throw error
+      if (data?.user) {
+        setUserEmail(data.user.email || userEmail)
+        setUserReady(true)
+        if (sessionId) {
+          setClaiming(true)
+          setClaimError("")
+          const claimRes = await fetch("/api/orders/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId }),
+          })
+          if (!claimRes.ok) {
+            const claimData = await claimRes.json().catch(() => ({}))
+            setClaimError(claimData?.error || "Failed to claim your order.")
+          }
+          setClaiming(false)
+        }
+      } else {
+        setAuthMessage("Still waiting for login. Open the email link to continue.")
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not check verification"
+      setAuthError(message)
+    } finally {
+      setCheckingSession(false)
+    }
+  }
 
   const sendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -199,16 +235,25 @@ function DirectorInterviewContent() {
                 {authError && (
                   <p className="text-sm text-red-600">{authError}</p>
                 )}
-                {authMessage && (
-                  <p className="text-sm text-green-600">{authMessage}</p>
-                )}
-                <button
-                  type="submit"
+              {authMessage && (
+                <p className="text-sm text-green-600">{authMessage}</p>
+              )}
+              <button
+                type="submit"
                   disabled={sendingLink || !sessionId}
                   className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   {sendingLink && <Loader2 className="w-4 h-4 animate-spin" />}
                   Send magic link
+                </button>
+                <button
+                  type="button"
+                  onClick={checkVerification}
+                  disabled={checkingSession}
+                  className="w-full h-11 rounded-lg border border-border text-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {checkingSession && <Loader2 className="w-4 h-4 animate-spin" />}
+                  I already clicked the link
                 </button>
               </form>
               {sessionId === "" && (
