@@ -3,7 +3,8 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js"
 import { extractMetaCookies, sendConversionEvent } from "@/lib/meta"
-import { getServiceTierById, getStripe } from "@/lib/stripe"
+import { getServiceTierById, getServiceTierByPriceId, getStripe } from "@/lib/stripe"
+import Stripe from "stripe"
 
 const BUCKET = "order-assets"
 const testEventCode = process.env.TEST_EVENT_CODE || process.env.META_CAPI_TEST_EVENT_CODE
@@ -185,16 +186,27 @@ export async function POST(request: Request) {
 
     if ((orderError || !order) && lookupColumn === "stripe_checkout_session_id") {
       try {
-        const session = await stripe.checkout.sessions.retrieve(identifier)
-        const tierId = session.metadata?.tier
-        const tier = tierId ? getServiceTierById(tierId) : null
+        const session = await stripe.checkout.sessions.retrieve(identifier, {
+          expand: ["customer", "customer_details", "line_items.data.price"],
+        })
+        const lineItems = session.line_items?.data || []
+        const firstLine = lineItems[0]
+        const priceId = (firstLine?.price && typeof firstLine.price === "object" ? firstLine.price.id : undefined) ||
+          (typeof firstLine?.price === "string" ? firstLine.price : undefined)
+        const tierFromMetadata = session.metadata?.tier ? getServiceTierById(session.metadata.tier) : null
+        const tierFromPrice = priceId ? getServiceTierByPriceId(priceId) : null
+        const tier = tierFromMetadata || tierFromPrice
         const quizData = parseMetadataJson(session.metadata?.quiz_data)
         let orderUserId = session.metadata?.user_id
         const sessionEmail = session.customer_details?.email || session.customer_email || undefined
 
         if (!tier) {
-          console.error("Intake fallback: Missing tier in Stripe session metadata", { identifier, tierId })
-          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+          console.error("Intake fallback: Missing tier; metadata and price lookup failed", {
+            identifier,
+            metadataTier: session.metadata?.tier,
+            priceId,
+          })
+          return NextResponse.json({ error: "Order not found", code: "missing_tier" }, { status: 404 })
         }
 
         if (!orderUserId) {
@@ -204,7 +216,7 @@ export async function POST(request: Request) {
               identifier,
               email: sessionEmail,
             })
-            return NextResponse.json({ error: "Order not found" }, { status: 404 })
+            return NextResponse.json({ error: "Order not found", code: "missing_user" }, { status: 404 })
           }
         }
 
@@ -225,13 +237,13 @@ export async function POST(request: Request) {
 
         if (upsertResult.error) {
           console.error("Intake fallback: Failed to create order from Stripe session", upsertResult.error)
-          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+          return NextResponse.json({ error: "Order not found", code: "upsert_failed" }, { status: 404 })
         }
 
         order = upsertResult.data
       } catch (stripeError) {
         console.error("Intake fallback: Failed to retrieve Stripe session for intake", stripeError)
-        return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        return NextResponse.json({ error: "Order not found", code: "stripe_session_lookup_failed" }, { status: 404 })
       }
     }
 
