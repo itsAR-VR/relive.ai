@@ -3,8 +3,10 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js"
 import { extractMetaCookies, sendConversionEvent } from "@/lib/meta"
+import { getServiceTierById, getStripe } from "@/lib/stripe"
 
 const BUCKET = "order-assets"
+const testEventCode = process.env.META_CAPI_TEST_EVENT_CODE
 
 function getSupabaseAdmin() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -27,6 +29,16 @@ async function ensureBucketExists(admin: ReturnType<typeof createSupabaseAdminCl
 
 function parseJsonField(value: FormDataEntryValue | null): Record<string, unknown> {
   if (!value || typeof value !== "string") return {}
+  try {
+    const parsed = JSON.parse(value)
+    return typeof parsed === "object" && parsed !== null ? parsed as Record<string, unknown> : {}
+  } catch {
+    return {}
+  }
+}
+
+function parseMetadataJson(value?: string | null) {
+  if (!value) return {}
   try {
     const parsed = JSON.parse(value)
     return typeof parsed === "object" && parsed !== null ? parsed as Record<string, unknown> : {}
@@ -99,11 +111,66 @@ export async function POST(request: Request) {
 
     const admin = getSupabaseAdmin()
 
-    const { data: order, error: orderError } = await admin
+    const stripe = getStripe()
+
+    let { data: order, error: orderError } = await admin
       .from("orders")
       .select("*")
       .eq(lookupColumn, identifier)
       .single()
+
+    if ((orderError || !order) && lookupColumn === "stripe_checkout_session_id") {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(identifier)
+        const tierId = session.metadata?.tier
+        const tier = tierId ? getServiceTierById(tierId) : null
+        const quizData = parseMetadataJson(session.metadata?.quiz_data)
+        const orderUserId = session.metadata?.user_id
+        const sessionEmail = session.customer_details?.email || session.customer_email || undefined
+
+        if (!tier) {
+          console.error("Intake fallback: Missing tier in Stripe session metadata", { identifier, tierId })
+          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        }
+
+        if (!orderUserId) {
+          console.error("Intake fallback: Missing user_id in Stripe session metadata", { identifier })
+        }
+
+        const upsertResult = await admin
+          .from("orders")
+          .upsert(
+            {
+              user_id: orderUserId || null,
+              tier: tier.id,
+              status: "pending_interview",
+              quiz_data: quizData,
+              stripe_checkout_session_id: session.id,
+            },
+            { onConflict: "stripe_checkout_session_id" }
+          )
+          .select()
+          .single()
+
+        if (upsertResult.error) {
+          console.error("Intake fallback: Failed to create order from Stripe session", upsertResult.error)
+          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        }
+
+        order = upsertResult.data
+
+        // If we created a guest order without user_id, at least log context
+        if (!order.user_id) {
+          console.warn("Intake fallback: order created without user_id", {
+            session_id: session.id,
+            email: sessionEmail,
+          })
+        }
+      } catch (stripeError) {
+        console.error("Intake fallback: Failed to retrieve Stripe session for intake", stripeError)
+        return NextResponse.json({ error: "Order not found" }, { status: 404 })
+      }
+    }
 
     if (orderError || !order) {
       console.error("Order not found for intake", { identifier, orderError })
@@ -176,6 +243,7 @@ export async function POST(request: Request) {
         content_category: "director_interview",
         content_ids: [order.id],
       },
+      testEventCode: testEventCode || undefined,
     }).catch((error) => {
       console.error("Failed to send SubmitApplication to Meta", error)
     })

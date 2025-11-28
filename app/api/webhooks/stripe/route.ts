@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
+const testEventCode = process.env.META_CAPI_TEST_EVENT_CODE
+
 // Lazy-load supabase admin client
 function getSupabaseAdmin() {
   return createClient(
@@ -171,6 +173,7 @@ export async function POST(request: Request) {
           content_ids: [tier.id],
           content_name: tier.name,
         },
+        testEventCode: testEventCode || undefined,
       }).catch((metaError) => {
         console.error("Failed to send Purchase to Meta", metaError)
       })

@@ -3,6 +3,8 @@ import { extractMetaCookies, sendConversionEvent } from "@/lib/meta"
 import { getServiceTierById, getStripe } from "@/lib/stripe"
 import { NextResponse } from "next/server"
 
+const testEventCode = process.env.META_CAPI_TEST_EVENT_CODE
+
 export async function POST(request: Request) {
   try {
     let supabase: Awaited<ReturnType<typeof createClient>> | null = null
@@ -136,6 +138,7 @@ export async function POST(request: Request) {
         content_ids: [serviceTier.id],
         content_name: serviceTier.name,
       },
+      testEventCode: testEventCode || undefined,
     }).catch((error) => {
       console.error("Failed to send InitiateCheckout to Meta", error)
     })
