@@ -7,6 +7,7 @@ import { Toaster } from "sonner"
 import "./globals.css"
 
 import { Playfair_Display, Inter } from 'next/font/google'
+import { HashAuthListener } from "@/components/hash-auth-listener"
 
 // Serif font for headings - high-end, story-driven feel
 const playfairDisplay = Playfair_Display({
@@ -94,6 +95,7 @@ fbq('track', 'PageView');
           />
         </noscript>
         {children}
+        <HashAuthListener />
         {analyticsEnabled ? <Analytics /> : null}
         <Toaster richColors position="top-center" closeButton />
       </body>
