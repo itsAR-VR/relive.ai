@@ -38,14 +38,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid service tier" }, { status: 400 })
     }
 
-    if (!serviceTier.priceId) {
-      console.error("Stripe checkout error: missing priceId", {
-        tier: serviceTierId,
-        expectedEnv: ["STRIPE_PRICE_STANDARD", "STRIPE_PRICE_PREMIUM", "STRIPE_PRICE_BIO"],
-      })
-      return NextResponse.json({ error: "Price not configured for this package" }, { status: 500 })
-    }
-
     const stripe = getStripe()
     let stripeCustomerId: string | undefined
     let customerEmail: string | undefined
@@ -92,9 +84,27 @@ export async function POST(request: Request) {
       }
     }
 
+    const lineItem = serviceTier.priceId
+      ? { price: serviceTier.priceId, quantity: 1 }
+      : {
+          price_data: {
+            currency: "USD",
+            unit_amount: Math.round(serviceTier.price * 100),
+            product_data: {
+              name: serviceTier.name,
+              metadata: { tier: serviceTier.id },
+            },
+          },
+          quantity: 1,
+        }
+
+    if (!serviceTier.priceId) {
+      metadata.price_fallback = "inline_price_data"
+    }
+
     const session = await stripe.checkout.sessions.create({
       ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
-      line_items: [{ price: serviceTier.priceId, quantity: 1 }],
+      line_items: [lineItem],
       mode: "payment",
       success_url: `${origin}/director-interview?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard?canceled=true`,
