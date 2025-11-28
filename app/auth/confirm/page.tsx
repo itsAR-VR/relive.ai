@@ -5,17 +5,29 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
+// Ensure this route is always rendered dynamically (no static export issues)
+export const dynamic = "force-dynamic"
+
 export default function AuthConfirmPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
+        <AuthConfirmFallback />
       }
     >
       <AuthConfirmContent />
     </Suspense>
+  )
+}
+
+function AuthConfirmFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="bg-card rounded-xl border border-border shadow-lg px-6 py-8 max-w-md w-full text-center space-y-3">
+        <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+        <p className="text-sm text-muted-foreground">Finalizing login...</p>
+      </div>
+    </div>
   )
 }
 
