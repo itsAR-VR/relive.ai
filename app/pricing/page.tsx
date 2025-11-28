@@ -103,7 +103,7 @@ export default function PricingPage() {
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tierId }),
+        body: JSON.stringify({ tierId, quizData }),
       })
 
       const data = await response.json()

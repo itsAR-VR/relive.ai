@@ -122,7 +122,7 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
                 className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-5 md:px-8 md:py-6 text-base md:text-lg rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group"
               >
                 <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                Start Their Gift
+                Restore a Memory
               </Button>
               <span className="text-xs md:text-sm text-primary font-medium">
                 50% off Black Friday

@@ -1,8 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import useEmblaCarousel from "embla-carousel-react"
-import { MessageSquare, Clapperboard, Heart, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
+import { MessageSquare, Clapperboard, Heart, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const STEPS = [
@@ -31,24 +29,6 @@ interface HowItWorksProps {
 }
 
 export function HowItWorks({ onStartGift }: HowItWorksProps) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ 
-    loop: true,
-    align: "start",
-    skipSnaps: false,
-  })
-  const [selectedIndex, setSelectedIndex] = useState(0)
-
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
-
-  useEffect(() => {
-    if (!emblaApi) return
-    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap())
-    emblaApi.on("select", onSelect)
-    onSelect()
-    return () => { emblaApi.off("select", onSelect) }
-  }, [emblaApi])
-
   return (
     <section className="py-8 md:py-14 bg-background relative">
       <div className="container relative mx-auto px-4">
@@ -65,45 +45,17 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
           </p>
         </div>
 
-        {/* Mobile: Carousel */}
-        <div className="md:hidden relative">
-          <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex">
-              {STEPS.map((step, index) => {
-                const Icon = step.icon
-                return (
-                  <div key={index} className="flex-[0_0_85%] min-w-0 pl-4 first:pl-0">
-                    <StepCard step={step} Icon={Icon} />
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-          
-          {/* Carousel Navigation */}
-          <div className="flex items-center justify-center gap-4 mt-4">
-            <button 
-              onClick={scrollPrev}
-              className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4 text-muted-foreground" />
-            </button>
-            <div className="flex gap-1.5">
-              {STEPS.map((_, index) => (
-                <div 
-                  key={index}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === selectedIndex ? "bg-primary" : "bg-border"
-                  }`}
-                />
-              ))}
-            </div>
-            <button 
-              onClick={scrollNext}
-              className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors"
-            >
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
+        {/* Mobile: CSS Scroll Snap Carousel */}
+        <div className="md:hidden -mx-4">
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 px-4 pb-4 scrollbar-hide">
+            {STEPS.map((step, index) => {
+              const Icon = step.icon
+              return (
+                <div key={index} className="flex-shrink-0 w-[85%] snap-center">
+                  <StepCard step={step} Icon={Icon} />
+                </div>
+              )
+            })}
           </div>
         </div>
 

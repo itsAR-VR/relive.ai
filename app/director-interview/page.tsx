@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
-import { Gift, ArrowLeft } from "lucide-react"
+import { Gift, ArrowLeft, Loader2 } from "lucide-react"
 import { DirectorInterviewForm } from "@/components/director-interview-form"
 
 export default function DirectorInterviewPage() {
@@ -75,7 +75,13 @@ export default function DirectorInterviewPage() {
 
         {/* Form */}
         <div className="bg-card rounded-2xl border border-border shadow-lg p-6 md:p-10">
-          <DirectorInterviewForm />
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+          }>
+            <DirectorInterviewForm />
+          </Suspense>
         </div>
 
         {/* Trust Footer */}
