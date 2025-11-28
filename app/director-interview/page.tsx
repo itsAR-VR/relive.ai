@@ -157,6 +157,16 @@ function DirectorInterviewContent() {
     setSendingLink(true)
     setAuthError("")
     setAuthMessage("")
+    
+    // Save session ID to recover context if redirect strips params
+    if (sessionId) {
+      try {
+        localStorage.setItem("giftingmoments_session_id", sessionId)
+      } catch {
+        // ignore
+      }
+    }
+
     try {
       const redirectTo = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(`/director-interview?session_id=${encodeURIComponent(sessionId)}`)}`
       const { error } = await supabase.auth.signInWithOtp({

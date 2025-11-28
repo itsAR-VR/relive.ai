@@ -15,6 +15,17 @@ export default function AuthConfirmPage() {
   useEffect(() => {
     const finalize = async () => {
       try {
+        // 1. Check if session already exists (handled by listener or persistence)
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session) {
+          setMessage("Session found. Redirecting...")
+          const next = searchParams.get("next") || "/director-interview"
+          router.replace(next)
+          return
+        }
+
+        // 2. Fallback: Parse hash if no session yet
         const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
         const access_token = hashParams.get("access_token")
         const refresh_token = hashParams.get("refresh_token")

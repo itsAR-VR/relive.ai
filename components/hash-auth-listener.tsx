@@ -9,7 +9,36 @@ export function HashAuthListener() {
 
     const run = async () => {
       if (typeof window === "undefined") return
-      const hash = window.location.hash
+      const url = new URL(window.location.href)
+      
+      // Skip if we are on the dedicated confirm page to avoid race conditions
+      if (url.pathname.startsWith("/auth/confirm")) return
+
+      const hash = url.hash
+      
+      // Handle Errors (e.g., otp_expired)
+      if (hash && hash.includes("error=")) {
+        const params = new URLSearchParams(hash.replace(/^#/, ""))
+        const error = params.get("error")
+        const error_description = params.get("error_description")
+        
+        if (error) {
+          // Redirect to interview with error
+          const nextUrl = new URL("/director-interview", window.location.origin)
+          // Recover session ID if possible
+          const storedSessionId = localStorage.getItem("giftingmoments_session_id")
+          const urlSessionId = url.searchParams.get("session_id") || url.searchParams.get("checkout_session_id")
+          
+          if (urlSessionId) nextUrl.searchParams.set("session_id", urlSessionId)
+          else if (storedSessionId) nextUrl.searchParams.set("session_id", storedSessionId)
+          
+          nextUrl.searchParams.set("auth_error", error_description || "Authentication failed")
+          window.location.replace(nextUrl.toString())
+          return
+        }
+      }
+
+      // Handle Access Token
       if (!hash || !hash.includes("access_token")) return
 
       const params = new URLSearchParams(hash.replace(/^#/, ""))
@@ -25,12 +54,21 @@ export function HashAuthListener() {
         return
       }
 
-      // Attempt to claim order if session_id present in URL
-      const currentUrl = new URL(window.location.href)
-      const sessionId =
-        currentUrl.searchParams.get("session_id") ||
-        currentUrl.searchParams.get("checkout_session_id") ||
-        ""
+      // Attempt to claim order
+      // 1. Check URL params
+      // 2. Check LocalStorage fallback
+      let sessionId =
+        url.searchParams.get("session_id") ||
+        url.searchParams.get("checkout_session_id")
+
+      if (!sessionId) {
+        try {
+          const stored = localStorage.getItem("giftingmoments_session_id")
+          if (stored) sessionId = stored
+        } catch {
+          // ignore
+        }
+      }
 
       if (sessionId) {
         try {
@@ -44,9 +82,11 @@ export function HashAuthListener() {
         }
       }
 
-      // Clean hash to avoid reprocessing
-      currentUrl.hash = ""
-      window.location.replace(currentUrl.toString())
+      // Redirect to director interview (clean URL)
+      const targetUrl = new URL("/director-interview", window.location.origin)
+      if (sessionId) targetUrl.searchParams.set("session_id", sessionId)
+      
+      window.location.replace(targetUrl.toString())
     }
 
     run()
