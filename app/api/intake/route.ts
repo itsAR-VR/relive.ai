@@ -76,10 +76,6 @@ export async function POST(request: Request) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
     const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL
     const referer = request.headers.get("referer") || origin || undefined
     const forwardedFor = request.headers.get("x-forwarded-for")
@@ -114,9 +110,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    if (order.user_id !== user.id) {
+    const orderUserId = order.user_id
+
+    if (user && orderUserId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
+
+    // If no authenticated user (guest checkout), continue using the order's user_id
+    const actingUserId = user?.id || orderUserId
 
     const quizPayload = parseJsonField(formData.get("quiz_data") || formData.get("quizData"))
     const interviewPayload = parseJsonField(formData.get("interview_data") || formData.get("interviewData"))
@@ -128,11 +129,11 @@ export async function POST(request: Request) {
     let audioNoteUrl: string | undefined
 
     if (isFile(referencePhotoFile)) {
-      referencePhotoUrl = await uploadAsset(admin, referencePhotoFile, user.id, order.id)
+      referencePhotoUrl = await uploadAsset(admin, referencePhotoFile, actingUserId, order.id)
     }
 
     if (isFile(audioNoteFile)) {
-      audioNoteUrl = await uploadAsset(admin, audioNoteFile, user.id, order.id)
+      audioNoteUrl = await uploadAsset(admin, audioNoteFile, actingUserId, order.id)
     }
 
     const mergedQuiz = { ...(order.quiz_data || {}), ...quizPayload }
@@ -164,8 +165,8 @@ export async function POST(request: Request) {
       eventSourceUrl: referer,
       eventId: `interview-${order.id}`,
       userData: {
-        email: user.email,
-        externalId: user.id,
+        email: user?.email || undefined,
+        externalId: actingUserId,
         clientIpAddress,
         clientUserAgent,
         fbp: metaCookies.fbp,
