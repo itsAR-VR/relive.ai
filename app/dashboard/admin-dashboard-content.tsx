@@ -115,21 +115,21 @@ const tierPriority: Record<OrderTier, number> = {
   standard: 1,
 }
 
-// Interview requirements per tier
-const tierInterviewConfig: Record<OrderTier, { count: number; description: string; color: string }> = {
+// Tier configuration with interview requirements
+const tierInterviewConfig: Record<OrderTier, { hasInterview: boolean; description: string; color: string }> = {
   standard: {
-    count: 1,
-    description: "1 interview session",
+    hasInterview: false,
+    description: "No consultation required",
     color: "bg-slate-100 text-slate-700",
   },
   premium: {
-    count: 2,
-    description: "2 interview sessions",
+    hasInterview: false,
+    description: "No consultation required",
     color: "bg-blue-100 text-blue-700",
   },
   biography: {
-    count: 5,
-    description: "5 interview sessions (full biography)",
+    hasInterview: true,
+    description: "30-min consultation required",
     color: "bg-amber-100 text-amber-700",
   },
 }
@@ -144,24 +144,18 @@ function formatCurrency(cents: number | null) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100)
 }
 
-// Helper to count completed interviews from interview_data
-function getInterviewProgress(interviewData: Record<string, unknown> | null, tier: OrderTier): { completed: number; total: number } {
-  const total = tierInterviewConfig[tier].count
-  if (!interviewData) return { completed: 0, total }
+// Helper to check if consultation is completed for biography tier
+function isConsultationCompleted(interviewData: Record<string, unknown> | null): boolean {
+  if (!interviewData) return false
   
-  // Check for interview sessions in the data
-  // This assumes interview_data has session keys like "session_1", "session_2", etc.
-  // Or a "completed_sessions" count
-  const completedSessions = interviewData.completed_sessions as number | undefined
-  if (typeof completedSessions === "number") {
-    return { completed: completedSessions, total }
-  }
+  // Check for consultation_completed flag or substantial interview data
+  if (interviewData.consultation_completed === true) return true
   
   // Fallback: check if interview has any substantial data
   const hasData = Object.keys(interviewData).some(key => 
     key !== "last_step" && key !== "last_saved_at" && interviewData[key]
   )
-  return { completed: hasData ? 1 : 0, total }
+  return hasData
 }
 
 export function AdminDashboardContent({ user, profile, orders: initialOrders }: AdminDashboardContentProps) {
@@ -425,15 +419,17 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
                           )}
                         </div>
 
-                        {/* Tier with Interview Info */}
+                        {/* Tier with Consultation Info */}
                         <div className="w-32 shrink-0 hidden sm:block">
                           <div className="text-xs text-slate-400 uppercase tracking-wide">Tier</div>
                           <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${tierInterviewConfig[order.tier].color}`}>
                             {tierLabels[order.tier]}
                           </div>
-                          <div className="text-xs text-slate-500 mt-0.5">
-                            {tierInterviewConfig[order.tier].count} interview{tierInterviewConfig[order.tier].count > 1 ? "s" : ""}
-                          </div>
+                          {order.tier === "biography" && (
+                            <div className="text-xs text-slate-500 mt-0.5">
+                              30-min consultation
+                            </div>
+                          )}
                         </div>
 
                         {/* Amount */}
@@ -523,35 +519,48 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
 
                           {/* Middle Column: Interview/Quiz Data */}
                           <div className="space-y-4">
-                            {/* Interview Progress */}
-                            {(() => {
-                              const progress = getInterviewProgress(order.interview_data, order.tier)
-                              const tierConfig = tierInterviewConfig[order.tier]
-                              return (
-                                <div className="bg-white rounded-lg p-4 border border-slate-200">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-sm font-semibold text-slate-700">Interview Progress</h3>
-                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${tierConfig.color}`}>
-                                      {tierLabels[order.tier]}
-                                    </span>
-                                  </div>
-                                  <div className="text-sm text-slate-600 mb-2">
-                                    {progress.completed} of {progress.total} sessions completed
-                                  </div>
-                                  <div className="w-full bg-slate-100 rounded-full h-2">
-                                    <div 
-                                      className="bg-green-500 h-2 rounded-full transition-all"
-                                      style={{ width: `${(progress.completed / progress.total) * 100}%` }}
-                                    />
-                                  </div>
-                                  <div className="text-xs text-slate-400 mt-2">
-                                    {tierConfig.description}
-                                  </div>
+                            {/* Consultation Status (Biography only) */}
+                            {order.tier === "biography" && (
+                              <div className="bg-white rounded-lg p-4 border border-slate-200">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h3 className="text-sm font-semibold text-slate-700">Consultation Status</h3>
+                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${tierInterviewConfig.biography.color}`}>
+                                    Biography
+                                  </span>
                                 </div>
-                              )
-                            })()}
+                                {isConsultationCompleted(order.interview_data) ? (
+                                  <div className="flex items-center gap-2 text-green-600">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    <span className="text-sm font-medium">30-min consultation completed</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 text-amber-600">
+                                    <Clock3 className="w-5 h-5" />
+                                    <span className="text-sm font-medium">30-min consultation pending</span>
+                                  </div>
+                                )}
+                                <div className="text-xs text-slate-400 mt-2">
+                                  Biography tier requires a personal consultation
+                                </div>
+                              </div>
+                            )}
 
-                            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Interview Data</h3>
+                            {/* Tier Info (Standard/Premium) */}
+                            {order.tier !== "biography" && (
+                              <div className="bg-white rounded-lg p-4 border border-slate-200">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h3 className="text-sm font-semibold text-slate-700">Tier Info</h3>
+                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${tierInterviewConfig[order.tier].color}`}>
+                                    {tierLabels[order.tier]}
+                                  </span>
+                                </div>
+                                <div className="text-sm text-slate-600">
+                                  {tierInterviewConfig[order.tier].description}
+                                </div>
+                              </div>
+                            )}
+
+                            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Director Interview Data</h3>
                             
                             <div className="bg-white rounded-lg p-4 border border-slate-200 max-h-64 overflow-y-auto">
                               {order.interview_data && Object.keys(order.interview_data).length > 0 ? (
