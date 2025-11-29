@@ -16,10 +16,10 @@ const SERVICE_PACKAGES = [
     id: "keepsake",
     tierId: "standard",
     name: "Digital Keepsake",
-    tagline: "$49 (from $99)",
+    subtitle: "A single restored memory",
     price: 49,
     originalPrice: 99,
-    description: "A thoughtful, simple restored memory.",
+    duration: "15 seconds",
     features: [
       "1 Restored Memory Film",
       "Super 8 Vintage Style",
@@ -33,10 +33,10 @@ const SERVICE_PACKAGES = [
     id: "directors",
     tierId: "premium",
     name: "Director's Cut",
-    tagline: "$149 (from $299)",
+    subtitle: "A fully crafted emotional film",
     price: 149,
     originalPrice: 299,
-    description: "Our most popular. The full storytelling experience.",
+    duration: "60 seconds",
     features: [
       "We generate up to 20 scenes and select the most emotional one",
       "Sound Design + Music",
@@ -52,15 +52,16 @@ const SERVICE_PACKAGES = [
     id: "biography",
     tierId: "bio",
     name: "The Biography",
-    tagline: "$299 (from $800)",
+    subtitle: "A multi-scene legacy documentary",
     price: 299,
     originalPrice: 800,
-    description: "A mini-documentary crafted from your family stories.",
+    duration: "3 minutes",
     features: [
       "3 Connected Restored Memory Scenes",
       "30-Min Story Consultation Call (we guide the narrative)",
       "Documentary-style editing",
       "Optional Custom Narration",
+      "Priority support & updates throughout the process",
     ],
     perfectFor: "Ideal for group gifts, parents, grandparents, or legacy keepsakes.",
     icon: Film,
@@ -240,10 +241,16 @@ function PricingContent() {
                   <h3 className="font-serif text-lg md:text-xl text-foreground mb-0.5">
                     {pkg.name}
                   </h3>
-                  <p className="text-xs text-primary font-medium mb-2">
-                    {pkg.tagline}
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {pkg.subtitle}
                   </p>
-                  <p className="text-sm text-muted-foreground">{pkg.description}</p>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="text-2xl md:text-3xl font-serif text-foreground">${pkg.price}</span>
+                    <span className="text-sm text-muted-foreground line-through">${pkg.originalPrice}</span>
+                  </div>
+                  <p className="text-xs text-primary font-medium">
+                    {pkg.duration}
+                  </p>
                 </div>
 
                 <div className="space-y-2 mb-4">
