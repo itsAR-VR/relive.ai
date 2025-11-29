@@ -2,8 +2,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { ViewTracker } from "./view-tracker"
 
-type OrderStatus = "pending_interview" | "in_production" | "ready"
+type OrderStatus = "pending" | "pending_interview" | "interview_in_progress" | "in_production" | "ready" | "delivered" | "cancelled"
 
 interface Order {
   id: string
@@ -12,13 +13,21 @@ interface Order {
   final_video_url: string | null
   interview_data: Record<string, unknown> | null
   created_at: string
+  view_token: string | null
+  first_viewed_at: string | null
+  recipient_name: string | null
+}
+
+interface PageProps {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ token?: string }>
 }
 
 async function getOrder(id: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("orders")
-    .select("id, status, tier, final_video_url, interview_data, created_at")
+    .select("id, status, tier, final_video_url, interview_data, created_at, view_token, first_viewed_at, recipient_name")
     .eq("id", id)
     .maybeSingle()
 
@@ -29,20 +38,38 @@ async function getOrder(id: string) {
   return data as Order | null
 }
 
-export default async function ViewGiftPage({ params }: { params: { id: string } }) {
-  const order = await getOrder(params.id)
+export default async function ViewGiftPage({ params, searchParams }: PageProps) {
+  const { id } = await params
+  const { token } = await searchParams
+  
+  const order = await getOrder(id)
 
-  if (!order || order.status !== "ready") {
+  // Order must exist and be ready or delivered
+  if (!order || !["ready", "delivered"].includes(order.status)) {
     notFound()
   }
+
+  // If token is provided, validate it
+  const isTokenValid = token && order.view_token && token === order.view_token
+  const isFirstView = isTokenValid && !order.first_viewed_at
 
   const interviewData = (order.interview_data || {}) as Record<string, unknown>
   const audioUrl = typeof interviewData.audio_note_url === "string" ? interviewData.audio_note_url : null
   const referencePhotoUrl =
     typeof interviewData.reference_photo_url === "string" ? interviewData.reference_photo_url : null
 
+  // Personalized greeting for recipients
+  const recipientGreeting = order.recipient_name 
+    ? `A special gift for ${order.recipient_name}` 
+    : "Your memory film"
+
   return (
     <div className="min-h-screen bg-[#f5f1e6]">
+      {/* Track first view if token is valid */}
+      {isFirstView && token && (
+        <ViewTracker orderId={order.id} token={token} />
+      )}
+      
       <header className="bg-white/80 backdrop-blur-sm border-b border-[#e2d8c3]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center">
@@ -62,9 +89,12 @@ export default async function ViewGiftPage({ params }: { params: { id: string } 
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         <div className="bg-white/80 border border-[#e2d8c3] rounded-2xl p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-[#3d3632] mb-2">Your memory film</h1>
+          <h1 className="text-2xl font-bold text-[#3d3632] mb-2">{recipientGreeting}</h1>
           <p className="text-[#7d6b56] mb-4">
-            Share this page with your loved one so they can view the gift without logging in.
+            {isTokenValid 
+              ? "Someone special created this memory film just for you."
+              : "Share this page with your loved one so they can view the gift without logging in."
+            }
           </p>
           {order.final_video_url ? (
             <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-md">
