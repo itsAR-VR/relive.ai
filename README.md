@@ -1,10 +1,23 @@
-# Relive.ai
+# Relive.ai (Moments)
 
 **Bring Your Loved Ones' Memories Back to Life**
 
 Transform faded photographs into living, breathing moments. Help grandparents see their wedding day dance again.
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://relivemoments.co)
+[![Last Updated](https://img.shields.io/badge/Last%20Updated-Nov%2029%2C%202025-blue?style=for-the-badge)]()
+
+---
+
+## Recent Updates (Nov 29, 2025)
+
+✅ **Cross-Device Authentication Fixed** - Magic link flow now works across devices  
+✅ **Database Schema Complete** - All required tables and RLS policies in place  
+✅ **Interview Flow Working** - Users can complete director interview after checkout  
+
+See [docs/CROSS_DEVICE_AUTH_FIX.md](docs/CROSS_DEVICE_AUTH_FIX.md) for full technical documentation.
+
+---
 
 ## Project Goals
 
@@ -108,7 +121,18 @@ When a user starts checkout on one device (desktop) but clicks the magic link on
 
 ## Database Migrations
 
-The following migrations must be run in Supabase:
+### Quick Setup (New Installations)
+
+Run the comprehensive migration script in Supabase SQL Editor:
+
+**File:** `supabase/migrations/FULL_MIGRATION_RUN_THIS.sql`
+
+This creates all required tables:
+- `profiles` - User profile data
+- `orders` - Service purchases with quiz/interview data  
+- `pending_checkouts` - Email → session_id mapping for cross-device auth
+
+### Individual Migrations
 
 | Migration | Description |
 |-----------|-------------|
@@ -116,22 +140,38 @@ The following migrations must be run in Supabase:
 | `002_orders_table.sql` | Orders table for service purchases |
 | `003_orders_public_access.sql` | RLS policies for orders |
 | `004_pending_checkouts.sql` | Cross-device auth support |
+| `FULL_MIGRATION_RUN_THIS.sql` | **Complete setup (run this for new installs)** |
 
-### Running Migrations
+### Verifying Tables Exist
 
-Run in Supabase SQL Editor or via CLI:
+Run this in Supabase SQL Editor to verify:
 
 ```sql
--- 004_pending_checkouts.sql (required for cross-device auth)
-create table if not exists public.pending_checkouts (
-  id uuid default uuid_generate_v4() primary key,
-  email text not null unique,
-  stripe_session_id text not null,
-  created_at timestamptz default now() not null,
-  expires_at timestamptz default (now() + interval '24 hours') not null
-);
-create index if not exists pending_checkouts_session_idx on public.pending_checkouts(stripe_session_id);
+-- Check tables exist
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public' AND table_name IN ('orders', 'pending_checkouts', 'profiles');
+
+-- Check RLS is enabled
+SELECT tablename, rowsecurity FROM pg_tables 
+WHERE schemaname = 'public' AND tablename IN ('orders', 'pending_checkouts');
+
+-- Check policies exist
+SELECT tablename, policyname FROM pg_policies 
+WHERE schemaname = 'public';
 ```
+
+### Required Policies
+
+**orders table:**
+- `Users can view own orders`
+- `Users can update own orders`
+- `Service role full access`
+- `Users can claim unclaimed orders`
+- `Allow order creation`
+
+**pending_checkouts table:**
+- `Service role access pending_checkouts`
+- `Users can read own pending checkout`
 
 ## Troubleshooting
 
@@ -175,6 +215,75 @@ Interview progress is saved to the `orders.interview_data` column. If lost:
 3. **Browser Console:** Check for `HashAuthListener:` prefixed messages
 4. **Network Tab:** Monitor `/api/orders/claim` and `/api/checkout/pending` responses
 
+## Project Structure
+
+```
+relive.ai/
+├── app/                          # Next.js App Router
+│   ├── api/
+│   │   ├── orders/
+│   │   │   ├── claim/route.ts    # Claim order for authenticated user
+│   │   │   ├── pending/route.ts  # Get user's pending order
+│   │   │   └── [id]/interview/   # Save/load interview progress
+│   │   ├── checkout/
+│   │   │   └── pending/route.ts  # Cross-device session mapping
+│   │   ├── stripe/
+│   │   │   └── checkout/route.ts # Create Stripe checkout session
+│   │   └── webhooks/
+│   │       └── stripe/route.ts   # Handle Stripe webhooks
+│   ├── auth/
+│   │   ├── callback/page.tsx     # OAuth callback
+│   │   └── confirm/page.tsx      # Magic link confirmation
+│   ├── director-interview/       # Post-purchase interview flow
+│   ├── pricing/                  # Service tier selection
+│   └── dashboard/                # User's orders dashboard
+├── components/
+│   ├── hash-auth-listener.tsx    # Global auth token handler
+│   ├── director-interview-form.tsx
+│   └── landing/                  # Landing page components
+├── lib/
+│   ├── supabase/
+│   │   ├── client.ts             # Browser Supabase client
+│   │   └── server.ts             # Server Supabase client
+│   └── stripe.ts                 # Stripe helpers
+├── supabase/
+│   └── migrations/               # SQL migration scripts
+│       └── FULL_MIGRATION_RUN_THIS.sql
+└── docs/
+    └── CROSS_DEVICE_AUTH_FIX.md  # Auth flow documentation
+```
+
+## Key Components
+
+### HashAuthListener (`components/hash-auth-listener.tsx`)
+Global component that handles magic link tokens in URL hash. Imported in `app/layout.tsx`.
+
+**Responsibilities:**
+1. Detect `#access_token=...` in URL
+2. Set Supabase session
+3. Recover session_id (URL → localStorage → database lookup)
+4. Claim order
+5. Redirect to interview page
+
+### Director Interview Flow
+1. User lands on `/director-interview?session_id=xxx`
+2. Enters email, sends magic link
+3. `pending_checkouts` table stores `(email, session_id)`
+4. User clicks email link
+5. `HashAuthListener` recovers session_id, claims order
+6. Interview form loads with order data
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Run `pnpm lint` before committing
+4. Submit a pull request
+
 ## License
 
 MIT
+
+---
+
+*Built with ❤️ for preserving family memories*
