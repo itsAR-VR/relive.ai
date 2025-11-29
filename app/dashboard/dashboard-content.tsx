@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 
 type OrderStatus = "pending_interview" | "in_production" | "ready"
-type OrderTier = "standard" | "premium" | "bio"
+type OrderTier = "standard" | "premium" | "biography"
 
 interface Profile {
   id: string
@@ -112,7 +112,7 @@ function tierLabel(tier: OrderTier) {
   switch (tier) {
     case "premium":
       return "Premium Gift"
-    case "bio":
+    case "biography":
       return "Biography Gift"
     default:
       return "Standard Gift"

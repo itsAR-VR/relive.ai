@@ -36,7 +36,7 @@ export const SERVICE_TIERS = [
     priceId: priceIds.premium,
   },
   {
-    id: "bio",
+    id: "biography",
     name: "Biography",
     price: 299, // $299
     priceId: priceIds.bio,
