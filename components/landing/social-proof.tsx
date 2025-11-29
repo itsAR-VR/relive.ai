@@ -1,7 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import useEmblaCarousel from "embla-carousel-react"
+import { useState } from "react"
 import { Quote, Star, ChevronLeft, ChevronRight } from "lucide-react"
 
 const TESTIMONIALS = [
@@ -26,40 +25,19 @@ const TESTIMONIALS = [
 ]
 
 export function SocialProof() {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ 
-    loop: true,
-    align: "start",
-    containScroll: "trimSnaps",
-    dragFree: false,
-    skipSnaps: false,
-    speed: 10,
-  })
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState(0)
 
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev()
-  }, [emblaApi])
-  
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext()
-  }, [emblaApi])
+  const goToPrev = () => {
+    setCurrentIndex((prev) => (prev === 0 ? TESTIMONIALS.length - 1 : prev - 1))
+  }
 
-  useEffect(() => {
-    if (!emblaApi) return
-    
-    const onSelect = () => {
-      setSelectedIndex(emblaApi.selectedScrollSnap())
-    }
-    
-    emblaApi.on("select", onSelect)
-    emblaApi.on("reInit", onSelect)
-    onSelect()
-    
-    return () => { 
-      emblaApi.off("select", onSelect)
-      emblaApi.off("reInit", onSelect) 
-    }
-  }, [emblaApi])
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev === TESTIMONIALS.length - 1 ? 0 : prev + 1))
+  }
+
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index)
+  }
 
   return (
     <section className="py-8 md:py-14 bg-muted/30 relative">
@@ -100,27 +78,32 @@ export function SocialProof() {
           </div>
         </div>
 
-        {/* Mobile: Carousel | Desktop: Grid */}
-        {/* Mobile Carousel */}
+        {/* Mobile: Simple Carousel | Desktop: Grid */}
+        {/* Mobile Carousel - Simple fade transition */}
         <div className="md:hidden relative">
-          <div className="overflow-hidden -mx-4 px-4" ref={emblaRef}>
-            <div className="flex touch-pan-y">
+          <div className="overflow-hidden">
+            <div className="relative min-h-[280px]">
               {TESTIMONIALS.map((testimonial, index) => (
-                <div 
-                  key={index} 
-                  className="flex-[0_0_88%] min-w-0 pr-4 select-none"
-                  style={{ transform: 'translate3d(0, 0, 0)' }}
+                <div
+                  key={index}
+                  className={`absolute inset-0 transition-all duration-300 ease-out ${
+                    index === currentIndex
+                      ? "opacity-100 translate-x-0"
+                      : index < currentIndex
+                      ? "opacity-0 -translate-x-full"
+                      : "opacity-0 translate-x-full"
+                  }`}
                 >
                   <TestimonialCard testimonial={testimonial} />
                 </div>
               ))}
             </div>
           </div>
-          
+
           {/* Carousel Navigation */}
           <div className="flex items-center justify-center gap-4 mt-4">
-            <button 
-              onClick={scrollPrev}
+            <button
+              onClick={goToPrev}
               className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors active:scale-95"
               aria-label="Previous testimonial"
             >
@@ -128,18 +111,20 @@ export function SocialProof() {
             </button>
             <div className="flex gap-1.5">
               {TESTIMONIALS.map((_, index) => (
-                <button 
+                <button
                   key={index}
-                  onClick={() => emblaApi?.scrollTo(index)}
+                  onClick={() => goToSlide(index)}
                   aria-label={`Go to testimonial ${index + 1}`}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === selectedIndex ? "bg-primary w-4" : "bg-border hover:bg-muted-foreground"
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    index === currentIndex
+                      ? "bg-primary w-6"
+                      : "bg-border hover:bg-muted-foreground w-2"
                   }`}
                 />
               ))}
             </div>
-            <button 
-              onClick={scrollNext}
+            <button
+              onClick={goToNext}
               className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors active:scale-95"
               aria-label="Next testimonial"
             >
