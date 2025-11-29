@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Quote, Star, ChevronLeft, ChevronRight } from "lucide-react"
 
 const TESTIMONIALS = [
@@ -26,6 +26,18 @@ const TESTIMONIALS = [
 
 export function SocialProof() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const desktopVideoRef = useRef<HTMLVideoElement>(null)
+  const mobileVideoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    // Auto-play videos when component mounts
+    if (desktopVideoRef.current) {
+      desktopVideoRef.current.play().catch(() => {})
+    }
+    if (mobileVideoRef.current) {
+      mobileVideoRef.current.play().catch(() => {})
+    }
+  }, [])
 
   const goToPrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? TESTIMONIALS.length - 1 : prev - 1))
@@ -42,19 +54,54 @@ export function SocialProof() {
   return (
     <section className="py-8 md:py-14 bg-muted/30 relative">
       <div className="container relative mx-auto px-4">
-        {/* Hero Stat - Prominent */}
-        <div className="text-center mb-6 md:mb-10">
-          <div className="inline-flex flex-col items-center p-4 md:p-6 rounded-2xl bg-primary/10 border border-primary/20">
-            <span className="text-4xl md:text-6xl font-serif text-primary font-bold">98%</span>
-            <span className="text-sm md:text-base text-primary font-medium mt-1">Said it moved them to tears</span>
+        {/* Video Demo Section */}
+        <div className="text-center mb-8 md:mb-12">
+          {/* Title */}
+          <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-6 md:mb-8 max-w-3xl mx-auto leading-tight">
+            We turn old photos and memories into short nostalgic films—handcrafted to make them cry
+          </h2>
+
+          {/* Video Container */}
+          <div className="max-w-4xl mx-auto mb-4">
+            {/* Desktop Video */}
+            <div className="hidden md:block relative rounded-2xl overflow-hidden shadow-2xl border border-border/50">
+              <video
+                ref={desktopVideoRef}
+                src="/demo-desktop.mov"
+                className="w-full h-auto"
+                loop
+                muted
+                playsInline
+                autoPlay
+              />
+            </div>
+
+            {/* Mobile Video */}
+            <div className="md:hidden relative rounded-xl overflow-hidden shadow-xl border border-border/50">
+              <video
+                ref={mobileVideoRef}
+                src="/demo-mobile.mov"
+                className="w-full h-auto"
+                loop
+                muted
+                playsInline
+                autoPlay
+              />
+            </div>
           </div>
+
+          {/* Disclaimer Note */}
+          <p className="text-xs text-muted-foreground italic max-w-2xl mx-auto leading-relaxed">
+            Note: This demo shows a simplified preview of our process. Your actual experience includes a personalized director interview, 
+            longer custom films, private viewing pages with gift-wrapping, and a fully tailored storytelling approach.
+          </p>
         </div>
 
         {/* Section Header - Compact */}
         <div className="text-center mb-6 md:mb-8">
-          <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-2">
+          <h3 className="font-serif text-xl md:text-2xl lg:text-3xl text-foreground mb-2">
             The Gift of Tears
-          </h2>
+          </h3>
           <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
             We measure success in moments that take their breath away.
           </p>
