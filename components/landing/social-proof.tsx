@@ -33,15 +33,31 @@ export function SocialProof({ onStartGift }: SocialProofProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const desktopVideoRef = useRef<HTMLVideoElement>(null)
   const mobileVideoRef = useRef<HTMLVideoElement>(null)
+  const videoContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Auto-play videos when component mounts
-    if (desktopVideoRef.current) {
-      desktopVideoRef.current.play().catch(() => {})
-    }
-    if (mobileVideoRef.current) {
-      mobileVideoRef.current.play().catch(() => {})
-    }
+    const videoContainer = videoContainerRef.current
+    if (!videoContainer) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Play when 60% visible
+            desktopVideoRef.current?.play().catch(() => {})
+            mobileVideoRef.current?.play().catch(() => {})
+          } else {
+            // Pause when out of view
+            desktopVideoRef.current?.pause()
+            mobileVideoRef.current?.pause()
+          }
+        })
+      },
+      { threshold: 0.6 }
+    )
+
+    observer.observe(videoContainer)
+    return () => observer.disconnect()
   }, [])
 
   const goToPrev = () => {
@@ -67,7 +83,7 @@ export function SocialProof({ onStartGift }: SocialProofProps) {
           </h2>
 
           {/* Video Container */}
-          <div className="max-w-4xl mx-auto mb-4">
+          <div ref={videoContainerRef} className="max-w-4xl mx-auto mb-4">
             {/* Desktop Video */}
             <div className="hidden md:block relative rounded-2xl overflow-hidden shadow-2xl border border-border/50">
               <video
@@ -77,7 +93,6 @@ export function SocialProof({ onStartGift }: SocialProofProps) {
                 loop
                 muted
                 playsInline
-                autoPlay
               />
             </div>
 
@@ -90,7 +105,6 @@ export function SocialProof({ onStartGift }: SocialProofProps) {
                 loop
                 muted
                 playsInline
-                autoPlay
               />
             </div>
           </div>
