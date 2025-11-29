@@ -131,10 +131,9 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
+      {/* Backdrop - no onClick to prevent accidental closes */}
       <div 
         className="absolute inset-0 bg-foreground/60 backdrop-blur-sm animate-fade-in-slow"
-        onClick={onClose}
       />
 
       {/* Modal */}
