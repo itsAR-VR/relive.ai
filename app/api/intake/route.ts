@@ -268,7 +268,7 @@ export async function POST(request: Request) {
 
     // Handle multiple reference photos
     const referencePhotoUrls: string[] = []
-    
+
     // Check for indexed photos (reference_photo_0, reference_photo_1, etc.)
     for (let i = 0; i < 20; i++) {
       const photoFile = formData.get(`reference_photo_${i}`)
@@ -277,7 +277,7 @@ export async function POST(request: Request) {
         referencePhotoUrls.push(url)
       }
     }
-    
+
     // Also check for single reference_photo for backwards compatibility
     const singlePhoto = formData.get("reference_photo") || formData.get("referencePhoto")
     if (isFile(singlePhoto)) {

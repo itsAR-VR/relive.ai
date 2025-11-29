@@ -52,9 +52,9 @@ export function LandingHeader() {
         <CountdownTimer />
         <Link 
           href="/pricing" 
-          className="hidden sm:inline-flex items-center px-3 py-1 bg-primary-foreground/10 hover:bg-primary-foreground/20 border border-primary-foreground/30 rounded text-xs font-medium uppercase tracking-wide transition-colors"
+          className="inline-flex items-center px-3 py-1 bg-primary-foreground/10 hover:bg-primary-foreground/20 border border-primary-foreground/30 rounded text-xs font-medium uppercase tracking-wide transition-colors"
         >
-          Learn More
+          Shop Now
         </Link>
       </div>
       <div className="container mx-auto flex items-center justify-between px-4 py-4">

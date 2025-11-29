@@ -7,21 +7,22 @@ import { Check, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, R
 import Link from "next/link"
 import Image from "next/image"
 
-// Service packages for Moments - condensed features
+// Service packages for Moments
 const SERVICE_PACKAGES = [
   {
     id: "keepsake",
     tierId: "standard",
     name: "Digital Keepsake",
-    tagline: "Just thinking of you",
+    tagline: "$49 (from $99)",
     price: 49,
     originalPrice: 99,
-    description: "A thoughtful gesture.",
+    description: "A thoughtful, simple restored memory.",
     features: [
-      "1 Restored Memory Video",
+      "1 Restored Memory Film",
       "Super 8 Vintage Style",
-      "Email Delivery",
+      "Delivered by Email",
     ],
+    perfectFor: "Perfect for small gestures or thinking of you moments.",
     icon: Heart,
     popular: false,
   },
@@ -29,17 +30,18 @@ const SERVICE_PACKAGES = [
     id: "directors",
     tierId: "premium",
     name: "Director's Cut",
-    tagline: "The Big Gift",
+    tagline: "$149 (from $299)",
     price: 149,
     originalPrice: 299,
-    description: "Our most popular. Perfect for milestones.",
+    description: "Our most popular. The full storytelling experience.",
     features: [
-      "Concierge Curation (20 versions)",
-      "Sound Design & Music",
-      "Private Viewing Page",
+      "We generate up to 20 scenes and select the most emotional one",
+      "Sound Design + Music",
+      "Private Viewing Page (your own shareable link)",
       "Unlimited Revisions",
-      "Voice Note Intro",
+      "Option to add a voice note intro",
     ],
+    perfectFor: "Perfect for milestone birthdays, holidays, and big gifts.",
     icon: Clapperboard,
     popular: true,
   },
@@ -47,16 +49,17 @@ const SERVICE_PACKAGES = [
     id: "biography",
     tierId: "bio",
     name: "The Biography",
-    tagline: "Mini-Documentary",
+    tagline: "$299 (from $800)",
     price: 299,
     originalPrice: 800,
-    description: "Group gift. Split with siblings.",
+    description: "A mini-documentary crafted from your family stories.",
     features: [
-      "3 Connected Memory Scenes",
-      "30-Min Consultation Call",
-      "Mini-Doc Format",
-      "Custom Narration",
+      "3 Connected Restored Memory Scenes",
+      "30-Min Story Consultation Call (we guide the narrative)",
+      "Documentary-style editing",
+      "Optional Custom Narration",
     ],
+    perfectFor: "Ideal for group gifts, parents, grandparents, or legacy keepsakes.",
     icon: Film,
     popular: false,
   },
@@ -237,11 +240,7 @@ export default function PricingPage() {
                   <p className="text-xs text-primary font-medium mb-2">
                     {pkg.tagline}
                   </p>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-3xl font-serif text-foreground">${pkg.price}</span>
-                    <span className="text-sm text-muted-foreground line-through">${pkg.originalPrice}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">{pkg.description}</p>
+                  <p className="text-sm text-muted-foreground">{pkg.description}</p>
                 </div>
 
                 <div className="space-y-2 mb-4">
@@ -252,6 +251,11 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* Perfect For */}
+                <p className="text-xs text-muted-foreground italic mb-4 text-center">
+                  {pkg.perfectFor}
+                </p>
 
                 <Button
                   onClick={() => handlePurchase(pkg.tierId)}
