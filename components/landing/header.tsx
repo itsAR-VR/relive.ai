@@ -62,9 +62,9 @@ export function LandingHeader() {
           <Image
             src="/gifting-moments-logo.svg"
             alt="Gifting Moments"
-            width={180}
-            height={60}
-            className="h-14 md:h-16 w-auto dark:invert"
+            width={240}
+            height={80}
+            className="h-16 md:h-20 w-auto dark:invert"
             priority
           />
         </Link>

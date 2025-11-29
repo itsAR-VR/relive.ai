@@ -76,7 +76,7 @@ export default function LoginPage() {
             <img
               src="/gifting-moments-logo.svg"
               alt="Gifting Moments"
-              className="h-20 md:h-24 w-auto"
+              className="h-24 md:h-32 w-auto"
             />
           </Link>
           <p className="mt-3 text-muted-foreground">
