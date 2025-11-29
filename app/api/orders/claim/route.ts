@@ -9,7 +9,7 @@ function getSupabaseAdmin() {
     throw new Error("Supabase admin env vars missing")
   }
 
-    return createSupabaseAdminClient(
+  return createSupabaseAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   )

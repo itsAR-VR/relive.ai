@@ -23,8 +23,6 @@ export function HashAuthListener() {
         const error_description = params.get("error_description")
         
         if (error) {
-          // Redirect to interview with error
-          const nextUrl = new URL("/director-interview", window.location.origin)
           // Recover session ID if possible
           let storedSessionId: string | null = null
           try {
@@ -33,12 +31,20 @@ export function HashAuthListener() {
             // ignore
           }
           const urlSessionId = url.searchParams.get("session_id") || url.searchParams.get("checkout_session_id")
+          const sessionId = urlSessionId || storedSessionId
           
-          if (urlSessionId) nextUrl.searchParams.set("session_id", urlSessionId)
-          else if (storedSessionId) nextUrl.searchParams.set("session_id", storedSessionId)
-          
-          nextUrl.searchParams.set("auth_error", error_description || "Authentication failed")
-          window.location.replace(nextUrl.toString())
+          // If we have a session_id, this is checkout flow -> redirect to interview
+          // Otherwise, this is login page flow -> redirect to login
+          if (sessionId) {
+            const nextUrl = new URL("/director-interview", window.location.origin)
+            nextUrl.searchParams.set("session_id", sessionId)
+            nextUrl.searchParams.set("auth_error", error_description || "Authentication failed")
+            window.location.replace(nextUrl.toString())
+          } else {
+            const nextUrl = new URL("/login", window.location.origin)
+            nextUrl.searchParams.set("error", error_description || "Authentication failed")
+            window.location.replace(nextUrl.toString())
+          }
           return
         }
       }
@@ -126,12 +132,18 @@ export function HashAuthListener() {
         }).catch(err => console.error("HashAuthListener: order claim failed", err))
       }
 
-      // Redirect to director interview with auth_complete flag
-      const targetUrl = new URL("/director-interview", window.location.origin)
-      if (sessionId) targetUrl.searchParams.set("session_id", sessionId)
-      targetUrl.searchParams.set("auth_complete", "true")
-      
-      window.location.replace(targetUrl.toString())
+      // Determine redirect target based on context
+      // If we have a session_id, this is from checkout flow -> go to director interview
+      // If no session_id, this is from login page -> go to dashboard
+      if (sessionId) {
+        const targetUrl = new URL("/director-interview", window.location.origin)
+        targetUrl.searchParams.set("session_id", sessionId)
+        targetUrl.searchParams.set("auth_complete", "true")
+        window.location.replace(targetUrl.toString())
+      } else {
+        // Login page flow - redirect to dashboard
+        window.location.replace("/dashboard")
+      }
     }
 
     run()

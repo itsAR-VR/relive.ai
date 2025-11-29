@@ -1,44 +1,46 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Mail, Lock, ArrowRight } from "lucide-react"
+import { Mail, ArrowRight, CheckCircle2, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { Suspense } from "react"
 
-export default function LoginPage() {
+function LoginContent() {
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [isCheckingSession, setIsCheckingSession] = useState(false)
+  const [linkSent, setLinkSent] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+
+  // Check for error in URL params (e.g., from expired magic link)
+  useEffect(() => {
+    const error = searchParams.get("error")
+    if (error) {
+      setMessage({ type: "error", text: error })
+    }
+  }, [searchParams])
 
   const supabase = createClient()
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
+  const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setMessage(null)
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        })
-        if (error) throw error
-        setMessage({ type: "success", text: "Check your email to confirm your account!" })
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        if (error) throw error
-        window.location.href = "/dashboard"
-      }
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      })
+      if (error) throw error
+      setLinkSent(true)
+      setMessage({ type: "success", text: "Check your email for a magic link to sign in!" })
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "An error occurred"
       setMessage({ type: "error", text: errorMessage })
@@ -64,6 +66,25 @@ export default function LoginPage() {
     }
   }
 
+  const handleCheckSession = async () => {
+    setIsCheckingSession(true)
+    setMessage(null)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        window.location.href = "/dashboard"
+      } else {
+        setMessage({ type: "error", text: "No active session found. Please click the magic link in your email first." })
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An error occurred"
+      setMessage({ type: "error", text: errorMessage })
+    } finally {
+      setIsCheckingSession(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Background pattern */}
@@ -80,7 +101,7 @@ export default function LoginPage() {
             />
           </Link>
           <p className="mt-3 text-muted-foreground">
-            {isSignUp ? "Create your account" : "Welcome back"}
+            Sign in with magic link
           </p>
         </div>
 
@@ -89,7 +110,7 @@ export default function LoginPage() {
           {/* Google Sign In */}
           <Button
             onClick={handleGoogleAuth}
-            disabled={isLoading}
+            disabled={isLoading || isCheckingSession}
             variant="outline"
             className="w-full h-12 mb-6 bg-card hover:bg-secondary border-border text-foreground font-medium"
           >
@@ -124,74 +145,99 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Email Form */}
-          <form onSubmit={handleEmailAuth} className="space-y-4">
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
-                required
-                className="w-full h-12 pl-11 pr-4 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-              />
-            </div>
-
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-                minLength={6}
-                className="w-full h-12 pl-11 pr-4 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-              />
-            </div>
-
-            {message && (
-              <div
-                className={`p-3 rounded-lg text-sm ${
-                  message.type === "success"
-                    ? "bg-green-50 text-green-700 border border-green-200"
-                    : "bg-red-50 text-red-700 border border-red-200"
-                }`}
-              >
-                {message.text}
+          {/* Magic Link Form */}
+          {linkSent ? (
+            <div className="space-y-4">
+              {/* Success State */}
+              <div className="text-center py-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">Check your email</h3>
+                <p className="text-sm text-muted-foreground">
+                  We sent a magic link to <span className="font-medium text-foreground">{email}</span>
+                </p>
               </div>
-            )}
 
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              ) : (
-                <>
-                  {isSignUp ? "Create Account" : "Sign In"}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
+              {message && message.type === "error" && (
+                <div className="p-3 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">
+                  {message.text}
+                </div>
               )}
-            </Button>
-          </form>
 
-          {/* Toggle Sign Up / Sign In */}
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              onClick={() => {
-                setIsSignUp(!isSignUp)
-                setMessage(null)
-              }}
-              className="text-primary hover:text-primary/80 font-medium transition-colors"
-            >
-              {isSignUp ? "Sign in" : "Sign up"}
-            </button>
-          </p>
+              {/* Already Verified Button */}
+              <Button
+                onClick={handleCheckSession}
+                disabled={isCheckingSession}
+                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg"
+              >
+                {isCheckingSession ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    I&apos;ve already verified, continue
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+
+              {/* Resend Link */}
+              <button
+                onClick={() => {
+                  setLinkSent(false)
+                  setMessage(null)
+                }}
+                className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Didn&apos;t receive it? Send another link
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleMagicLink} className="space-y-4">
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email address"
+                  required
+                  className="w-full h-12 pl-11 pr-4 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                />
+              </div>
+
+              {message && (
+                <div
+                  className={`p-3 rounded-lg text-sm ${
+                    message.type === "success"
+                      ? "bg-green-50 text-green-700 border border-green-200"
+                      : "bg-red-50 text-red-700 border border-red-200"
+                  }`}
+                >
+                  {message.text}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    Send Magic Link
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+
+              <p className="text-xs text-center text-muted-foreground">
+                No password needed. We&apos;ll email you a secure link to sign in.
+              </p>
+            </form>
+          )}
         </div>
 
         {/* Back to Home */}
@@ -205,5 +251,19 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   )
 }
