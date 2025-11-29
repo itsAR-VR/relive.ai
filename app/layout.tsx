@@ -32,20 +32,22 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
+        url: "/favicon.ico",
+        sizes: "48x48",
       },
       {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
+        url: "/favicon.svg",
         type: "image/svg+xml",
       },
+      {
+        url: "/favicon-96x96.png",
+        sizes: "96x96",
+        type: "image/png",
+      },
     ],
-    apple: "/apple-icon.png",
+    apple: "/apple-touch-icon.png",
   },
+  manifest: "/site.webmanifest",
 }
 
 export const viewport: Viewport = {
