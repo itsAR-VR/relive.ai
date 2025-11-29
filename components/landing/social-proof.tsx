@@ -46,8 +46,8 @@ export function SocialProof() {
   }, [emblaApi])
 
   return (
-    <section className="py-8 md:py-14 bg-muted/30 relative overflow-x-clip overflow-y-visible">
-      <div className="container relative mx-auto px-4 overflow-visible">
+    <section className="py-8 md:py-14 bg-muted/30 relative">
+      <div className="container relative mx-auto px-4">
         {/* Hero Stat - Prominent */}
         <div className="text-center mb-6 md:mb-10">
           <div className="inline-flex flex-col items-center p-4 md:p-6 rounded-2xl bg-primary/10 border border-primary/20">
@@ -86,8 +86,8 @@ export function SocialProof() {
 
         {/* Mobile: Carousel | Desktop: Grid */}
         {/* Mobile Carousel */}
-        <div className="md:hidden relative pt-6 overflow-visible">
-          <div className="overflow-x-clip overflow-y-visible" ref={emblaRef}>
+        <div className="md:hidden relative">
+          <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex">
               {TESTIMONIALS.map((testimonial, index) => (
                 <div key={index} className="flex-[0_0_85%] min-w-0 pl-4 first:pl-0">
@@ -125,7 +125,7 @@ export function SocialProof() {
         </div>
 
         {/* Desktop: Grid */}
-        <div className="hidden md:grid md:grid-cols-3 gap-6 pt-6 overflow-visible">
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
           {TESTIMONIALS.map((testimonial, index) => (
             <TestimonialCard key={index} testimonial={testimonial} />
           ))}
@@ -137,14 +137,14 @@ export function SocialProof() {
 
 function TestimonialCard({ testimonial }: { testimonial: typeof TESTIMONIALS[0] }) {
   return (
-    <div className="relative bg-card rounded-xl p-6 pt-12 md:p-7 md:pt-14 border border-border shadow-sm h-full">
-      {/* Quote icon - positioned outside the content flow */}
-      <div className="absolute -top-3 left-4 md:-top-4 md:left-5 w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 border-4 border-card flex items-center justify-center shadow-sm">
+    <div className="relative bg-card rounded-xl p-6 md:p-7 border border-border shadow-sm h-full">
+      {/* Quote icon - positioned inside card at top-left */}
+      <div className="absolute top-4 left-4 md:top-5 md:left-5 w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center">
         <Quote className="w-4 h-4 text-primary" />
       </div>
 
-      {/* Rating */}
-      <div className="flex gap-0.5 mb-3">
+      {/* Rating - with top margin to clear the quote icon */}
+      <div className="flex gap-0.5 mb-3 mt-12 md:mt-14">
         {[...Array(testimonial.rating)].map((_, i) => (
           <Star key={i} className="w-3.5 h-3.5 fill-accent text-accent" />
         ))}

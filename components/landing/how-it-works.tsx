@@ -30,8 +30,8 @@ interface HowItWorksProps {
 
 export function HowItWorks({ onStartGift }: HowItWorksProps) {
   return (
-    <section className="py-8 md:py-14 bg-background relative overflow-x-clip overflow-y-visible">
-      <div className="container relative mx-auto px-4 overflow-visible">
+    <section className="py-8 md:py-14 bg-background relative">
+      <div className="container relative mx-auto px-4">
         {/* Section Header - Compact */}
         <div className="text-center mb-6 md:mb-10">
           <span className="inline-block mb-3 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground text-xs md:text-sm font-medium border border-accent/30">
@@ -46,8 +46,8 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
         </div>
 
         {/* Mobile: CSS Scroll Snap Carousel */}
-        <div className="md:hidden -mx-4 pt-6 overflow-visible">
-          <div className="flex overflow-x-auto overflow-y-visible snap-x snap-mandatory gap-4 px-4 pb-4 scrollbar-hide">
+        <div className="md:hidden -mx-4">
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 px-4 pb-4 scrollbar-hide">
             {STEPS.map((step, index) => {
               const Icon = step.icon
               return (
@@ -60,8 +60,8 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
         </div>
 
         {/* Desktop: Grid */}
-        <div className="hidden md:block max-w-5xl mx-auto pt-6 overflow-visible">
-          <div className="grid md:grid-cols-3 gap-6 overflow-visible">
+        <div className="hidden md:block max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6">
             {STEPS.map((step, index) => {
               const Icon = step.icon
               return (
@@ -112,14 +112,14 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
 
 function StepCard({ step, Icon }: { step: typeof STEPS[0], Icon: typeof MessageSquare }) {
   return (
-    <div className="relative bg-card rounded-xl p-6 pt-14 md:p-7 md:pt-16 border border-border shadow-sm h-full">
-      {/* Step number - positioned outside the content flow */}
-      <span className="absolute -top-3 left-4 md:-top-4 md:left-5 w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground text-xs md:text-sm font-bold flex items-center justify-center shadow-lg border-4 border-card">
+    <div className="relative bg-card rounded-xl p-6 md:p-7 border border-border shadow-sm h-full">
+      {/* Step number - positioned inside card at top-left */}
+      <span className="absolute top-4 left-4 md:top-5 md:left-5 w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground text-xs md:text-sm font-bold flex items-center justify-center shadow-lg">
         {step.number}
       </span>
 
-      {/* Icon */}
-      <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+      {/* Icon - with top margin to clear the step number */}
+      <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 mt-12 md:mt-14">
         <Icon className="w-5 h-5 md:w-6 md:h-6 text-primary" />
       </div>
 
