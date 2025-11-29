@@ -1,6 +1,6 @@
 "use client"
 
-import { MessageSquare, Clapperboard, Heart, ArrowRight } from "lucide-react"
+import { MessageSquare, Clapperboard, Heart, ArrowRight, Clock, RefreshCw, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const STEPS = [
@@ -89,21 +89,24 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
           </Button>
         </div>
 
-        {/* Value Props - Compact */}
-        <div className="mt-8 md:mt-12 flex flex-wrap justify-center gap-3 md:gap-6">
-          {[
-            { label: "24hr Delivery", icon: "⚡" },
-            { label: "Unlimited Revisions", icon: "🔄" },
-            { label: "100% Guarantee", icon: "✓" },
-          ].map((prop, index) => (
-            <div 
-              key={index}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border"
-            >
-              <span className="text-base">{prop.icon}</span>
-              <p className="text-xs md:text-sm text-muted-foreground">{prop.label}</p>
+        {/* Value Props - Clean inline style */}
+        <div className="mt-8 md:mt-12 pt-6 border-t border-border/50">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 md:gap-10 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              <span>Delivered in 24 hours</span>
             </div>
-          ))}
+            <div className="hidden sm:block w-px h-4 bg-border" />
+            <div className="flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-primary" />
+              <span>Unlimited revisions included</span>
+            </div>
+            <div className="hidden sm:block w-px h-4 bg-border" />
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              <span>100% satisfaction guarantee</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
