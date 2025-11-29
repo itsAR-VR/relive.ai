@@ -12,7 +12,11 @@ import {
   Snowflake,
   Image as ImageIcon,
   Check,
-  Loader2
+  Loader2,
+  Play,
+  Pause,
+  X,
+  Plus
 } from "lucide-react"
 
 interface SavedInterviewData {
@@ -33,6 +37,12 @@ interface DirectorInterviewFormProps {
   savedInterviewData?: SavedInterviewData | null
 }
 
+type PhotoUpload = {
+  file: File
+  preview: string
+  id: string
+}
+
 type FormData = {
   honoree: string
   scene: string
@@ -40,9 +50,9 @@ type FormData = {
   smell: string
   sounds: string
   anchorObject: string
-  photoFile: File | null
-  photoPreview: string | null
+  photos: PhotoUpload[]
   audioFile: File | null
+  audioPreviewUrl: string | null
   style: "super8" | "painting" | "dreamhaze" | null
 }
 
@@ -84,9 +94,11 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
   const [error, setError] = useState<string | null>(null)
   const [draftLoaded, setDraftLoaded] = useState(false)
   const [draftData, setDraftData] = useState<{ who?: string; memory?: string; vibe?: string } | null>(null)
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const [formData, setFormData] = useState<FormData>({
     honoree: savedInterviewData?.honoree || "",
@@ -95,9 +107,9 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
     smell: savedInterviewData?.smell || "",
     sounds: savedInterviewData?.sounds || "",
     anchorObject: savedInterviewData?.anchorObject || "",
-    photoFile: null,
-    photoPreview: null,
+    photos: [],
     audioFile: null,
+    audioPreviewUrl: null,
     style: savedInterviewData?.style || null,
   })
 
@@ -199,15 +211,37 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
   }, [initialQuizData])
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      updateField("photoFile", file)
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    
+    // Process each file
+    Array.from(files).forEach((file) => {
       const reader = new FileReader()
       reader.onloadend = () => {
-        updateField("photoPreview", reader.result as string)
+        const newPhoto: PhotoUpload = {
+          file,
+          preview: reader.result as string,
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        }
+        setFormData((prev) => ({
+          ...prev,
+          photos: [...prev.photos, newPhoto]
+        }))
       }
       reader.readAsDataURL(file)
+    })
+    
+    // Clear the input so the same file can be re-selected
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
     }
+  }
+
+  const removePhoto = (photoId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      photos: prev.photos.filter((p) => p.id !== photoId)
+    }))
   }
 
   const startRecording = async () => {
@@ -224,7 +258,12 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
         const audioFile = new File([audioBlob], "voice-note.webm", { type: "audio/webm" })
-        updateField("audioFile", audioFile)
+        const audioUrl = URL.createObjectURL(audioBlob)
+        setFormData((prev) => ({
+          ...prev,
+          audioFile,
+          audioPreviewUrl: audioUrl
+        }))
         stream.getTracks().forEach((track) => track.stop())
       }
 
@@ -241,6 +280,35 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
       mediaRecorderRef.current.stop()
       setIsRecording(false)
     }
+  }
+
+  const playAudio = () => {
+    if (formData.audioPreviewUrl && audioRef.current) {
+      audioRef.current.play()
+      setIsPlayingAudio(true)
+    }
+  }
+
+  const pauseAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      setIsPlayingAudio(false)
+    }
+  }
+
+  const removeAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+    }
+    if (formData.audioPreviewUrl) {
+      URL.revokeObjectURL(formData.audioPreviewUrl)
+    }
+    setFormData((prev) => ({
+      ...prev,
+      audioFile: null,
+      audioPreviewUrl: null
+    }))
+    setIsPlayingAudio(false)
   }
 
   const handleSubmit = async () => {
@@ -275,9 +343,10 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
       }
       payload.append("interview_data", JSON.stringify(interviewData))
 
-      if (formData.photoFile) {
-        payload.append("reference_photo", formData.photoFile)
-      }
+      // Append all photos
+      formData.photos.forEach((photo, index) => {
+        payload.append(`reference_photo_${index}`, photo.file)
+      })
       if (formData.audioFile) {
         payload.append("audio_note", formData.audioFile)
       }
@@ -314,7 +383,7 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
       case 2:
         return formData.weather && formData.anchorObject.trim().length > 3
       case 3:
-        return formData.photoFile !== null
+        return formData.photos.length > 0
       case 4:
         return formData.style !== null
       default:
@@ -531,57 +600,66 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
             Reference Materials
           </h2>
           <p className="text-muted-foreground mb-8">
-            Upload a photo for reference and optionally record a personal message.
+            Upload photos for reference and optionally record a personal message.
           </p>
 
           {/* Photo Upload */}
           <div className="mb-8">
             <span className="text-sm font-medium text-foreground mb-3 block">
-              Reference Photo <span className="text-primary">*</span>
+              Reference Photos <span className="text-primary">*</span>
             </span>
             <p className="text-xs text-muted-foreground mb-3">
-              Upload a photo of the person or location we&apos;re recreating.
+              Upload photos of the person or location we&apos;re recreating. You can add multiple photos.
             </p>
 
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               onChange={handlePhotoUpload}
               className="hidden"
             />
 
-            {formData.photoPreview ? (
-              <div className="relative rounded-xl overflow-hidden border-2 border-primary">
-                <img 
-                  src={formData.photoPreview} 
-                  alt="Reference" 
-                  className="w-full h-64 object-cover"
-                />
-                <button
-                  onClick={() => {
-                    updateField("photoFile", null)
-                    updateField("photoPreview", null)
-                  }}
-                  className="absolute top-3 right-3 px-3 py-1 bg-foreground/80 text-background text-sm rounded-lg hover:bg-foreground transition-colors"
-                >
-                  Remove
-                </button>
-              </div>
-            ) : (
+            {/* Photo Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+              {formData.photos.map((photo) => (
+                <div key={photo.id} className="relative rounded-xl overflow-hidden border-2 border-primary aspect-square group">
+                  <img 
+                    src={photo.preview} 
+                    alt="Reference" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => removePhoto(photo.id)}
+                    className="absolute top-2 right-2 w-8 h-8 bg-foreground/80 text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              
+              {/* Add More Button */}
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-48 rounded-xl border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 flex flex-col items-center justify-center transition-all group"
+                className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 flex flex-col items-center justify-center transition-all group"
               >
-                <ImageIcon className="w-10 h-10 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
-                <span className="text-muted-foreground group-hover:text-foreground transition-colors">
-                  Click to upload a photo
-                </span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  JPG, PNG up to 10MB
+                <Plus className="w-8 h-8 text-muted-foreground mb-2 group-hover:text-primary transition-colors" />
+                <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors text-center px-2">
+                  {formData.photos.length === 0 ? "Add photos" : "Add more"}
                 </span>
               </button>
+            </div>
+
+            {formData.photos.length > 0 && (
+              <p className="text-xs text-green-600">
+                {formData.photos.length} photo{formData.photos.length !== 1 ? "s" : ""} uploaded
+              </p>
             )}
+
+            <p className="text-xs text-muted-foreground mt-2">
+              JPG, PNG up to 10MB each
+            </p>
           </div>
 
           {/* Voice Note */}
@@ -594,23 +672,53 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
             </p>
 
             <div className="p-6 rounded-xl border-2 border-border bg-card">
-              {formData.audioFile ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <Check className="w-5 h-5 text-green-600" />
+              {formData.audioFile && formData.audioPreviewUrl ? (
+                <div className="space-y-4">
+                  {/* Hidden audio element for playback */}
+                  <audio 
+                    ref={audioRef} 
+                    src={formData.audioPreviewUrl}
+                    onEnded={() => setIsPlayingAudio(false)}
+                    className="hidden"
+                  />
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <span className="block font-medium text-foreground">Voice note recorded</span>
+                        <span className="text-xs text-muted-foreground">Ready to include</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="block font-medium text-foreground">Voice note recorded</span>
-                      <span className="text-xs text-muted-foreground">Ready to include</span>
-                    </div>
+                    <button
+                      onClick={removeAudio}
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      Remove
+                    </button>
                   </div>
-                  <button
-                    onClick={() => updateField("audioFile", null)}
-                    className="text-sm text-muted-foreground hover:text-foreground"
-                  >
-                    Remove
-                  </button>
+
+                  {/* Playback Controls */}
+                  <div className="flex items-center justify-center gap-3 pt-2 border-t border-border">
+                    <button
+                      onClick={isPlayingAudio ? pauseAudio : playAudio}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-colors"
+                    >
+                      {isPlayingAudio ? (
+                        <>
+                          <Pause className="w-4 h-4" />
+                          Pause
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4" />
+                          Play Recording
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="text-center">

@@ -264,15 +264,28 @@ export async function POST(request: Request) {
     const quizPayload = parseJsonField(formData.get("quiz_data") || formData.get("quizData"))
     const interviewPayload = parseJsonField(formData.get("interview_data") || formData.get("interviewData"))
 
-    const referencePhotoFile = formData.get("reference_photo") || formData.get("referencePhoto")
     const audioNoteFile = formData.get("audio_note") || formData.get("audioNote")
 
-    let referencePhotoUrl: string | undefined
-    let audioNoteUrl: string | undefined
-
-    if (isFile(referencePhotoFile)) {
-      referencePhotoUrl = await uploadAsset(admin, referencePhotoFile, actingUserId, order.id)
+    // Handle multiple reference photos
+    const referencePhotoUrls: string[] = []
+    
+    // Check for indexed photos (reference_photo_0, reference_photo_1, etc.)
+    for (let i = 0; i < 20; i++) {
+      const photoFile = formData.get(`reference_photo_${i}`)
+      if (isFile(photoFile)) {
+        const url = await uploadAsset(admin, photoFile, actingUserId, order.id)
+        referencePhotoUrls.push(url)
+      }
     }
+    
+    // Also check for single reference_photo for backwards compatibility
+    const singlePhoto = formData.get("reference_photo") || formData.get("referencePhoto")
+    if (isFile(singlePhoto)) {
+      const url = await uploadAsset(admin, singlePhoto, actingUserId, order.id)
+      referencePhotoUrls.push(url)
+    }
+
+    let audioNoteUrl: string | undefined
 
     if (isFile(audioNoteFile)) {
       audioNoteUrl = await uploadAsset(admin, audioNoteFile, actingUserId, order.id)
@@ -282,7 +295,9 @@ export async function POST(request: Request) {
     const mergedInterview = {
       ...(order.interview_data || {}),
       ...interviewPayload,
-      ...(referencePhotoUrl ? { reference_photo_url: referencePhotoUrl } : {}),
+      ...(referencePhotoUrls.length > 0 ? { reference_photo_urls: referencePhotoUrls } : {}),
+      // Keep single URL for backwards compatibility (use first photo)
+      ...(referencePhotoUrls.length > 0 ? { reference_photo_url: referencePhotoUrls[0] } : {}),
       ...(audioNoteUrl ? { audio_note_url: audioNoteUrl } : {}),
     }
 

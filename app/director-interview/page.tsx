@@ -383,11 +383,11 @@ function DirectorInterviewContent() {
             />
           </Link>
           <Link
-            href="/pricing"
+            href="/dashboard"
             className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Packages
+            Back to Dashboard
           </Link>
         </div>
       </header>
