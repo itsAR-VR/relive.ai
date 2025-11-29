@@ -11,8 +11,8 @@ function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 
   useEffect(() => {
-    // Black Friday sale ends December 2nd, 2024 at midnight
-    const saleEndDate = new Date('2024-12-02T00:00:00')
+    // Sale ends Tuesday December 2nd, 2024 at 12:00 AM EST (05:00 UTC)
+    const saleEndDate = new Date('2024-12-02T05:00:00Z')
     
     const calculateTimeLeft = () => {
       const now = new Date()
@@ -47,12 +47,12 @@ export function LandingHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/80 bg-background/90 backdrop-blur-sm">
-      <div className="bg-[#1e3a5f] text-white text-center text-xs sm:text-sm px-3 py-2.5 flex items-center justify-center gap-3 sm:gap-6">
-        <span className="font-medium">BLACK FRIDAY is finally here. Get up to 50% off sitewide!</span>
+      <div className="bg-primary text-primary-foreground text-center text-xs sm:text-sm px-3 py-2.5 flex items-center justify-center gap-3 sm:gap-6">
+        <span className="font-medium">BLACK FRIDAY is finally here. Get up to 67% off sitewide!</span>
         <CountdownTimer />
         <Link 
           href="/pricing" 
-          className="hidden sm:inline-flex items-center px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/30 rounded text-xs font-medium uppercase tracking-wide transition-colors"
+          className="hidden sm:inline-flex items-center px-3 py-1 bg-primary-foreground/10 hover:bg-primary-foreground/20 border border-primary-foreground/30 rounded text-xs font-medium uppercase tracking-wide transition-colors"
         >
           Learn More
         </Link>

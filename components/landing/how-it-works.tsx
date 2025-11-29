@@ -30,8 +30,8 @@ interface HowItWorksProps {
 
 export function HowItWorks({ onStartGift }: HowItWorksProps) {
   return (
-    <section className="py-8 md:py-14 bg-background relative">
-      <div className="container relative mx-auto px-4">
+    <section className="py-8 md:py-14 bg-background relative overflow-x-clip overflow-y-visible">
+      <div className="container relative mx-auto px-4 overflow-visible">
         {/* Section Header - Compact */}
         <div className="text-center mb-6 md:mb-10">
           <span className="inline-block mb-3 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground text-xs md:text-sm font-medium border border-accent/30">
@@ -46,8 +46,8 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
         </div>
 
         {/* Mobile: CSS Scroll Snap Carousel */}
-        <div className="md:hidden -mx-4 pt-6">
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 px-4 pb-4 scrollbar-hide">
+        <div className="md:hidden -mx-4 pt-6 overflow-visible">
+          <div className="flex overflow-x-auto overflow-y-visible snap-x snap-mandatory gap-4 px-4 pb-4 scrollbar-hide">
             {STEPS.map((step, index) => {
               const Icon = step.icon
               return (
@@ -60,8 +60,8 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
         </div>
 
         {/* Desktop: Grid */}
-        <div className="hidden md:block max-w-5xl mx-auto pt-6">
-          <div className="grid md:grid-cols-3 gap-6">
+        <div className="hidden md:block max-w-5xl mx-auto pt-6 overflow-visible">
+          <div className="grid md:grid-cols-3 gap-6 overflow-visible">
             {STEPS.map((step, index) => {
               const Icon = step.icon
               return (

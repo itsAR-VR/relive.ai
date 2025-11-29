@@ -46,8 +46,8 @@ export function SocialProof() {
   }, [emblaApi])
 
   return (
-    <section className="py-8 md:py-14 bg-muted/30 relative overflow-hidden">
-      <div className="container relative mx-auto px-4">
+    <section className="py-8 md:py-14 bg-muted/30 relative overflow-x-clip overflow-y-visible">
+      <div className="container relative mx-auto px-4 overflow-visible">
         {/* Hero Stat - Prominent */}
         <div className="text-center mb-6 md:mb-10">
           <div className="inline-flex flex-col items-center p-4 md:p-6 rounded-2xl bg-primary/10 border border-primary/20">
@@ -86,8 +86,8 @@ export function SocialProof() {
 
         {/* Mobile: Carousel | Desktop: Grid */}
         {/* Mobile Carousel */}
-        <div className="md:hidden relative pt-6">
-          <div className="overflow-hidden" ref={emblaRef}>
+        <div className="md:hidden relative pt-6 overflow-visible">
+          <div className="overflow-x-clip overflow-y-visible" ref={emblaRef}>
             <div className="flex">
               {TESTIMONIALS.map((testimonial, index) => (
                 <div key={index} className="flex-[0_0_85%] min-w-0 pl-4 first:pl-0">
@@ -125,7 +125,7 @@ export function SocialProof() {
         </div>
 
         {/* Desktop: Grid */}
-        <div className="hidden md:grid md:grid-cols-3 gap-6 pt-6">
+        <div className="hidden md:grid md:grid-cols-3 gap-6 pt-6 overflow-visible">
           {TESTIMONIALS.map((testimonial, index) => (
             <TestimonialCard key={index} testimonial={testimonial} />
           ))}
