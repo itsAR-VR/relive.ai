@@ -225,7 +225,6 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
       const { order: updatedOrder } = await response.json()
       
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updatedOrder } : o))
-      setVideoUrlInput(prev => ({ ...prev, [orderId]: "" }))
     } catch (error) {
       console.error("Failed to update order:", error)
       alert(error instanceof Error ? error.message : "Failed to update order")
@@ -617,10 +616,13 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
                                   <VideoUploader
                                     orderId={order.id}
                                     currentVideoUrl={order.final_video_url}
-                                    onUploadComplete={(url) => {
+                                    onUploadComplete={async (url) => {
+                                      // Update local state immediately
                                       setOrders(prev => prev.map(o => 
                                         o.id === order.id ? { ...o, final_video_url: url } : o
                                       ))
+                                      // Persist to database
+                                      await updateOrderStatus(order.id, order.status, { final_video_url: url })
                                     }}
                                   />
                                   {order.final_video_url && (

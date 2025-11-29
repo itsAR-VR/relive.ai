@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react"
 import { Upload, X, Video, CheckCircle2, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
 
 interface VideoUploaderProps {
   orderId: string
@@ -54,41 +55,49 @@ export function VideoUploader({
     setFileName(file.name)
 
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("orderId", orderId)
-
-      const xhr = new XMLHttpRequest()
+      const supabase = createClient()
       
-      xhr.upload.addEventListener("progress", (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100)
-          setProgress(percent)
-        }
-      })
+      // Generate unique filename
+      const fileExtension = file.name.split(".").pop() || "mp4"
+      const timestamp = Date.now()
+      const storagePath = `${orderId}/${timestamp}.${fileExtension}`
 
-      xhr.addEventListener("load", () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const response = JSON.parse(xhr.responseText)
-          setPreviewUrl(response.url)
-          setUploadState("success")
-          onUploadComplete(response.url)
-        } else {
-          const error = JSON.parse(xhr.responseText)
-          setErrorMessage(error.message || "Upload failed")
-          setUploadState("error")
-          onUploadError?.(error.message || "Upload failed")
-        }
-      })
+      // Simulate progress for better UX (Supabase SDK doesn't have native progress)
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval)
+            return 90
+          }
+          return prev + 10
+        })
+      }, 500)
 
-      xhr.addEventListener("error", () => {
-        setErrorMessage("Network error during upload")
-        setUploadState("error")
-        onUploadError?.("Network error during upload")
-      })
+      // Upload directly to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from("gift-videos")
+        .upload(storagePath, file, {
+          contentType: file.type,
+          upsert: true,
+        })
 
-      xhr.open("POST", "/api/admin/upload")
-      xhr.send(formData)
+      clearInterval(progressInterval)
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("gift-videos")
+        .getPublicUrl(storagePath)
+
+      const publicUrl = urlData.publicUrl
+
+      setProgress(100)
+      setPreviewUrl(publicUrl)
+      setUploadState("success")
+      onUploadComplete(publicUrl)
     } catch (error) {
       const message = error instanceof Error ? error.message : "Upload failed"
       setErrorMessage(message)
