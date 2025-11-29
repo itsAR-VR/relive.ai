@@ -625,18 +625,18 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
               {formData.photos.map((photo) => (
                 <div key={photo.id} className="relative rounded-xl overflow-hidden border-2 border-primary aspect-square group">
-                  <img 
+                <img 
                     src={photo.preview} 
-                    alt="Reference" 
+                  alt="Reference" 
                     className="w-full h-full object-cover"
-                  />
-                  <button
+                />
+                <button
                     onClick={() => removePhoto(photo.id)}
                     className="absolute top-2 right-2 w-8 h-8 bg-foreground/80 text-background rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-foreground"
-                  >
+                >
                     <X className="w-4 h-4" />
-                  </button>
-                </div>
+                </button>
+              </div>
               ))}
               
               {/* Add More Button */}
@@ -682,22 +682,22 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
                     className="hidden"
                   />
                   
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                        <Check className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div>
-                        <span className="block font-medium text-foreground">Voice note recorded</span>
-                        <span className="text-xs text-muted-foreground">Ready to include</span>
-                      </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <Check className="w-5 h-5 text-green-600" />
                     </div>
-                    <button
+                    <div>
+                      <span className="block font-medium text-foreground">Voice note recorded</span>
+                      <span className="text-xs text-muted-foreground">Ready to include</span>
+                    </div>
+                  </div>
+                  <button
                       onClick={removeAudio}
-                      className="text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      Remove
-                    </button>
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Remove
+                  </button>
                   </div>
 
                   {/* Playback Controls */}

@@ -28,13 +28,13 @@ export function GiftViewContent({ order, isTokenValid, isFirstView, token }: Gif
   const [isUnwrapped, setIsUnwrapped] = useState(false)
   const [showContent, setShowContent] = useState(false)
 
-  // If it's NOT the first view (already been opened), skip the unwrap animation
+  // Only skip unwrap animation if no valid token
   useEffect(() => {
-    if (!isFirstView || !isTokenValid) {
+    if (!isTokenValid) {
       setIsUnwrapped(true)
       setShowContent(true)
     }
-  }, [isFirstView, isTokenValid])
+  }, [isTokenValid])
 
   const handleUnwrap = async () => {
     setIsUnwrapped(true)
@@ -69,8 +69,8 @@ export function GiftViewContent({ order, isTokenValid, isFirstView, token }: Gif
 
   return (
     <>
-      {/* Gift wrap overlay - show only on first view with valid token */}
-      {!isUnwrapped && isTokenValid && isFirstView && (
+      {/* Gift wrap overlay - show on every visit with valid token */}
+      {!isUnwrapped && isTokenValid && (
         <GiftWrapOverlay 
           recipientName={order.recipient_name}
           onUnwrap={handleUnwrap}

@@ -39,7 +39,7 @@ async function getOrder(id: string) {
 export default async function ViewGiftPage({ params, searchParams }: PageProps) {
   const { id } = await params
   const { token } = await searchParams
-  
+
   const order = await getOrder(id)
 
   // Order must exist and be ready or delivered
