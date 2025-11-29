@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Check, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, RefreshCw } from "lucide-react"
 import Link from "next/link"
@@ -65,6 +66,9 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; type?: "error" | "success" } | null>(null)
   const [quizData, setQuizData] = useState<{ honoree?: string; memory?: string; vibe?: string } | null>(null)
+  const searchParams = useSearchParams()
+  const recommendedTier = searchParams.get("recommended")
+  const premiumRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const loadDraft = () => {
@@ -90,6 +94,16 @@ export default function PricingPage() {
 
     loadDraft()
   }, [])
+
+  // Scroll to recommended package after a short delay
+  useEffect(() => {
+    if (recommendedTier === "premium" && premiumRef.current) {
+      const timer = setTimeout(() => {
+        premiumRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [recommendedTier])
 
   useEffect(() => {
     if (!toast) return
@@ -144,9 +158,9 @@ export default function PricingPage() {
             <Image
               src="/gifting-moments-logo.svg"
               alt="Gifting Moments"
-              width={120}
-              height={40}
-              className="h-10 w-auto"
+              width={160}
+              height={55}
+              className="h-12 md:h-14 w-auto"
             />
           </Link>
           <Link
@@ -189,19 +203,22 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
           {SERVICE_PACKAGES.map((pkg) => {
             const Icon = pkg.icon
+            const isRecommended = recommendedTier === pkg.tierId
+            const showBadge = pkg.popular || isRecommended
             return (
               <div
                 key={pkg.id}
+                ref={pkg.tierId === "premium" ? premiumRef : undefined}
                 className={`relative bg-card rounded-xl border-2 p-4 md:p-5 transition-all ${
-                  pkg.popular
+                  showBadge
                     ? "border-primary shadow-lg md:scale-[1.02] ring-2 ring-primary/20"
                     : "border-border hover:border-primary/50"
                 }`}
               >
-                {pkg.popular && (
+                {showBadge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full shadow-lg">
-                      Most Popular
+                      {isRecommended ? "Recommended for You" : "Most Popular"}
                     </span>
                   </div>
                 )}
@@ -209,10 +226,10 @@ export default function PricingPage() {
                 <div className="text-center mb-4">
                   <div
                     className={`w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center ${
-                      pkg.popular ? "bg-primary" : "bg-muted"
+                      showBadge ? "bg-primary" : "bg-muted"
                     }`}
                   >
-                    <Icon className={`w-6 h-6 ${pkg.popular ? "text-primary-foreground" : "text-primary"}`} />
+                    <Icon className={`w-6 h-6 ${showBadge ? "text-primary-foreground" : "text-primary"}`} />
                   </div>
                   <h3 className="font-serif text-lg md:text-xl text-foreground mb-0.5">
                     {pkg.name}
@@ -240,7 +257,7 @@ export default function PricingPage() {
                   onClick={() => handlePurchase(pkg.tierId)}
                   disabled={loading === pkg.tierId}
                   className={`w-full h-10 md:h-11 font-medium text-sm ${
-                    pkg.popular
+                    showBadge
                       ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
                       : "bg-foreground hover:bg-foreground/90 text-background"
                   }`}

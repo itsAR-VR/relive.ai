@@ -35,9 +35,9 @@ export default function Home() {
               <Image
                 src="/gifting-moments-logo.svg"
                 alt="Gifting Moments"
-                width={120}
-                height={40}
-                className="h-10 w-auto"
+                width={160}
+                height={55}
+                className="h-12 md:h-14 w-auto"
               />
             </div>
 

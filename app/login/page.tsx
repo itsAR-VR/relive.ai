@@ -65,16 +65,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f1e6] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Background pattern */}
-      <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23000000' fillOpacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
-      </div>
+      <div className="fixed inset-0 opacity-[0.02] pointer-events-none bg-[url('/paper-texture.jpg')] bg-repeat" />
 
       <div className="w-full max-w-md relative">
         {/* Logo / Brand */}
@@ -83,22 +76,22 @@ export default function LoginPage() {
             <img
               src="/gifting-moments-logo.svg"
               alt="Gifting Moments"
-              className="h-16 w-auto"
+              className="h-20 md:h-24 w-auto"
             />
           </Link>
-          <p className="mt-3 text-[#7d6b56]">
+          <p className="mt-3 text-muted-foreground">
             {isSignUp ? "Create your account" : "Welcome back"}
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-[#e2d8c3] p-8">
+        <div className="bg-card/90 backdrop-blur-sm rounded-xl shadow-xl border border-border p-8">
           {/* Google Sign In */}
           <Button
             onClick={handleGoogleAuth}
             disabled={isLoading}
             variant="outline"
-            className="w-full h-12 mb-6 bg-white hover:bg-[#f5f1e6] border-[#dbd0ba] text-[#3d3632] font-medium"
+            className="w-full h-12 mb-6 bg-card hover:bg-secondary border-border text-foreground font-medium"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
@@ -124,29 +117,29 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#e2d8c3]"></div>
+              <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-[#8a7e72]">or continue with email</span>
+              <span className="px-4 bg-card text-muted-foreground">or continue with email</span>
             </div>
           </div>
 
           {/* Email Form */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8a7e72]" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email address"
                 required
-                className="w-full h-12 pl-11 pr-4 bg-[#f5f1e6] border border-[#dbd0ba] rounded-lg text-[#3d3632] placeholder:text-[#8a7e72] focus:outline-none focus:ring-2 focus:ring-[#a67c52]/30 focus:border-[#a67c52] transition-all"
+                className="w-full h-12 pl-11 pr-4 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
               />
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8a7e72]" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="password"
                 value={password}
@@ -154,7 +147,7 @@ export default function LoginPage() {
                 placeholder="Password"
                 required
                 minLength={6}
-                className="w-full h-12 pl-11 pr-4 bg-[#f5f1e6] border border-[#dbd0ba] rounded-lg text-[#3d3632] placeholder:text-[#8a7e72] focus:outline-none focus:ring-2 focus:ring-[#a67c52]/30 focus:border-[#a67c52] transition-all"
+                className="w-full h-12 pl-11 pr-4 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
               />
             </div>
 
@@ -173,10 +166,10 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-gradient-to-r from-[#a67c52] to-[#8d6e4c] hover:from-[#8d6e4c] hover:to-[#735a3a] text-white font-medium shadow-lg"
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg"
             >
               {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
                 <>
                   {isSignUp ? "Create Account" : "Sign In"}
@@ -187,14 +180,14 @@ export default function LoginPage() {
           </form>
 
           {/* Toggle Sign Up / Sign In */}
-          <p className="mt-6 text-center text-sm text-[#7d6b56]">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
               onClick={() => {
                 setIsSignUp(!isSignUp)
                 setMessage(null)
               }}
-              className="text-[#a67c52] hover:text-[#8d6e4c] font-medium transition-colors"
+              className="text-primary hover:text-primary/80 font-medium transition-colors"
             >
               {isSignUp ? "Sign in" : "Sign up"}
             </button>
@@ -205,7 +198,7 @@ export default function LoginPage() {
         <p className="mt-6 text-center">
           <Link
             href="/"
-            className="text-sm text-[#8a7e72] hover:text-[#a67c52] transition-colors"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             ← Back to home
           </Link>

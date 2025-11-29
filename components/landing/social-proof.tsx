@@ -28,21 +28,37 @@ const TESTIMONIALS = [
 export function SocialProof() {
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
     loop: true,
-    align: "center",
+    align: "start",
     containScroll: "trimSnaps",
+    dragFree: false,
+    skipSnaps: false,
+    speed: 10,
   })
   const [selectedIndex, setSelectedIndex] = useState(0)
 
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev()
+  }, [emblaApi])
+  
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext()
+  }, [emblaApi])
 
   useEffect(() => {
     if (!emblaApi) return
-    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap())
+    
+    const onSelect = () => {
+      setSelectedIndex(emblaApi.selectedScrollSnap())
+    }
+    
     emblaApi.on("select", onSelect)
     emblaApi.on("reInit", onSelect)
     onSelect()
-    return () => { emblaApi.off("select", onSelect); emblaApi.off("reInit", onSelect) }
+    
+    return () => { 
+      emblaApi.off("select", onSelect)
+      emblaApi.off("reInit", onSelect) 
+    }
   }, [emblaApi])
 
   return (
@@ -87,10 +103,14 @@ export function SocialProof() {
         {/* Mobile: Carousel | Desktop: Grid */}
         {/* Mobile Carousel */}
         <div className="md:hidden relative">
-          <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex">
+          <div className="overflow-hidden -mx-4 px-4" ref={emblaRef}>
+            <div className="flex touch-pan-y">
               {TESTIMONIALS.map((testimonial, index) => (
-                <div key={index} className="flex-[0_0_85%] min-w-0 pl-4 first:pl-0">
+                <div 
+                  key={index} 
+                  className="flex-[0_0_88%] min-w-0 pr-4 select-none"
+                  style={{ transform: 'translate3d(0, 0, 0)' }}
+                >
                   <TestimonialCard testimonial={testimonial} />
                 </div>
               ))}
@@ -101,23 +121,27 @@ export function SocialProof() {
           <div className="flex items-center justify-center gap-4 mt-4">
             <button 
               onClick={scrollPrev}
-              className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors"
+              className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors active:scale-95"
+              aria-label="Previous testimonial"
             >
               <ChevronLeft className="w-4 h-4 text-muted-foreground" />
             </button>
             <div className="flex gap-1.5">
               {TESTIMONIALS.map((_, index) => (
-                <div 
+                <button 
                   key={index}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === selectedIndex ? "bg-primary" : "bg-border"
+                  onClick={() => emblaApi?.scrollTo(index)}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === selectedIndex ? "bg-primary w-4" : "bg-border hover:bg-muted-foreground"
                   }`}
                 />
               ))}
             </div>
             <button 
               onClick={scrollNext}
-              className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors"
+              className="p-2 rounded-full bg-card border border-border hover:bg-muted transition-colors active:scale-95"
+              aria-label="Next testimonial"
             >
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>

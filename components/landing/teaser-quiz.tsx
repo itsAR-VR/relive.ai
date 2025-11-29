@@ -105,9 +105,9 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
         // ignore
       }
       
-      // Simulate analysis and redirect
+      // Simulate analysis and redirect to pricing with middle tier pre-selected
       setTimeout(() => {
-        router.push("/pricing")
+        router.push("/pricing?recommended=premium")
       }, 2000)
     }
   }

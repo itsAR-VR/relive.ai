@@ -328,9 +328,9 @@ function DirectorInterviewContent() {
             <Image
               src="/gifting-moments-logo.svg"
               alt="Gifting Moments"
-              width={130}
-              height={45}
-              className="h-11 w-auto"
+              width={160}
+              height={55}
+              className="h-12 md:h-14 w-auto"
             />
           </Link>
           <Link
