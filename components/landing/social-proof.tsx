@@ -1,7 +1,12 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Quote, Star, ChevronLeft, ChevronRight } from "lucide-react"
+import { Quote, Star, ChevronLeft, ChevronRight, Sparkles } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
+interface SocialProofProps {
+  onStartGift: () => void
+}
 
 const TESTIMONIALS = [
   {
@@ -24,7 +29,7 @@ const TESTIMONIALS = [
   },
 ]
 
-export function SocialProof() {
+export function SocialProof({ onStartGift }: SocialProofProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const desktopVideoRef = useRef<HTMLVideoElement>(null)
   const mobileVideoRef = useRef<HTMLVideoElement>(null)
@@ -91,10 +96,20 @@ export function SocialProof() {
           </div>
 
           {/* Disclaimer Note */}
-          <p className="text-xs text-muted-foreground italic max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xs text-muted-foreground italic max-w-2xl mx-auto leading-relaxed mb-6">
             Note: This demo shows a simplified preview of our process. Your actual experience includes a personalized director interview, 
             longer custom films, private viewing pages with gift-wrapping, and a fully tailored storytelling approach.
           </p>
+
+          {/* CTA Button */}
+          <Button
+            onClick={onStartGift}
+            size="lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-5 md:px-8 md:py-6 text-base md:text-lg rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group"
+          >
+            <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
+            Restore Their Moment
+          </Button>
         </div>
 
         {/* Section Header - Compact */}

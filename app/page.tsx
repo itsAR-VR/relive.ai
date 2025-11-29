@@ -22,7 +22,7 @@ export default function Home() {
       
       <SplitHero onStartGift={handleStartGift} />
       
-      <SocialProof />
+      <SocialProof onStartGift={handleStartGift} />
       
       <HowItWorks onStartGift={handleStartGift} />
 
