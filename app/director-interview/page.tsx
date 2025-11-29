@@ -86,22 +86,55 @@ function DirectorInterviewContent() {
     if (hasAuthError) setAuthErrorFlag(true)
   }, [hasAuthError])
 
-  const claimOrder = async () => {
+  const claimOrder = async (emailOverride?: string) => {
     setClaiming(true)
     setClaimError("")
     
+    let effectiveSessionId = sessionId
+    const emailToUse = emailOverride || userEmail
+    
     try {
-      // First try to claim by session_id if we have it
-      if (sessionId) {
+      // If we don't have session_id from URL, try to look it up by email
+      // This enables cross-device flows where user verifies on a different device
+      if (!effectiveSessionId && emailToUse) {
+        try {
+          const lookupRes = await fetch(`/api/checkout/pending?email=${encodeURIComponent(emailToUse)}`)
+          if (lookupRes.ok) {
+            const lookupData = await lookupRes.json()
+            if (lookupData.session_id) {
+              effectiveSessionId = lookupData.session_id
+            }
+          }
+        } catch {
+          // Non-fatal - continue without session_id
+        }
+      }
+
+      // Try to claim by session_id if we have it
+      if (effectiveSessionId) {
         const claimRes = await fetch("/api/orders/claim", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ session_id: sessionId }),
+          body: JSON.stringify({ session_id: effectiveSessionId }),
         })
         if (claimRes.ok) {
           const claimData = await claimRes.json()
           if (claimData.order?.id) {
             setOrderId(claimData.order.id)
+            // Load quiz data from the claimed order
+            if (claimData.order.quiz_data) {
+              setQuizData(claimData.order.quiz_data)
+            }
+            // Load interview data from the claimed order
+            if (claimData.order.interview_data) {
+              setInterviewData(claimData.order.interview_data)
+            }
+            // Clean up the pending checkout mapping
+            if (emailToUse) {
+              fetch(`/api/checkout/pending?email=${encodeURIComponent(emailToUse)}`, {
+                method: "DELETE",
+              }).catch(() => {})
+            }
             setClaiming(false)
             return
           }
@@ -128,7 +161,7 @@ function DirectorInterviewContent() {
       }
 
       // If we still don't have an order, show error
-      if (!sessionId) {
+      if (!effectiveSessionId) {
         setClaimError("No pending order found. Please complete checkout first.")
       } else {
         setClaimError("Could not find your order. Please try again or contact support.")
@@ -147,9 +180,10 @@ function DirectorInterviewContent() {
     const { data: { session } } = await supabase.auth.getSession()
     
     if (session?.user) {
-      setUserEmail(session.user.email || userEmail)
+      const email = session.user.email || userEmail
+      setUserEmail(email)
       setUserReady(true)
-      await claimOrder()
+      await claimOrder(email) // Pass email directly to avoid async state issues
       return
     }
 
@@ -163,9 +197,10 @@ function DirectorInterviewContent() {
     try {
       const { data } = await supabase.auth.getUser()
       if (data.user) {
-        setUserEmail(data.user.email || userEmail)
+        const email = data.user.email || userEmail
+        setUserEmail(email)
         setUserReady(true)
-        await claimOrder()
+        await claimOrder(email) // Pass email directly to avoid async state issues
         return
       }
     } catch {
@@ -201,9 +236,10 @@ function DirectorInterviewContent() {
         // Try getSession first (local storage)
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
-          setUserEmail(session.user.email || userEmail)
+          const email = session.user.email || userEmail
+          setUserEmail(email)
           setUserReady(true)
-          await claimOrder()
+          await claimOrder(email)
           setCheckingSession(false)
           return
         }
@@ -212,9 +248,10 @@ function DirectorInterviewContent() {
         const { data, error } = await supabase.auth.getUser()
         if (error) throw error
         if (data?.user) {
-          setUserEmail(data.user.email || userEmail)
+          const email = data.user.email || userEmail
+          setUserEmail(email)
           setUserReady(true)
-          await claimOrder()
+          await claimOrder(email)
           setCheckingSession(false)
           return
         }
@@ -247,6 +284,18 @@ function DirectorInterviewContent() {
         localStorage.setItem("giftingmoments_session_id", sessionId)
       } catch {
         // ignore
+      }
+      
+      // CRITICAL: Store email → session_id mapping for cross-device support
+      // This allows the user to verify on a different device and still find their order
+      try {
+        await fetch("/api/checkout/pending", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: userEmail, session_id: sessionId }),
+        })
+      } catch {
+        // Non-fatal - continue with magic link
       }
     }
 
