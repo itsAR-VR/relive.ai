@@ -52,7 +52,7 @@ const SERVICE_PACKAGES = [
   },
   {
     id: "biography",
-    tierId: "bio",
+    tierId: "biography",
     name: "The Biography",
     subtitle: "A multi-scene legacy documentary",
     price: 299,
