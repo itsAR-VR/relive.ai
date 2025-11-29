@@ -64,7 +64,7 @@ export function SocialProof() {
         <div className="flex justify-center gap-4 md:gap-8 mb-6 md:mb-10">
           <div className="text-center">
             <p className="text-xl md:text-2xl font-serif text-foreground">500+</p>
-            <p className="text-xs text-muted-foreground">Memories</p>
+            <p className="text-xs text-muted-foreground">Films Created</p>
           </div>
           <div className="w-px bg-border" />
           <div className="text-center">
