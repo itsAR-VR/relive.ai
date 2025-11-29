@@ -1,289 +1,274 @@
-# Relive.ai (Moments)
+# Gifting Moments
 
-**Bring Your Loved Ones' Memories Back to Life**
+**Transform cherished memories into living, breathing films.**
 
-Transform faded photographs into living, breathing moments. Help grandparents see their wedding day dance again.
+We help you create emotional memory films that bring tears of joy. Perfect for milestone birthdays, holidays, and legacy keepsakes.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://relivemoments.co)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://giftingmoments.com)
 [![Last Updated](https://img.shields.io/badge/Last%20Updated-Nov%2029%2C%202025-blue?style=for-the-badge)]()
 
 ---
 
-## Recent Updates (Nov 29, 2025)
+## 🎨 Brand & Design System
 
-✅ **Cross-Device Authentication Fixed** - Magic link flow now works across devices  
-✅ **Database Schema Complete** - All required tables and RLS policies in place  
-✅ **Interview Flow Working** - Users can complete director interview after checkout  
+### Color Palette - "Nostalgic Warmth"
 
-See [docs/CROSS_DEVICE_AUTH_FIX.md](docs/CROSS_DEVICE_AUTH_FIX.md) for full technical documentation.
+Our design language evokes warmth, nostalgia, and emotional depth.
+
+#### Light Mode
+| Color | Hex | Usage |
+|-------|-----|-------|
+| **Background** | `#FDFBF7` | Page background (warm cream) |
+| **Foreground** | `#2C2C2C` | Primary text (soft black) |
+| **Primary** | `#8B2332` | CTAs, accents (maroon/burgundy) |
+| **Secondary** | `#F5F0E8` | Cards, secondary backgrounds |
+| **Accent** | `#D4AF37` | Gold highlights, badges |
+| **Muted** | `#F0EBE3` | Subtle backgrounds |
+| **Border** | `#E8E2D9` | Dividers, card borders |
+
+#### Dark Mode
+| Color | Hex | Usage |
+|-------|-----|-------|
+| **Background** | `#1A1814` | Page background (warm charcoal) |
+| **Foreground** | `#F5F0E8` | Primary text |
+| **Primary** | `#C9A86C` | CTAs, accents (warm gold) |
+| **Accent** | `#D4AF37` | Gold highlights |
+
+### Typography
+- **Headings:** Playfair Display (serif) - elegant, timeless feel
+- **Body:** Inter (sans-serif) - clean, readable
+
+### Logo
+- File: `/public/gifting-moments-logo.svg`
+- Two-line stacked design: "gifting" on top, "moments" below
+- Uses black/dark foreground color, inverts in dark mode
 
 ---
 
-## Project Goals
+## 🎁 Service Tiers
 
-1. **Photo Enhancement** — Restore and colorize old, faded photographs using AI (Kie.ai Nano Banana Pro).
-2. **Video Generation** — Bring still photos to life with subtle, natural motion using AI video generation.
-3. **Service Orders** — Users purchase direct service tiers via Stripe (Standard/Premium/Biography) and complete a director interview.
-4. **User Accounts** — Secure authentication with Supabase (email/password and Google OAuth).
+| Tier | Price | Duration | Description |
+|------|-------|----------|-------------|
+| **Digital Keepsake** | $49 (from $99) | 15 secs | A single restored memory film |
+| **Director's Cut** | $149 (from $299) | 60 secs | A fully crafted emotional film |
+| **The Biography** | $299 (from $800) | 3 mins | A multi-scene legacy documentary |
 
-## Tech Stack
+---
 
-- **Frontend:** Next.js 16 (App Router), Tailwind CSS, shadcn/ui
-- **Backend:** Supabase (Auth, PostgreSQL Database)
+## 🛠 Tech Stack
+
+- **Frontend:** Next.js 16 (App Router), Tailwind CSS 4, shadcn/ui
+- **Backend:** Supabase (Auth, PostgreSQL Database, Storage)
 - **AI:** Kie.ai (Image Enhancement, Video Generation)
 - **Payments:** Stripe (Checkout, Webhooks)
 - **Hosting:** Vercel
+- **Analytics:** Vercel Analytics, Meta Conversions API
 
-## Getting Started
+---
 
-1. Clone the repository
-2. Install dependencies: `pnpm install`
-3. Copy `.env.local.example` to `.env.local` and fill in your keys
-4. Run the development server: `pnpm dev`
+## 🚀 Getting Started
 
-## Environment Variables
+### Prerequisites
+- Node.js 18+
+- pnpm (recommended) or npm
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/itsAR-VR/relive.ai.git
+cd relive.ai
+
+# Install dependencies
+pnpm install
+
+# Copy environment variables
+cp .env.local.example .env.local
+
+# Start development server
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see the app.
+
+---
+
+## 🔐 Environment Variables
+
+### Required
 
 | Variable | Description |
 |----------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/publishable key (use publishable default key in new Supabase UI) |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | Supabase publishable key (fallback in clients) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for webhooks, storage uploads) |
-| `SUPABASE_SECRET_KEY` | Supabase secret (optional; service role covers admin needs) |
-| `KIE_API_KEY` | Kie.ai API key |
-| `KIE_WEBHOOK_SECRET` | Shared secret for verifying Kie webhooks (optional but recommended) |
-| `KIE_WEBHOOK_IP_ALLOWLIST` | Comma-separated IPs allowed to call the webhook (optional) |
-| `STRIPE_SECRET_KEY` | Stripe secret key (match test/live mode with the price IDs) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/publishable key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `STRIPE_PRICE_STANDARD` | Stripe Price ID for the Standard gift tier ($49) |
-| `STRIPE_PRICE_PREMIUM` | Stripe Price ID for the Premium gift tier ($149) |
-| `STRIPE_PRICE_BIO` | Stripe Price ID for the Biography gift tier ($299) |
+| `STRIPE_PRICE_STANDARD` | Stripe Price ID - Digital Keepsake ($49) |
+| `STRIPE_PRICE_PREMIUM` | Stripe Price ID - Director's Cut ($149) |
+| `STRIPE_PRICE_BIO` | Stripe Price ID - Biography ($299) |
 | `NEXT_PUBLIC_APP_URL` | Your deployed app URL |
-| `META_PIXEL_ID` | Meta Pixel ID used for server-side Conversions API calls |
-| `META_CAPI_ACCESS_TOKEN` | Meta Conversions API access token |
-| `META_CAPI_API_VERSION` | Optional, defaults to `v20.0` |
-| `META_CAPI_TEST_EVENT_CODE` | Optional test event code for QA events |
 
-## Meta Conversions API
+### AI Integration (Kie.ai)
 
-- Server helper: `lib/meta.ts` handles hashing and posting to the Meta Graph `/events` edge.
-- Proxy endpoint: `POST /api/meta/conversions` lets the client send structured events; it auto-attaches `_fbp`/`_fbc`, IP, and UA from the request.
-- Wired events:
-  - `InitiateCheckout` (server) on Stripe checkout session creation with event_id = session id for deduping.
-  - `Purchase` (server) on `checkout.session.completed` webhook with value/currency from Stripe.
-  - `SubmitApplication` (server) when the director interview is submitted.
-- Add other events (Lead, ViewContent, etc.) by calling the proxy with `event_name`, `event_source_url`, and `user_data` (email/phone optional) from the relevant UI interactions.
+| Variable | Description |
+|----------|-------------|
+| `KIE_API_KEY` | Kie.ai API key |
+| `KIE_WEBHOOK_SECRET` | Shared secret for webhook verification |
 
-## Kie.ai Integration (current)
+### Analytics (Optional)
 
-- Image (Nano Banana Pro): `model: "nano-banana-pro"` via `POST /api/v1/jobs/createTask` with `prompt`, `image_input` (public URL), optional `aspect_ratio` (e.g., 1:1), `resolution` (1K/2K/4K), `output_format` (png/jpg), and optional `callBackUrl`.
-- Video (Wan 2.5 image-to-video): `model: "wan/2-5-image-to-video"` via `POST /api/v1/jobs/createTask` with `prompt`, `image_url` (public URL), optional `duration` ("5"|"10"), `resolution` ("720p"|"1080p"), `negative_prompt`, `enable_prompt_expansion`, `seed`, and optional `callBackUrl`.
-- Status: `GET /api/v1/jobs/recordInfo?taskId=...` returns `state` (waiting/queuing/generating/success/fail) and `resultJson.resultUrls`.
-- Webhooks: same shape as recordInfo; optional verification via `KIE_WEBHOOK_SECRET` or `KIE_WEBHOOK_IP_ALLOWLIST`.
-- Uploads: data-URL images are uploaded to Supabase Storage (`user-uploads` bucket, public) before calling Kie to ensure publicly accessible URLs.
+| Variable | Description |
+|----------|-------------|
+| `META_PIXEL_ID` | Meta Pixel ID |
+| `META_CAPI_ACCESS_TOKEN` | Meta Conversions API token |
 
-## Stripe Prices (test/live)
+---
 
-- Set `STRIPE_PRICE_STANDARD`, `STRIPE_PRICE_PREMIUM`, and `STRIPE_PRICE_BIO` to the Price IDs for the three service tiers (Standard $49, Premium $149, Biography $299).
-- Keep secret key and price IDs aligned to the same mode (both test or both live) to avoid 500s at checkout.
+## 🗄 Database Setup
 
-## Development Checks
+### Quick Setup (Recommended)
 
-- Lint: `pnpm lint`
-- Build: `pnpm build` (warnings: multiple lockfiles root inference; middleware convention deprecated)
+Run this migration in Supabase SQL Editor:
 
-## Magic Link Authentication Flow
-
-The app uses Supabase magic links for passwordless authentication after Stripe checkout:
-
-### Flow Overview
-
+```sql
+-- File: supabase/migrations/FULL_MIGRATION_RUN_THIS.sql
 ```
-1. User completes Stripe checkout
-2. Lands on /director-interview?session_id=cs_test_xxx
-3. User enters email → sends magic link
-4. Email → session_id mapping stored in pending_checkouts table
-5. User clicks magic link in email → redirected to /#access_token=...
-6. HashAuthListener sets session, looks up session_id by email
-7. Redirects to /director-interview?session_id=xxx&auth_complete=true
-8. Interview form loads, order is claimed
-```
-
-### Cross-Device Support
-
-When a user starts checkout on one device (desktop) but clicks the magic link on another (mobile):
-
-1. Desktop: `sendMagicLink` stores `(email, session_id)` in `pending_checkouts` table
-2. Mobile: `HashAuthListener` looks up `session_id` by email after auth
-3. Mobile: Redirects with correct `session_id`, order is claimed
-
-**Important:** The `pending_checkouts` table must have a UNIQUE constraint on email for upserts to work.
-
-## Database Migrations
-
-### Quick Setup (New Installations)
-
-Run the comprehensive migration script in Supabase SQL Editor:
-
-**File:** `supabase/migrations/FULL_MIGRATION_RUN_THIS.sql`
 
 This creates all required tables:
 - `profiles` - User profile data
-- `orders` - Service purchases with quiz/interview data  
-- `pending_checkouts` - Email → session_id mapping for cross-device auth
+- `orders` - Service purchases with quiz/interview data
+- `pending_checkouts` - Cross-device authentication support
 
-### Individual Migrations
-
-| Migration | Description |
-|-----------|-------------|
-| `001_initial_schema.sql` | Profiles table |
-| `002_orders_table.sql` | Orders table for service purchases |
-| `003_orders_public_access.sql` | RLS policies for orders |
-| `004_pending_checkouts.sql` | Cross-device auth support |
-| `FULL_MIGRATION_RUN_THIS.sql` | **Complete setup (run this for new installs)** |
-
-### Verifying Tables Exist
-
-Run this in Supabase SQL Editor to verify:
+### Verify Setup
 
 ```sql
--- Check tables exist
 SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' AND table_name IN ('orders', 'pending_checkouts', 'profiles');
-
--- Check RLS is enabled
-SELECT tablename, rowsecurity FROM pg_tables 
-WHERE schemaname = 'public' AND tablename IN ('orders', 'pending_checkouts');
-
--- Check policies exist
-SELECT tablename, policyname FROM pg_policies 
-WHERE schemaname = 'public';
+WHERE table_schema = 'public' 
+AND table_name IN ('orders', 'pending_checkouts', 'profiles');
 ```
 
-### Required Policies
+---
 
-**orders table:**
-- `Users can view own orders`
-- `Users can update own orders`
-- `Service role full access`
-- `Users can claim unclaimed orders`
-- `Allow order creation`
-
-**pending_checkouts table:**
-- `Service role access pending_checkouts`
-- `Users can read own pending checkout`
-
-## Troubleshooting
-
-### "No pending order found" after magic link verification
-
-**Causes:**
-1. `pending_checkouts` table doesn't exist in Supabase
-2. Email lookup failed (check Supabase logs)
-3. Stripe webhook hasn't created the order yet (race condition)
-
-**Fix:**
-1. Run `004_pending_checkouts.sql` migration
-2. Ensure the email used matches the one from Stripe checkout
-3. Check Vercel logs for API errors
-
-### "Still waiting for login" on desktop after verifying on mobile
-
-**Cause:** Desktop doesn't have a Supabase session (session is device-specific)
-
-**Solution:** Continue on the device where you clicked the email link, or send a new magic link on the current device.
-
-### Magic link lands on root URL with access_token hash
-
-**This is expected behavior.** The `HashAuthListener` component (in `app/layout.tsx`) handles this:
-1. Detects `#access_token=...` in URL
-2. Sets Supabase session
-3. Looks up `session_id` by email
-4. Redirects to `/director-interview?session_id=xxx&auth_complete=true`
-
-### Interview progress lost
-
-Interview progress is saved to the `orders.interview_data` column. If lost:
-1. Check if user is authenticated (Dashboard shows orders)
-2. Verify order exists in Supabase `orders` table
-3. Check `/api/orders/[id]/interview` endpoint for errors
-
-### Debugging Tips
-
-1. **Supabase Auth Logs:** Dashboard → Authentication → Logs
-2. **Vercel Function Logs:** Vercel Dashboard → Functions tab
-3. **Browser Console:** Check for `HashAuthListener:` prefixed messages
-4. **Network Tab:** Monitor `/api/orders/claim` and `/api/checkout/pending` responses
-
-## Project Structure
+## 🔄 User Flow
 
 ```
-relive.ai/
+1. Landing Page → User takes 3-question quiz
+2. Quiz → Redirects to Pricing with recommended tier
+3. Pricing → User selects package, clicks "Book Now"
+4. Stripe Checkout → Payment processed
+5. Director Interview → Magic link sent, user completes interview
+6. Dashboard → User can view order status
+7. Delivery → Memory film delivered via email + private viewing page
+```
+
+### Magic Link Authentication
+
+After checkout, users authenticate via magic link:
+1. User completes Stripe checkout
+2. Lands on `/director-interview?session_id=xxx`
+3. Magic link auto-sent to Stripe email
+4. Click link → session verified → interview form loads
+
+**Cross-Device Support:** If user clicks magic link on different device, `pending_checkouts` table enables session recovery.
+
+---
+
+## 📁 Project Structure
+
+```
 ├── app/                          # Next.js App Router
 │   ├── api/
-│   │   ├── orders/
-│   │   │   ├── claim/route.ts    # Claim order for authenticated user
-│   │   │   ├── pending/route.ts  # Get user's pending order
-│   │   │   └── [id]/interview/   # Save/load interview progress
-│   │   ├── checkout/
-│   │   │   └── pending/route.ts  # Cross-device session mapping
-│   │   ├── stripe/
-│   │   │   └── checkout/route.ts # Create Stripe checkout session
-│   │   └── webhooks/
-│   │       └── stripe/route.ts   # Handle Stripe webhooks
-│   ├── auth/
-│   │   ├── callback/page.tsx     # OAuth callback
-│   │   └── confirm/page.tsx      # Magic link confirmation
-│   ├── director-interview/       # Post-purchase interview flow
-│   ├── pricing/                  # Service tier selection
-│   └── dashboard/                # User's orders dashboard
+│   │   ├── orders/              # Order management APIs
+│   │   ├── stripe/              # Stripe checkout & webhooks
+│   │   └── webhooks/            # External webhooks (Stripe, Kie)
+│   ├── auth/                    # Auth callbacks
+│   ├── dashboard/               # User dashboard
+│   ├── director-interview/      # Post-checkout interview
+│   ├── pricing/                 # Service tier selection
+│   └── page.tsx                 # Landing page
 ├── components/
-│   ├── hash-auth-listener.tsx    # Global auth token handler
+│   ├── landing/                 # Landing page components
+│   │   ├── header.tsx          # Nav with countdown banner
+│   │   ├── split-hero.tsx      # Hero section
+│   │   ├── social-proof.tsx    # Testimonials carousel
+│   │   ├── how-it-works.tsx    # 3-step process
+│   │   └── teaser-quiz.tsx     # 3-question quiz modal
 │   ├── director-interview-form.tsx
-│   └── landing/                  # Landing page components
+│   └── hash-auth-listener.tsx  # Global auth handler
 ├── lib/
-│   ├── supabase/
-│   │   ├── client.ts             # Browser Supabase client
-│   │   └── server.ts             # Server Supabase client
-│   └── stripe.ts                 # Stripe helpers
-├── supabase/
-│   └── migrations/               # SQL migration scripts
-│       └── FULL_MIGRATION_RUN_THIS.sql
-└── docs/
-    └── CROSS_DEVICE_AUTH_FIX.md  # Auth flow documentation
+│   ├── supabase/               # Supabase clients
+│   └── stripe.ts               # Stripe helpers
+├── public/
+│   └── gifting-moments-logo.svg
+└── supabase/
+    └── migrations/             # SQL migration scripts
 ```
 
-## Key Components
+---
 
-### HashAuthListener (`components/hash-auth-listener.tsx`)
-Global component that handles magic link tokens in URL hash. Imported in `app/layout.tsx`.
+## 🧪 Development
 
-**Responsibilities:**
-1. Detect `#access_token=...` in URL
-2. Set Supabase session
-3. Recover session_id (URL → localStorage → database lookup)
-4. Claim order
-5. Redirect to interview page
+```bash
+# Lint
+pnpm lint
 
-### Director Interview Flow
-1. User lands on `/director-interview?session_id=xxx`
-2. Enters email, sends magic link
-3. `pending_checkouts` table stores `(email, session_id)`
-4. User clicks email link
-5. `HashAuthListener` recovers session_id, claims order
-6. Interview form loads with order data
+# Build
+pnpm build
 
-## Contributing
+# Start production server
+pnpm start
+```
+
+---
+
+## 🌐 Domain Setup
+
+### DNS Configuration
+
+Point your domain to Vercel:
+- **A Record:** `76.76.19.19`
+- **CNAME:** `cname.vercel-dns.com`
+
+### Recommended Domains
+- Primary: `giftingmoments.com`
+- Alternative: `giftingmoments.co`, `giftmoments.com`
+
+---
+
+## 📝 Troubleshooting
+
+### "No pending order found" after magic link
+
+1. Run `FULL_MIGRATION_RUN_THIS.sql` migration
+2. Verify email matches Stripe checkout email
+3. Check Vercel logs for API errors
+
+### Quiz closes when clicking outside
+
+This is intentional - users must click X to exit (improves conversion).
+
+### Carousel glitching on reviews
+
+We use pure CSS transitions instead of Embla for smoother animations.
+
+---
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Run `pnpm lint` before committing
 4. Submit a pull request
 
-## License
+---
+
+## 📄 License
 
 MIT
 
 ---
 
 *Built with ❤️ for preserving family memories*
+
+**Gifting Moments** — Transform memories into films that make them cry.

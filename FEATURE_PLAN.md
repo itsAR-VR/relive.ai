@@ -1,35 +1,73 @@
-# Feature Plan (Current Status & Next Steps)
+# Gifting Moments - Feature Plan
 
-## Current Status
-- Auth: Supabase email/Google working; session middleware in place.
-- Stripe: Test-mode prices wired (`STRIPE_PRICE_CAPSULE/MEMORY/LEGACY`); checkout works in test.
-- Kie.ai: Using new jobs API.
-  - Image: `model: nano-banana-pro` via `/api/v1/jobs/createTask`; status via `/api/v1/jobs/recordInfo`.
-  - Video: `model: wan/2-5-image-to-video` via `/api/v1/jobs/createTask`; status via `/api/v1/jobs/recordInfo`.
-  - Webhooks: `/api/webhooks/kie` parses `state/resultJson/failMsg`; optional `KIE_WEBHOOK_SECRET`/IP allowlist.
-  - Data URLs are uploaded to Supabase Storage (`user-uploads`) to produce public URLs before Kie submission.
-  - Frontend flows (Enhance/Relive/Christmas) wired to new payloads; Younger/Family gated as “coming soon.”
-- Build/lint: `pnpm lint`/`pnpm build` pass (warnings: multiple lockfiles root inference; middleware deprecation).
+## Current Status (Nov 29, 2025)
 
-## Next Steps (Parallel-Friendly)
-1) **End-to-end QA (logged-in)**  
-   - Enhance (image) → Relive (video) → confirm credits, result URLs, webhook completion, no double refunds.  
-   - Christmas static + animated paths.  
-   - Error path (bad URL) to see toasts/refund behavior.
+### ✅ Completed
+- **Authentication:** Supabase magic link flow working (cross-device support)
+- **Payments:** Stripe checkout with 3 tiers ($49/$149/$299)
+- **Landing Page:** Quiz flow, testimonials, countdown banner
+- **Director Interview:** Post-checkout interview form with file uploads
+- **Dashboard:** User order management
+- **Branding:** "Gifting Moments" theme with maroon/gold palette
 
-2) **Observability**  
-   - Monitor Vercel logs for Kie errors; verify structured logs include jobId/userId/generationId.  
-   - Optional: add a minimal status/debug view for recent generations (taskId/state/resultUrl).
+### 🔄 In Progress
+- AI Integration (Kie.ai) for video generation
+- Admin dashboard for order management
 
-3) **Younger/Family**  
-   - Decide to keep gated or implement once Kie endpoints/params are available.
+## Service Tiers
 
-4) **Housekeeping**  
-   - Resolve multiple lockfiles warning (set `turbopack.root` or remove extra lockfile).  
-   - Plan migration from `middleware` to `proxy` per Next.js notice.  
-   - Keep README/AGENTS in sync with Kie payloads/envs.
+| Tier | Price | Duration | Key Features |
+|------|-------|----------|--------------|
+| Digital Keepsake | $49 | 15 secs | 1 restored memory, Super 8 style |
+| Director's Cut | $149 | 60 secs | 20 scene curation, sound design, private viewing page |
+| The Biography | $299 | 3 mins | 3 scenes, consultation call, custom narration |
+
+## AI Integration (Kie.ai)
+
+### Image Enhancement
+- Model: `nano-banana-pro`
+- Endpoint: `POST /api/v1/jobs/createTask`
+
+### Video Generation
+- Model: `wan/2-5-image-to-video`
+- Endpoint: `POST /api/v1/jobs/createTask`
+
+### Webhooks
+- Status: `GET /api/v1/jobs/recordInfo?taskId=...`
+- Callback: `/api/webhooks/kie`
+
+## Next Steps
+
+### 1. AI Pipeline (Priority)
+- [ ] Complete Kie.ai integration for image enhancement
+- [ ] Complete video generation pipeline
+- [ ] Add job status tracking in database
+
+### 2. Admin Dashboard
+- [ ] View all orders
+- [ ] Update order status
+- [ ] Upload final video files
+- [ ] Send delivery notifications
+
+### 3. Delivery System
+- [ ] Private viewing page (`/view/[id]`)
+- [ ] Email delivery with video link
+- [ ] Gift recipient tracking
+
+### 4. Analytics
+- [ ] Meta Conversions API events
+- [ ] Purchase tracking
+- [ ] Funnel analytics
 
 ## Deployment Checklist
-- Env keys aligned to mode (Stripe test vs live; Kie keys set; webhook secret optional but recommended).
-- Run `pnpm lint` / `pnpm build`.
-- Perform QA steps above; confirm credits and result URLs update in Supabase.
+
+- [ ] Verify Stripe keys (test vs live mode)
+- [ ] Set all environment variables
+- [ ] Run database migrations
+- [ ] Test full checkout flow
+- [ ] Verify webhook endpoints
+- [ ] DNS configuration for domain
+
+---
+
+*Last updated: November 29, 2025*

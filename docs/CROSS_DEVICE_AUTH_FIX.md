@@ -1,5 +1,6 @@
 # Cross-Device Authentication Fix - Complete Documentation
 
+**Project:** Gifting Moments  
 **Date:** November 29, 2025  
 **Status:** ✅ RESOLVED  
 **Issue:** Magic link authentication flow was broken, preventing users from completing the director interview after checkout.
