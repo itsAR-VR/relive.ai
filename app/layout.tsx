@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "sonner"
 
 import "./globals.css"
@@ -97,6 +98,7 @@ fbq('track', 'PageView');
         {children}
         <HashAuthListener />
         {analyticsEnabled ? <Analytics /> : null}
+        <SpeedInsights />
         <Toaster richColors position="top-center" closeButton />
       </body>
     </html>
