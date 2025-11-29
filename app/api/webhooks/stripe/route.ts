@@ -72,19 +72,23 @@ async function getOrCreateUserIdFromSession(
 
   const newUserId = inviteData.user.id
 
-  if (stripeCustomerId) {
-    const { error: profileUpdateError } = await supabaseAdmin
-      .from("profiles")
-      .update({ stripe_customer_id: stripeCustomerId })
-      .eq("id", newUserId)
+  // CRITICAL: Create profile for the new user
+  // The orders table has FK to profiles, so profile must exist before order can be created
+  const { error: profileCreateError } = await supabaseAdmin
+    .from("profiles")
+    .upsert({
+      id: newUserId,
+      email: email,
+      full_name: fullName || null,
+      stripe_customer_id: stripeCustomerId || null,
+    }, { onConflict: "id" })
 
-    if (profileUpdateError) {
-      console.error("Failed to attach stripe_customer_id to profile", {
-        userId: newUserId,
-        stripeCustomerId,
-        profileUpdateError,
-      })
-    }
+  if (profileCreateError) {
+    console.error("Failed to create profile for new user", {
+      userId: newUserId,
+      email,
+      profileCreateError,
+    })
   }
 
   return newUserId

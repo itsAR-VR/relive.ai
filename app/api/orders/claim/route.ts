@@ -80,6 +80,16 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "Order not found" }, { status: 404 })
         }
 
+        // Ensure profile exists before creating order (FK constraint)
+        const customerEmail = session.customer_details?.email || session.customer_email
+        await admin
+          .from("profiles")
+          .upsert({
+            id: user.id,
+            email: user.email || customerEmail || null,
+            full_name: session.customer_details?.name || null,
+          }, { onConflict: "id" })
+
         const upsertResult = await admin
           .from("orders")
           .upsert(
