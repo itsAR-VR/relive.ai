@@ -93,6 +93,7 @@ export function SocialProof({ onStartGift }: SocialProofProps) {
                 loop
                 muted
                 playsInline
+                preload="auto"
               />
             </div>
 
@@ -105,6 +106,7 @@ export function SocialProof({ onStartGift }: SocialProofProps) {
                 loop
                 muted
                 playsInline
+                preload="auto"
               />
             </div>
           </div>
