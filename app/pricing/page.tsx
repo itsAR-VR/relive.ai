@@ -19,12 +19,13 @@ const SERVICE_PACKAGES = [
     subtitle: "A single restored memory",
     price: 49,
     originalPrice: 99,
-    duration: "15 seconds",
+    duration: "15 secs",
     features: [
       "1 Restored Memory Film",
       "Super 8 Vintage Style",
       "Delivered by Email",
     ],
+    includedFrom: null,
     perfectFor: "Perfect for small gestures or thinking of you moments.",
     icon: Heart,
     popular: false,
@@ -36,7 +37,7 @@ const SERVICE_PACKAGES = [
     subtitle: "A fully crafted emotional film",
     price: 149,
     originalPrice: 299,
-    duration: "60 seconds",
+    duration: "60 secs",
     features: [
       "We generate up to 20 scenes and select the most emotional one",
       "Sound Design + Music",
@@ -44,6 +45,7 @@ const SERVICE_PACKAGES = [
       "Unlimited Revisions",
       "Option to add a voice note intro",
     ],
+    includedFrom: "Everything in Digital Keepsake",
     perfectFor: "Perfect for milestone birthdays, holidays, and big gifts.",
     icon: Clapperboard,
     popular: true,
@@ -55,7 +57,7 @@ const SERVICE_PACKAGES = [
     subtitle: "A multi-scene legacy documentary",
     price: 299,
     originalPrice: 800,
-    duration: "3 minutes",
+    duration: "3 mins",
     features: [
       "3 Connected Restored Memory Scenes",
       "30-Min Story Consultation Call (we guide the narrative)",
@@ -63,6 +65,8 @@ const SERVICE_PACKAGES = [
       "Optional Custom Narration",
       "Priority support & updates throughout the process",
     ],
+    bonus: "🎁 Black Friday Bonus: Include additional people (both parents, grandparents, or family pet)",
+    includedFrom: "Everything in Director's Cut",
     perfectFor: "Ideal for group gifts, parents, grandparents, or legacy keepsakes.",
     icon: Film,
     popular: false,
@@ -241,8 +245,11 @@ function PricingContent() {
                   <h3 className="font-serif text-lg md:text-xl text-foreground mb-0.5">
                     {pkg.name}
                   </h3>
-                  <p className="text-xs text-primary font-medium mb-2">
+                  <p className="text-xs text-primary font-medium mb-1">
                     ${pkg.price} <span className="text-muted-foreground line-through">(from ${pkg.originalPrice})</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground font-medium mb-2">
+                    {pkg.duration}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {pkg.subtitle}
@@ -250,6 +257,13 @@ function PricingContent() {
                 </div>
 
                 <div className="space-y-2 mb-4 flex-grow">
+                  {/* Included from previous tier */}
+                  {pkg.includedFrom && (
+                    <div className="flex items-start gap-2 text-foreground">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-xs md:text-sm font-medium">{pkg.includedFrom}</span>
+                    </div>
+                  )}
                   {pkg.features.map((feature, index) => (
                     <div key={index} className="flex items-start gap-2 text-foreground">
                       <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
@@ -257,6 +271,13 @@ function PricingContent() {
                     </div>
                   ))}
                 </div>
+
+                {/* Black Friday Bonus */}
+                {"bonus" in pkg && pkg.bonus && (
+                  <div className="mb-4 p-3 rounded-lg bg-accent/10 border border-accent/20">
+                    <p className="text-xs text-accent-foreground font-medium">{pkg.bonus}</p>
+                  </div>
+                )}
 
                 {/* Perfect For */}
                 <p className="text-xs text-muted-foreground italic mb-4 text-center">
