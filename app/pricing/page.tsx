@@ -17,8 +17,8 @@ const SERVICE_PACKAGES = [
     tierId: "standard",
     name: "Digital Keepsake",
     subtitle: "A single restored memory",
-    price: 49,
-    originalPrice: 99,
+    price: 29,
+    originalPrice: 75,
     duration: "15 secs",
     features: [
       "1 Restored Memory Film",
@@ -35,8 +35,8 @@ const SERVICE_PACKAGES = [
     tierId: "premium",
     name: "Director's Cut",
     subtitle: "A fully crafted emotional film",
-    price: 149,
-    originalPrice: 299,
+    price: 89,
+    originalPrice: 239,
     duration: "60 secs",
     features: [
       "We generate up to 20 scenes and select the most emotional one",
@@ -55,8 +55,8 @@ const SERVICE_PACKAGES = [
     tierId: "biography",
     name: "The Biography",
     subtitle: "A multi-scene legacy documentary",
-    price: 299,
-    originalPrice: 800,
+    price: 139,
+    originalPrice: 419,
     duration: "3 mins",
     features: [
       "3 Connected Restored Memory Scenes",
