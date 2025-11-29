@@ -216,7 +216,7 @@ function PricingContent() {
               <div
                 key={pkg.id}
                 ref={pkg.tierId === "premium" ? premiumRef : undefined}
-                className={`relative bg-card rounded-xl border-2 p-4 md:p-5 transition-all ${
+                className={`relative bg-card rounded-xl border-2 p-4 md:p-5 transition-all flex flex-col ${
                   showBadge
                     ? "border-primary shadow-lg md:scale-[1.02] ring-2 ring-primary/20"
                     : "border-border hover:border-primary/50"
@@ -241,19 +241,15 @@ function PricingContent() {
                   <h3 className="font-serif text-lg md:text-xl text-foreground mb-0.5">
                     {pkg.name}
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {pkg.subtitle}
+                  <p className="text-xs text-primary font-medium mb-2">
+                    ${pkg.price} <span className="text-muted-foreground line-through">(from ${pkg.originalPrice})</span>
                   </p>
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <span className="text-2xl md:text-3xl font-serif text-foreground">${pkg.price}</span>
-                    <span className="text-sm text-muted-foreground line-through">${pkg.originalPrice}</span>
-                  </div>
-                  <p className="text-xs text-primary font-medium">
-                    {pkg.duration}
+                  <p className="text-sm text-muted-foreground">
+                    {pkg.subtitle}
                   </p>
                 </div>
 
-                <div className="space-y-2 mb-4">
+                <div className="space-y-2 mb-4 flex-grow">
                   {pkg.features.map((feature, index) => (
                     <div key={index} className="flex items-start gap-2 text-foreground">
                       <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
@@ -270,7 +266,7 @@ function PricingContent() {
                 <Button
                   onClick={() => handlePurchase(pkg.tierId)}
                   disabled={loading === pkg.tierId}
-                  className={`w-full h-10 md:h-11 font-medium text-sm ${
+                  className={`w-full h-10 md:h-11 font-medium text-sm mt-auto ${
                     showBadge
                       ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
                       : "bg-foreground hover:bg-foreground/90 text-background"
