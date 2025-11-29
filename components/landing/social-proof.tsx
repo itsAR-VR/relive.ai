@@ -86,7 +86,7 @@ export function SocialProof() {
 
         {/* Mobile: Carousel | Desktop: Grid */}
         {/* Mobile Carousel */}
-        <div className="md:hidden relative">
+        <div className="md:hidden relative pt-6">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex">
               {TESTIMONIALS.map((testimonial, index) => (
@@ -125,7 +125,7 @@ export function SocialProof() {
         </div>
 
         {/* Desktop: Grid */}
-        <div className="hidden md:grid md:grid-cols-3 gap-6">
+        <div className="hidden md:grid md:grid-cols-3 gap-6 pt-6">
           {TESTIMONIALS.map((testimonial, index) => (
             <TestimonialCard key={index} testimonial={testimonial} />
           ))}
@@ -137,14 +137,14 @@ export function SocialProof() {
 
 function TestimonialCard({ testimonial }: { testimonial: typeof TESTIMONIALS[0] }) {
   return (
-    <div className="relative bg-card rounded-xl p-6 pt-8 md:p-7 md:pt-9 border border-border shadow-sm h-full">
-      {/* Quote icon */}
-      <div className="absolute top-3 left-4 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+    <div className="relative bg-card rounded-xl p-6 pt-12 md:p-7 md:pt-14 border border-border shadow-sm h-full">
+      {/* Quote icon - positioned outside the content flow */}
+      <div className="absolute -top-3 left-4 md:-top-4 md:left-5 w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 border-4 border-card flex items-center justify-center shadow-sm">
         <Quote className="w-4 h-4 text-primary" />
       </div>
 
       {/* Rating */}
-      <div className="flex gap-0.5 mb-3 mt-1">
+      <div className="flex gap-0.5 mb-3">
         {[...Array(testimonial.rating)].map((_, i) => (
           <Star key={i} className="w-3.5 h-3.5 fill-accent text-accent" />
         ))}

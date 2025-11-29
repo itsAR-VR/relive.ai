@@ -46,7 +46,7 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
         </div>
 
         {/* Mobile: CSS Scroll Snap Carousel */}
-        <div className="md:hidden -mx-4">
+        <div className="md:hidden -mx-4 pt-6">
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 px-4 pb-4 scrollbar-hide">
             {STEPS.map((step, index) => {
               const Icon = step.icon
@@ -60,7 +60,7 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
         </div>
 
         {/* Desktop: Grid */}
-        <div className="hidden md:block max-w-5xl mx-auto">
+        <div className="hidden md:block max-w-5xl mx-auto pt-6">
           <div className="grid md:grid-cols-3 gap-6">
             {STEPS.map((step, index) => {
               const Icon = step.icon
@@ -112,9 +112,9 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
 
 function StepCard({ step, Icon }: { step: typeof STEPS[0], Icon: typeof MessageSquare }) {
   return (
-    <div className="relative bg-card rounded-xl p-6 pt-8 md:p-7 md:pt-9 border border-border shadow-sm h-full">
-      {/* Step number */}
-      <span className="absolute top-3 left-3 md:top-4 md:left-4 w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground text-xs md:text-sm font-bold flex items-center justify-center shadow-lg">
+    <div className="relative bg-card rounded-xl p-6 pt-14 md:p-7 md:pt-16 border border-border shadow-sm h-full">
+      {/* Step number - positioned outside the content flow */}
+      <span className="absolute -top-3 left-4 md:-top-4 md:left-5 w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground text-xs md:text-sm font-bold flex items-center justify-center shadow-lg border-4 border-card">
         {step.number}
       </span>
 

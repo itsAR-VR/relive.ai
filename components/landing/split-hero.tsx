@@ -42,6 +42,13 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
             }`}
           >
             <div className="relative max-w-xl mx-auto lg:max-w-none">
+              {/* Badge - Above image on desktop */}
+              <div className="hidden lg:flex justify-center mb-3">
+                <span className="inline-flex items-center bg-card/90 backdrop-blur-sm px-4 py-2 rounded-full border border-border shadow-lg text-sm font-medium text-foreground">
+                  Restored by <span className="text-primary ml-1">Moments</span>
+                </span>
+              </div>
+
               {/* Glow effect - reduced on mobile */}
               <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-br from-accent/20 via-primary/10 to-accent/20 rounded-2xl blur-xl opacity-50" />
               
@@ -80,13 +87,6 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
                     </span>
                   </div>
                 </div>
-
-                {/* Badge overlay - Desktop only */}
-                <div className="hidden lg:block absolute top-2 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border shadow-lg">
-                  <span className="text-sm font-medium text-foreground">
-                    Restored by <span className="text-primary">Moments</span>
-                  </span>
-                </div>
               </div>
             </div>
           </div>
@@ -115,14 +115,14 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
             </p>
 
             {/* CTA Button - Prominent, above fold */}
-            <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
               <Button
                 onClick={onStartGift}
                 size="lg"
                 className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-5 md:px-8 md:py-6 text-base md:text-lg rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group"
               >
                 <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                Restore a Memory
+                Restore a Moment
               </Button>
               <span className="text-xs md:text-sm text-primary font-medium">
                 50% off Black Friday
