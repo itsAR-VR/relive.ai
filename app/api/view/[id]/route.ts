@@ -53,10 +53,10 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     // If already viewed, just return success
     if (order.first_viewed_at) {
-      return NextResponse.json({ 
-        recorded: false, 
+      return NextResponse.json({
+        recorded: false,
         message: "Already viewed",
-        first_viewed_at: order.first_viewed_at 
+        first_viewed_at: order.first_viewed_at
       })
     }
 
@@ -72,10 +72,10 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Failed to record view" }, { status: 500 })
     }
 
-    return NextResponse.json({ 
-      recorded: true, 
+    return NextResponse.json({
+      recorded: true,
       message: "First view recorded",
-      first_viewed_at: now 
+      first_viewed_at: now
     })
   } catch (error) {
     console.error("Failed to record view:", error)

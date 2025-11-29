@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { id: orderId } = await params
     const supabase = await createClient()
-    
+
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -64,9 +64,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     const { id: orderId } = await params
     const body = await request.json()
-    
+
     const supabase = await createClient()
-    
+
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -89,7 +89,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     // Build update payload - only include fields that are provided
     const updatePayload: Record<string, unknown> = {}
-    
+
     if (body.status !== undefined) updatePayload.status = body.status
     if (body.final_video_url !== undefined) updatePayload.final_video_url = body.final_video_url
     if (body.recipient_email !== undefined) updatePayload.recipient_email = body.recipient_email
@@ -133,9 +133,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Failed to update order" }, { status: 500 })
     }
 
-    return NextResponse.json({ 
-      order: updatedOrder, 
-      message: "Order updated successfully" 
+    return NextResponse.json({
+      order: updatedOrder,
+      message: "Order updated successfully"
     })
   } catch (error) {
     console.error("Failed to update order:", error)
@@ -148,7 +148,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const { id: orderId } = await params
     const supabase = await createClient()
-    
+
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -166,7 +166,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     // Soft delete by setting status to cancelled
     const { data: updatedOrder, error: updateError } = await supabase
       .from("orders")
-      .update({ 
+      .update({
         status: "cancelled",
         updated_at: new Date().toISOString()
       })
@@ -179,9 +179,9 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Failed to cancel order" }, { status: 500 })
     }
 
-    return NextResponse.json({ 
-      order: updatedOrder, 
-      message: "Order cancelled successfully" 
+    return NextResponse.json({
+      order: updatedOrder,
+      message: "Order cancelled successfully"
     })
   } catch (error) {
     console.error("Failed to cancel order:", error)
