@@ -28,7 +28,7 @@ function DirectorInterviewContent() {
   const [userEmail, setUserEmail] = useState<string>("")
   const [userReady, setUserReady] = useState<boolean>(false)
   const [sendingLink, setSendingLink] = useState<boolean>(false)
-  const [linkSent, setLinkSent] = useState<boolean>(false)
+  const [linkSent, setLinkSent] = useState<boolean>(true) // Default true since we auto-send on checkout completion
   const [authMessage, setAuthMessage] = useState<string>("")
   const [authError, setAuthError] = useState<string>("")
   const [claiming, setClaiming] = useState<boolean>(false)
@@ -415,13 +415,10 @@ function DirectorInterviewContent() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-serif text-foreground mb-2">
-                  {linkSent ? "Check your email" : "Confirm your email to continue"}
+                  We've sent you a magic link
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {linkSent 
-                    ? "We've sent a magic link to secure your order and save your interview progress."
-                    : "We'll send you a magic link to secure your order and save your interview progress."
-                  }
+                  Check your email to secure your order and save your interview progress.
                 </p>
                 <p className="text-xs text-muted-foreground mt-2 italic">
                   Tip: Click the email link on this same device, or continue on whatever device you clicked it.
@@ -450,7 +447,7 @@ function DirectorInterviewContent() {
                   className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   {sendingLink && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {linkSent ? "Resend magic link" : "Send magic link"}
+                  Resend magic link
                 </button>
                 <button
                   type="button"
