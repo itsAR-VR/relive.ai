@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Gift } from "lucide-react"
+import Image from "next/image"
 
 import { LandingHeader } from "@/components/landing/header"
 import { SplitHero } from "@/components/landing/split-hero"
@@ -31,13 +31,14 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Brand */}
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <Gift className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="font-serif text-base text-foreground">Moments</p>
-              </div>
+            <div className="flex items-center">
+              <Image
+                src="/gifting-moments-logo.svg"
+                alt="Gifting Moments"
+                width={120}
+                height={40}
+                className="h-10 w-auto"
+              />
             </div>
 
             {/* Links */}
@@ -53,7 +54,7 @@ export default function Home() {
 
           <div className="mt-4 pt-4 border-t border-border text-center">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Moments
+              © {new Date().getFullYear()} Gifting Moments
             </p>
           </div>
         </div>

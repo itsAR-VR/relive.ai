@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Check, Gift, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, RefreshCw } from "lucide-react"
+import { Check, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, RefreshCw } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 // Service packages for Moments - condensed features
 const SERVICE_PACKAGES = [
@@ -139,11 +140,14 @@ export default function PricingPage() {
       {/* Header - Compact */}
       <header className="bg-card/80 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-              <Gift className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="text-base font-serif text-foreground">Moments</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/gifting-moments-logo.svg"
+              alt="Gifting Moments"
+              width={120}
+              height={40}
+              className="h-10 w-auto"
+            />
           </Link>
           <Link
             href="/"

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 
@@ -44,11 +45,14 @@ export default async function ViewGiftPage({ params }: { params: { id: string } 
     <div className="min-h-screen bg-[#f5f1e6]">
       <header className="bg-white/80 backdrop-blur-sm border-b border-[#e2d8c3]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#a67c52] to-[#8d6e4c] rounded-lg flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">M</span>
-            </div>
-            <span className="text-lg font-bold text-[#3d3632]">Moments</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/gifting-moments-logo.svg"
+              alt="Gifting Moments"
+              width={120}
+              height={40}
+              className="h-10 w-auto"
+            />
           </Link>
           <div className="text-sm text-[#7d6b56]">
             Gift ready — {new Date(order.created_at).toLocaleDateString()}

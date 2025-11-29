@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Gift, ArrowLeft, Loader2 } from "lucide-react"
+import Image from "next/image"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import { DirectorInterviewForm } from "@/components/director-interview-form"
 import { useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -323,14 +324,14 @@ function DirectorInterviewContent() {
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center group-hover:shadow-lg transition-shadow">
-              <Gift className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <span className="text-lg font-serif text-foreground">Moments</span>
-              <p className="text-xs text-muted-foreground">Memory Restoration Studio</p>
-            </div>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/gifting-moments-logo.svg"
+              alt="Gifting Moments"
+              width={130}
+              height={45}
+              className="h-11 w-auto"
+            />
           </Link>
           <Link
             href="/pricing"

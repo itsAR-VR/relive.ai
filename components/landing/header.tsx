@@ -11,8 +11,8 @@ function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 
   useEffect(() => {
-    // Sale ends Tuesday December 2nd, 2024 at 12:00 AM EST (05:00 UTC)
-    const saleEndDate = new Date('2024-12-02T05:00:00Z')
+    // Sale ends Tuesday December 2nd, 2025 at 12:00 AM EST (05:00 UTC)
+    const saleEndDate = new Date('2025-12-02T05:00:00Z')
     
     const calculateTimeLeft = () => {
       const now = new Date()

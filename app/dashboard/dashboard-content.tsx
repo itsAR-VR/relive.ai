@@ -1,13 +1,13 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { User } from "@supabase/supabase-js"
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import {
-  Sparkles,
   LogOut,
   Gift,
   Clock3,
@@ -146,11 +146,14 @@ export function DashboardContent({ user, profile, orders }: DashboardContentProp
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] font-serif">
       <header className="sticky top-0 z-50 bg-[var(--secondary)] backdrop-blur-sm border-b border-[var(--border)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-[#8B2332] rounded-lg flex items-center justify-center shadow-sm">
-              <Sparkles className="w-5 h-5 text-[var(--primary-foreground)]" />
-            </div>
-            <span className="text-lg font-semibold tracking-tight">Moments</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/gifting-moments-logo.svg"
+              alt="Gifting Moments"
+              width={130}
+              height={45}
+              className="h-11 w-auto"
+            />
           </Link>
 
           <div className="flex items-center gap-3">
