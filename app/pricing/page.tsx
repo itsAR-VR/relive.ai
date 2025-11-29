@@ -7,6 +7,9 @@ import { Check, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, R
 import Link from "next/link"
 import Image from "next/image"
 
+// Force dynamic rendering to avoid SSG issues with searchParams
+export const dynamic = "force-dynamic"
+
 // Service packages for Moments
 const SERVICE_PACKAGES = [
   {
