@@ -57,7 +57,7 @@ const SERVICE_PACKAGES = [
     subtitle: "A multi-scene legacy documentary",
     price: 139,
     originalPrice: 419,
-    duration: "3 mins",
+    duration: "180 secs",
     features: [
       "3 Connected Restored Memory Scenes",
       "30-Min Story Consultation Call (we guide the narrative)",
