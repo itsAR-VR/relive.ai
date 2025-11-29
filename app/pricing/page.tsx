@@ -189,7 +189,7 @@ export default function PricingPage() {
         <div className="text-center mb-6 md:mb-8">
           <span className="inline-flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground text-xs font-medium border border-accent/30">
             <Sparkles className="w-3 h-3" />
-            Black Friday — Up to 60% Off
+            Black Friday — Up to 67% Off
           </span>
           <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-2">
             Choose Your Package

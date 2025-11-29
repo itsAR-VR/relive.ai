@@ -109,7 +109,7 @@ export async function POST(request: Request) {
       line_items: [lineItem],
       mode: "payment",
       success_url: `${origin}/director-interview?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/dashboard?canceled=true`,
+      cancel_url: `${origin}/pricing?canceled=true`,
       metadata,
     })
 
