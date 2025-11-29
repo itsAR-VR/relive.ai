@@ -28,6 +28,7 @@ function DirectorInterviewContent() {
   const [userEmail, setUserEmail] = useState<string>("")
   const [userReady, setUserReady] = useState<boolean>(false)
   const [sendingLink, setSendingLink] = useState<boolean>(false)
+  const [linkSent, setLinkSent] = useState<boolean>(false)
   const [authMessage, setAuthMessage] = useState<string>("")
   const [authError, setAuthError] = useState<string>("")
   const [claiming, setClaiming] = useState<boolean>(false)
@@ -66,22 +67,69 @@ function DirectorInterviewContent() {
       }
     }
 
-    // Prefill email from Stripe session
-    const preloadSession = async () => {
+    // Prefill email from Stripe session and auto-send magic link
+    const preloadSessionAndSendLink = async () => {
       if (!sessionId) return
       try {
         const res = await fetch(`/api/stripe/session?session_id=${encodeURIComponent(sessionId)}`)
         const data = await res.json()
         if (data?.email) {
           setUserEmail(data.email)
+          // Auto-send magic link since we have the email from Stripe
+          await autoSendMagicLink(data.email)
         }
       } catch {
         // ignore
       }
     }
 
-    preloadSession()
+    preloadSessionAndSendLink()
   }, [sessionId])
+
+  const autoSendMagicLink = async (email: string) => {
+    if (!email || !sessionId) return
+    
+    setSendingLink(true)
+    setAuthError("")
+    setAuthMessage("")
+    
+    // Save session ID for recovery
+    try {
+      localStorage.setItem("giftingmoments_session_id", sessionId)
+    } catch {
+      // ignore
+    }
+    
+    // Store email → session_id mapping for cross-device support
+    try {
+      await fetch("/api/checkout/pending", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, session_id: sessionId }),
+      })
+    } catch {
+      // Non-fatal
+    }
+
+    try {
+      const redirectTo = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(`/director-interview?session_id=${encodeURIComponent(sessionId)}`)}`
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: redirectTo,
+          shouldCreateUser: true,
+        },
+      })
+      if (error) throw error
+      setLinkSent(true)
+      setAuthMessage("We've sent a magic link to your email. Click it to continue.")
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to send magic link"
+      setAuthError(message)
+    } finally {
+      setSendingLink(false)
+    }
+  }
 
   useEffect(() => {
     if (hasAuthError) setAuthErrorFlag(true)
@@ -310,7 +358,8 @@ function DirectorInterviewContent() {
         },
       })
       if (error) throw error
-      setAuthMessage("Magic link sent. Check your email to continue.")
+      setLinkSent(true)
+      setAuthMessage("Magic link sent! Check your email to continue.")
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send magic link"
       setAuthError(message)
@@ -365,9 +414,14 @@ function DirectorInterviewContent() {
           {!userReady ? (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-serif text-foreground mb-2">Confirm your email to continue</h2>
+                <h2 className="text-xl font-serif text-foreground mb-2">
+                  {linkSent ? "Check your email" : "Confirm your email to continue"}
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  We&apos;ll send you a magic link to secure your order and save your interview progress.
+                  {linkSent 
+                    ? "We've sent a magic link to secure your order and save your interview progress."
+                    : "We'll send you a magic link to secure your order and save your interview progress."
+                  }
                 </p>
                 <p className="text-xs text-muted-foreground mt-2 italic">
                   Tip: Click the email link on this same device, or continue on whatever device you clicked it.
@@ -396,7 +450,7 @@ function DirectorInterviewContent() {
                   className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   {sendingLink && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Send magic link
+                  {linkSent ? "Resend magic link" : "Send magic link"}
                 </button>
                 <button
                   type="button"

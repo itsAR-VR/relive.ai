@@ -89,16 +89,16 @@ export async function POST(request: Request) {
     const lineItem = serviceTier.priceId
       ? { price: serviceTier.priceId, quantity: 1 }
       : {
-          price_data: {
-            currency: "USD",
-            unit_amount: Math.round(serviceTier.price * 100),
-            product_data: {
-              name: serviceTier.name,
-              metadata: { tier: serviceTier.id },
-            },
+        price_data: {
+          currency: "USD",
+          unit_amount: Math.round(serviceTier.price * 100),
+          product_data: {
+            name: serviceTier.name,
+            metadata: { tier: serviceTier.id },
           },
-          quantity: 1,
-        }
+        },
+        quantity: 1,
+      }
 
     if (!serviceTier.priceId) {
       metadata.price_fallback = "inline_price_data"
