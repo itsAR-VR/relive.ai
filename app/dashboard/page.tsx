@@ -51,7 +51,7 @@ export default async function DashboardPage() {
 
   // If admin, fetch ALL orders with customer info
   if (profile?.is_admin) {
-    const { data: allOrders } = await supabase
+    const { data: allOrders, error: ordersError } = await supabase
       .from("orders")
       .select(`
         id,
@@ -71,6 +71,12 @@ export default async function DashboardPage() {
         profiles(email, full_name)
       `)
       .order("created_at", { ascending: false })
+
+    if (ordersError) {
+      console.error("Admin orders fetch error:", ordersError)
+    }
+
+    console.log("Admin fetched orders count:", allOrders?.length || 0)
 
     return (
       <AdminDashboardContent

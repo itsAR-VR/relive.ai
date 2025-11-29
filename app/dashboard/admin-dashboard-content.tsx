@@ -108,6 +108,32 @@ const tierLabels: Record<OrderTier, string> = {
   biography: "Biography",
 }
 
+// Tier priority for sorting (higher = more important, shows first)
+const tierPriority: Record<OrderTier, number> = {
+  biography: 3,
+  premium: 2,
+  standard: 1,
+}
+
+// Interview requirements per tier
+const tierInterviewConfig: Record<OrderTier, { count: number; description: string; color: string }> = {
+  standard: {
+    count: 1,
+    description: "1 interview session",
+    color: "bg-slate-100 text-slate-700",
+  },
+  premium: {
+    count: 2,
+    description: "2 interview sessions",
+    color: "bg-blue-100 text-blue-700",
+  },
+  biography: {
+    count: 5,
+    description: "5 interview sessions (full biography)",
+    color: "bg-amber-100 text-amber-700",
+  },
+}
+
 function formatDate(dateString: string) {
   const date = new Date(dateString)
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
@@ -118,12 +144,34 @@ function formatCurrency(cents: number | null) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100)
 }
 
+// Helper to count completed interviews from interview_data
+function getInterviewProgress(interviewData: Record<string, unknown> | null, tier: OrderTier): { completed: number; total: number } {
+  const total = tierInterviewConfig[tier].count
+  if (!interviewData) return { completed: 0, total }
+  
+  // Check for interview sessions in the data
+  // This assumes interview_data has session keys like "session_1", "session_2", etc.
+  // Or a "completed_sessions" count
+  const completedSessions = interviewData.completed_sessions as number | undefined
+  if (typeof completedSessions === "number") {
+    return { completed: completedSessions, total }
+  }
+  
+  // Fallback: check if interview has any substantial data
+  const hasData = Object.keys(interviewData).some(key => 
+    key !== "last_step" && key !== "last_saved_at" && interviewData[key]
+  )
+  return { completed: hasData ? 1 : 0, total }
+}
+
 export function AdminDashboardContent({ user, profile, orders: initialOrders }: AdminDashboardContentProps) {
   const router = useRouter()
   const supabase = createClient()
   const [orders, setOrders] = useState(initialOrders)
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all")
+  const [tierFilter, setTierFilter] = useState<OrderTier | "all">("all")
+  const [sortBy, setSortBy] = useState<"date" | "tier">("tier")
   const [updating, setUpdating] = useState<string | null>(null)
   const [videoUrlInput, setVideoUrlInput] = useState<Record<string, string>>({})
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -138,12 +186,28 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
     router.refresh()
   }
 
-  const filteredOrders = statusFilter === "all" 
-    ? orders 
-    : orders.filter(o => o.status === statusFilter)
+  // Filter orders by status and tier
+  const filteredOrders = orders
+    .filter(o => statusFilter === "all" || o.status === statusFilter)
+    .filter(o => tierFilter === "all" || o.tier === tierFilter)
+    .sort((a, b) => {
+      if (sortBy === "tier") {
+        // Sort by tier priority first, then by date
+        const tierDiff = tierPriority[b.tier] - tierPriority[a.tier]
+        if (tierDiff !== 0) return tierDiff
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      }
+      // Sort by date only
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
 
   const statusCounts = orders.reduce((acc, order) => {
     acc[order.status] = (acc[order.status] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const tierCounts = orders.reduce((acc, order) => {
+    acc[order.tier] = (acc[order.tier] || 0) + 1
     return acc
   }, {} as Record<string, number>)
 
@@ -226,34 +290,79 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Stats Overview */}
-        <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        {/* Tier Summary Cards */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(["biography", "premium", "standard"] as OrderTier[]).map(tier => {
+            const config = tierInterviewConfig[tier]
+            const count = tierCounts[tier] || 0
+            const isActive = tierFilter === tier
+            return (
+              <button
+                key={tier}
+                onClick={() => setTierFilter(tierFilter === tier ? "all" : tier)}
+                className={`p-5 rounded-2xl border-2 transition-all text-left ${
+                  isActive
+                    ? "border-slate-900 bg-slate-900 text-white shadow-lg"
+                    : "border-slate-200 bg-white hover:border-slate-400"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${isActive ? "bg-white/20" : config.color}`}>
+                    {tierLabels[tier]}
+                  </span>
+                  <span className="text-3xl font-bold">{count}</span>
+                </div>
+                <div className={`text-sm ${isActive ? "text-slate-300" : "text-slate-500"}`}>
+                  {config.description}
+                </div>
+              </button>
+            )
+          })}
+        </section>
+
+        {/* Status Filter Pills */}
+        <section className="flex flex-wrap gap-2">
           <button
             onClick={() => setStatusFilter("all")}
-            className={`p-4 rounded-xl border transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               statusFilter === "all" 
-                ? "bg-slate-900 text-white border-slate-900 shadow-lg" 
-                : "bg-white border-slate-200 hover:border-slate-400"
+                ? "bg-slate-900 text-white" 
+                : "bg-white border border-slate-200 text-slate-600 hover:border-slate-400"
             }`}
           >
-            <div className="text-2xl font-bold">{orders.length}</div>
-            <div className="text-sm opacity-70">All Orders</div>
+            All ({orders.length})
           </button>
           {(Object.keys(statusConfig) as OrderStatus[]).map(status => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`p-4 rounded-xl border transition-all ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 statusFilter === status 
-                  ? "bg-slate-900 text-white border-slate-900 shadow-lg" 
-                  : "bg-white border-slate-200 hover:border-slate-400"
+                  ? "bg-slate-900 text-white" 
+                  : "bg-white border border-slate-200 text-slate-600 hover:border-slate-400"
               }`}
             >
-              <div className="text-2xl font-bold">{statusCounts[status] || 0}</div>
-              <div className="text-sm opacity-70 truncate">{statusConfig[status].label}</div>
+              {statusConfig[status].label} ({statusCounts[status] || 0})
             </button>
           ))}
         </section>
+
+        {/* Sort Toggle */}
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <span>Sort by:</span>
+          <button
+            onClick={() => setSortBy("tier")}
+            className={`px-3 py-1 rounded ${sortBy === "tier" ? "bg-slate-200 text-slate-900 font-medium" : "hover:bg-slate-100"}`}
+          >
+            Priority (Tier)
+          </button>
+          <button
+            onClick={() => setSortBy("date")}
+            className={`px-3 py-1 rounded ${sortBy === "date" ? "bg-slate-200 text-slate-900 font-medium" : "hover:bg-slate-100"}`}
+          >
+            Date
+          </button>
+        </div>
 
         {/* Orders Table */}
         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -263,13 +372,13 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
               <h2 className="text-lg font-semibold text-slate-900">Orders</h2>
               <span className="text-sm text-slate-500">({filteredOrders.length})</span>
             </div>
-            {statusFilter !== "all" && (
+            {(statusFilter !== "all" || tierFilter !== "all") && (
               <button
-                onClick={() => setStatusFilter("all")}
+                onClick={() => { setStatusFilter("all"); setTierFilter("all"); }}
                 className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
               >
                 <Filter className="w-4 h-4" />
-                Clear filter
+                Clear filters
               </button>
             )}
           </div>
@@ -316,10 +425,15 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
                           )}
                         </div>
 
-                        {/* Tier */}
-                        <div className="w-24 shrink-0 hidden sm:block">
+                        {/* Tier with Interview Info */}
+                        <div className="w-32 shrink-0 hidden sm:block">
                           <div className="text-xs text-slate-400 uppercase tracking-wide">Tier</div>
-                          <div className="text-sm font-medium text-slate-700">{tierLabels[order.tier]}</div>
+                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${tierInterviewConfig[order.tier].color}`}>
+                            {tierLabels[order.tier]}
+                          </div>
+                          <div className="text-xs text-slate-500 mt-0.5">
+                            {tierInterviewConfig[order.tier].count} interview{tierInterviewConfig[order.tier].count > 1 ? "s" : ""}
+                          </div>
                         </div>
 
                         {/* Amount */}
@@ -409,6 +523,34 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
 
                           {/* Middle Column: Interview/Quiz Data */}
                           <div className="space-y-4">
+                            {/* Interview Progress */}
+                            {(() => {
+                              const progress = getInterviewProgress(order.interview_data, order.tier)
+                              const tierConfig = tierInterviewConfig[order.tier]
+                              return (
+                                <div className="bg-white rounded-lg p-4 border border-slate-200">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-sm font-semibold text-slate-700">Interview Progress</h3>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${tierConfig.color}`}>
+                                      {tierLabels[order.tier]}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm text-slate-600 mb-2">
+                                    {progress.completed} of {progress.total} sessions completed
+                                  </div>
+                                  <div className="w-full bg-slate-100 rounded-full h-2">
+                                    <div 
+                                      className="bg-green-500 h-2 rounded-full transition-all"
+                                      style={{ width: `${(progress.completed / progress.total) * 100}%` }}
+                                    />
+                                  </div>
+                                  <div className="text-xs text-slate-400 mt-2">
+                                    {tierConfig.description}
+                                  </div>
+                                </div>
+                              )
+                            })()}
+
                             <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Interview Data</h3>
                             
                             <div className="bg-white rounded-lg p-4 border border-slate-200 max-h-64 overflow-y-auto">
