@@ -7,6 +7,7 @@ import { User } from "@supabase/supabase-js"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
+import { VideoUploader } from "@/components/admin/video-uploader"
 import {
   LogOut,
   Shield,
@@ -25,6 +26,7 @@ import {
   Send,
   Eye,
   Filter,
+  Upload,
 } from "lucide-react"
 
 type OrderStatus = "pending" | "pending_interview" | "interview_in_progress" | "in_production" | "ready" | "delivered" | "cancelled"
@@ -167,7 +169,6 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
   const [tierFilter, setTierFilter] = useState<OrderTier | "all">("all")
   const [sortBy, setSortBy] = useState<"date" | "tier">("tier")
   const [updating, setUpdating] = useState<string | null>(null)
-  const [videoUrlInput, setVideoUrlInput] = useState<Record<string, string>>({})
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -611,26 +612,30 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
                               )}
 
                               {order.status === "in_production" && (
-                                <div className="space-y-2">
-                                  <input
-                                    type="url"
-                                    placeholder="Final video URL..."
-                                    value={videoUrlInput[order.id] || ""}
-                                    onChange={(e) => setVideoUrlInput(prev => ({ ...prev, [order.id]: e.target.value }))}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                  />
-                                  <Button
-                                    onClick={(e) => { 
-                                      e.stopPropagation(); 
-                                      updateOrderStatus(order.id, "ready", { final_video_url: videoUrlInput[order.id] || null }); 
+                                <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+                                  <div className="text-xs text-slate-500 font-medium">Upload Final Video</div>
+                                  <VideoUploader
+                                    orderId={order.id}
+                                    currentVideoUrl={order.final_video_url}
+                                    onUploadComplete={(url) => {
+                                      setOrders(prev => prev.map(o => 
+                                        o.id === order.id ? { ...o, final_video_url: url } : o
+                                      ))
                                     }}
-                                    disabled={isUpdating}
-                                    className="w-full bg-green-600 hover:bg-green-700"
-                                  >
-                                    {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-                                    Mark Ready
-                                  </Button>
+                                  />
+                                  {order.final_video_url && (
+                                    <Button
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        updateOrderStatus(order.id, "ready"); 
+                                      }}
+                                      disabled={isUpdating}
+                                      className="w-full bg-green-600 hover:bg-green-700"
+                                    >
+                                      {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                                      Mark Ready
+                                    </Button>
+                                  )}
                                 </div>
                               )}
 
