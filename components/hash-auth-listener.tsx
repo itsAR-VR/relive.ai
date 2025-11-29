@@ -82,17 +82,38 @@ export function HashAuthListener() {
         return
       }
 
-      // Recover session ID
+      // Recover session ID - try multiple sources in priority order
       let sessionId =
         url.searchParams.get("session_id") ||
         url.searchParams.get("checkout_session_id")
 
+      // Try localStorage as fallback
       if (!sessionId) {
         try {
           const stored = localStorage.getItem("giftingmoments_session_id")
           if (stored) sessionId = stored
         } catch {
           // ignore
+        }
+      }
+
+      // CRITICAL: If still no session_id, lookup by email from pending_checkouts
+      // This enables cross-device auth where user verifies on a different device
+      if (!sessionId) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user?.email) {
+            const lookupRes = await fetch(`/api/checkout/pending?email=${encodeURIComponent(user.email)}`)
+            if (lookupRes.ok) {
+              const lookupData = await lookupRes.json()
+              if (lookupData.session_id) {
+                sessionId = lookupData.session_id
+                console.log("HashAuthListener: recovered session_id from pending_checkouts", sessionId)
+              }
+            }
+          }
+        } catch (err) {
+          console.error("HashAuthListener: email lookup failed", err)
         }
       }
 

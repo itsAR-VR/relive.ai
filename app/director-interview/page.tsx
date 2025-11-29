@@ -264,7 +264,7 @@ function DirectorInterviewContent() {
       }
     }
     
-    setAuthMessage("Still waiting for login. Open the email link to continue.")
+    setAuthMessage("No active session found. If you clicked the email link on another device (like your phone), please continue there. Otherwise, click 'Send magic link' to try again.")
     setCheckingSession(false)
   }
 
@@ -368,6 +368,9 @@ function DirectorInterviewContent() {
                 <p className="text-sm text-muted-foreground">
                   We&apos;ll send you a magic link to secure your order and save your interview progress.
                 </p>
+                <p className="text-xs text-muted-foreground mt-2 italic">
+                  Tip: Click the email link on this same device, or continue on whatever device you clicked it.
+                </p>
               </div>
               <form onSubmit={sendMagicLink} className="space-y-4">
                 <div className="space-y-2">
@@ -384,7 +387,7 @@ function DirectorInterviewContent() {
                   <p className="text-sm text-red-600">{authError}</p>
                 )}
                 {authMessage && (
-                  <p className="text-sm text-green-600">{authMessage}</p>
+                  <p className={`text-sm ${authMessage.includes("No active session") ? "text-amber-600" : "text-green-600"}`}>{authMessage}</p>
                 )}
                 <button
                   type="submit"

@@ -5,14 +5,13 @@
 
 create table if not exists public.pending_checkouts (
   id uuid default uuid_generate_v4() primary key,
-  email text not null,
+  email text not null unique,  -- UNIQUE constraint required for upsert onConflict
   stripe_session_id text not null,
   created_at timestamptz default now() not null,
   expires_at timestamptz default (now() + interval '24 hours') not null
 );
 
--- Index for fast email lookups
-create index if not exists pending_checkouts_email_idx on public.pending_checkouts(email);
+-- Index for fast lookups (email already has unique index from constraint)
 create index if not exists pending_checkouts_session_idx on public.pending_checkouts(stripe_session_id);
 
 -- Allow service role to manage this table (no RLS needed - managed by API)

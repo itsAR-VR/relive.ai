@@ -79,6 +79,102 @@ Transform faded photographs into living, breathing moments. Help grandparents se
 - Lint: `pnpm lint`
 - Build: `pnpm build` (warnings: multiple lockfiles root inference; middleware convention deprecated)
 
+## Magic Link Authentication Flow
+
+The app uses Supabase magic links for passwordless authentication after Stripe checkout:
+
+### Flow Overview
+
+```
+1. User completes Stripe checkout
+2. Lands on /director-interview?session_id=cs_test_xxx
+3. User enters email → sends magic link
+4. Email → session_id mapping stored in pending_checkouts table
+5. User clicks magic link in email → redirected to /#access_token=...
+6. HashAuthListener sets session, looks up session_id by email
+7. Redirects to /director-interview?session_id=xxx&auth_complete=true
+8. Interview form loads, order is claimed
+```
+
+### Cross-Device Support
+
+When a user starts checkout on one device (desktop) but clicks the magic link on another (mobile):
+
+1. Desktop: `sendMagicLink` stores `(email, session_id)` in `pending_checkouts` table
+2. Mobile: `HashAuthListener` looks up `session_id` by email after auth
+3. Mobile: Redirects with correct `session_id`, order is claimed
+
+**Important:** The `pending_checkouts` table must have a UNIQUE constraint on email for upserts to work.
+
+## Database Migrations
+
+The following migrations must be run in Supabase:
+
+| Migration | Description |
+|-----------|-------------|
+| `001_initial_schema.sql` | Profiles table |
+| `002_orders_table.sql` | Orders table for service purchases |
+| `003_orders_public_access.sql` | RLS policies for orders |
+| `004_pending_checkouts.sql` | Cross-device auth support |
+
+### Running Migrations
+
+Run in Supabase SQL Editor or via CLI:
+
+```sql
+-- 004_pending_checkouts.sql (required for cross-device auth)
+create table if not exists public.pending_checkouts (
+  id uuid default uuid_generate_v4() primary key,
+  email text not null unique,
+  stripe_session_id text not null,
+  created_at timestamptz default now() not null,
+  expires_at timestamptz default (now() + interval '24 hours') not null
+);
+create index if not exists pending_checkouts_session_idx on public.pending_checkouts(stripe_session_id);
+```
+
+## Troubleshooting
+
+### "No pending order found" after magic link verification
+
+**Causes:**
+1. `pending_checkouts` table doesn't exist in Supabase
+2. Email lookup failed (check Supabase logs)
+3. Stripe webhook hasn't created the order yet (race condition)
+
+**Fix:**
+1. Run `004_pending_checkouts.sql` migration
+2. Ensure the email used matches the one from Stripe checkout
+3. Check Vercel logs for API errors
+
+### "Still waiting for login" on desktop after verifying on mobile
+
+**Cause:** Desktop doesn't have a Supabase session (session is device-specific)
+
+**Solution:** Continue on the device where you clicked the email link, or send a new magic link on the current device.
+
+### Magic link lands on root URL with access_token hash
+
+**This is expected behavior.** The `HashAuthListener` component (in `app/layout.tsx`) handles this:
+1. Detects `#access_token=...` in URL
+2. Sets Supabase session
+3. Looks up `session_id` by email
+4. Redirects to `/director-interview?session_id=xxx&auth_complete=true`
+
+### Interview progress lost
+
+Interview progress is saved to the `orders.interview_data` column. If lost:
+1. Check if user is authenticated (Dashboard shows orders)
+2. Verify order exists in Supabase `orders` table
+3. Check `/api/orders/[id]/interview` endpoint for errors
+
+### Debugging Tips
+
+1. **Supabase Auth Logs:** Dashboard → Authentication → Logs
+2. **Vercel Function Logs:** Vercel Dashboard → Functions tab
+3. **Browser Console:** Check for `HashAuthListener:` prefixed messages
+4. **Network Tab:** Monitor `/api/orders/claim` and `/api/checkout/pending` responses
+
 ## License
 
 MIT
