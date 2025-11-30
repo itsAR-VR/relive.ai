@@ -49,6 +49,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
   const [honoree, setHonoree] = useState<HonoreeType>(null)
   const [memoryType, setMemoryType] = useState<MemoryType>(null)
   const [showCustomMemory, setShowCustomMemory] = useState(false)
+  const [animatedProgress, setAnimatedProgress] = useState(50) // For smooth progress bar animation
 
   // Reset state when modal closes
   useEffect(() => {
@@ -58,10 +59,22 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
         setHonoree(null)
         setMemoryType(null)
         setShowCustomMemory(false)
+        setAnimatedProgress(50)
       }, 300)
       return () => clearTimeout(timer)
     }
   }, [isOpen])
+
+  // Smooth progress bar animation when step changes
+  useEffect(() => {
+    if (step === 2) {
+      // Animate to 100% over 300ms
+      const timer = setTimeout(() => setAnimatedProgress(100), 50)
+      return () => clearTimeout(timer)
+    } else {
+      setAnimatedProgress(50)
+    }
+  }, [step])
 
   const handleNext = () => {
     if (!canProceed()) return
@@ -92,7 +105,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
     // Simulate analysis and redirect to pricing with middle tier pre-selected
     setTimeout(() => {
       router.push("/pricing?recommended=premium")
-    }, 2000)
+    }, 1200)
   }
 
   const canProceed = () => {
@@ -105,8 +118,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
   if (!isOpen) return null
 
   const totalSteps = 2
-  const progressStep = step === 2 ? 2 : honoree ? 2 : 1
-  const progressPercent = (progressStep / totalSteps) * 100
+  const progressStep = step === 2 ? 2 : 1
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -132,7 +144,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
           <div className="h-1 bg-muted">
             <div 
               className="h-full bg-primary transition-all duration-500 ease-out"
-              style={{ width: `${progressPercent}%` }}
+              style={{ width: `${animatedProgress}%` }}
             />
           </div>
         )}
@@ -144,13 +156,6 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
             <div className="animate-fade-in-slow space-y-5">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold text-primary">Step {progressStep} of {totalSteps}</p>
-                <span className="text-[11px] text-muted-foreground">
-                  Completing this unlocks your best package
-                </span>
-              </div>
-
-              <div className="bg-muted/40 border border-border rounded-xl p-3 text-xs text-foreground font-medium text-center">
-                Don&apos;t worry about details yet—add specific instructions after booking.
               </div>
 
               <div>
@@ -204,6 +209,11 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
                   })}
                 </div>
 
+                {/* Hint text moved here */}
+                <div className="bg-muted/40 border border-border rounded-xl p-3 text-xs text-foreground font-medium text-center mt-3">
+                  Don&apos;t worry about details yet—add specific instructions after booking.
+                </div>
+
                 <div className="mt-3">
                   {!showCustomMemory ? (
                     <button
@@ -248,15 +258,20 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
 
           {/* Navigation */}
           {step === 1 && (
-            <div className="mt-6 flex items-center justify-end">
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 h-10"
-              >
-                See options
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
+            <div className="mt-6 space-y-3">
+              <p className="text-[11px] text-muted-foreground text-center">
+                Completing this unlocks your best package
+              </p>
+              <div className="flex items-center justify-end">
+                <Button
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 h-10"
+                >
+                  See options
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
             </div>
           )}
         </div>
