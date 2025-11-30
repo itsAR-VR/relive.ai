@@ -77,6 +77,7 @@ function PricingContent() {
   const [loading, setLoading] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; type?: "error" | "success" } | null>(null)
   const [quizData, setQuizData] = useState<{ honoree?: string; memory?: string; vibe?: string } | null>(null)
+  const [isDesktop, setIsDesktop] = useState(false)
   const searchParams = useSearchParams()
   const recommendedTier = searchParams.get("recommended")
   const premiumRef = useRef<HTMLDivElement>(null)
@@ -104,6 +105,15 @@ function PricingContent() {
     }
 
     loadDraft()
+  }, [])
+
+  // Track desktop viewport so only desktop clicks trigger card-level checkout
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 768px)")
+    const updateMatch = () => setIsDesktop(mediaQuery.matches)
+    updateMatch()
+    mediaQuery.addEventListener("change", updateMatch)
+    return () => mediaQuery.removeEventListener("change", updateMatch)
   }, [])
 
   // Scroll to recommended package after a short delay
@@ -224,7 +234,21 @@ function PricingContent() {
                   showBadge
                     ? "border-primary shadow-lg md:scale-[1.02] ring-2 ring-primary/20"
                     : "border-border hover:border-primary/50"
-                }`}
+                } ${isDesktop ? "cursor-pointer" : ""}`}
+                role={isDesktop ? "button" : undefined}
+                tabIndex={isDesktop ? 0 : -1}
+                onClick={() => {
+                  if (isDesktop) {
+                    handlePurchase(pkg.tierId)
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if (!isDesktop) return
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault()
+                    handlePurchase(pkg.tierId)
+                  }
+                }}
               >
                 {showBadge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -285,7 +309,10 @@ function PricingContent() {
                 </p>
 
                 <Button
-                  onClick={() => handlePurchase(pkg.tierId)}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    handlePurchase(pkg.tierId)
+                  }}
                   disabled={loading === pkg.tierId}
                   className={`w-full h-10 md:h-11 font-medium text-sm mt-auto ${
                     showBadge
