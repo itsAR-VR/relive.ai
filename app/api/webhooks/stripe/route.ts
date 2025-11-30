@@ -1,5 +1,6 @@
 import { getServiceTierById, getStripe } from "@/lib/stripe"
 import { sendConversionEvent } from "@/lib/meta"
+import { sendOrderConfirmationEmail } from "@/lib/resend"
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
@@ -141,7 +142,7 @@ export async function POST(request: Request) {
         break
       }
 
-      const { error } = await supabaseAdmin
+      const { data: orderData, error } = await supabaseAdmin
         .from("orders")
         .upsert(
           {
@@ -150,12 +151,30 @@ export async function POST(request: Request) {
             status: "pending_interview",
             quiz_data: quizData,
             stripe_checkout_session_id: session.id,
+            amount_paid: session.amount_total || Math.round(tier.price * 100),
           },
           { onConflict: "stripe_checkout_session_id" }
         )
+        .select("id")
+        .single()
 
       if (error) {
         console.error("Failed to create order from checkout.session.completed", error)
+      }
+
+      // Send order confirmation email with order ID
+      if (orderData?.id && customerEmail) {
+        const amount = session.amount_total ? session.amount_total / 100 : tier.price
+        sendOrderConfirmationEmail({
+          orderId: orderData.id,
+          customerName: session.customer_details?.name || "",
+          customerEmail,
+          tierName: tier.name,
+          tierPrice: amount,
+          currency: session.currency?.toUpperCase() || "USD",
+        }).catch((emailError) => {
+          console.error("Failed to send order confirmation email:", emailError)
+        })
       }
 
       const amount = session.amount_total ? session.amount_total / 100 : tier.price
