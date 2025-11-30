@@ -21,9 +21,10 @@ const SERVICE_PACKAGES = [
     originalPrice: 75,
     duration: "15 secs",
     features: [
-      "1 Restored Memory Film",
-      "Super 8 Vintage Style",
-      "Delivered by Email",
+      "1 Restored Memory Film crafted from up to 5 generated scenes",
+      "We select the most emotional scene for you",
+      "Pick your favorite style (incl. Super 8 vintage)",
+      "Delivered via private gift-wrapped page (shareable link)",
     ],
     includedFrom: null,
     perfectFor: "Perfect for small gestures or thinking of you moments.",
@@ -41,7 +42,7 @@ const SERVICE_PACKAGES = [
     features: [
       "We generate up to 20 scenes and select the most emotional one",
       "Sound Design + Music",
-      "Private Viewing Page (your own shareable link)",
+      "Private gift-wrapped page (your own shareable link)",
       "Unlimited Revisions",
       "Option to add a voice note intro",
     ],

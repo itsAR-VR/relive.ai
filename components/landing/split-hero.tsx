@@ -139,6 +139,10 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
                 24hr delivery
               </span>
               <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 bg-accent rounded-full" />
+                Unlimited revisions included
+              </span>
+              <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
                 98% said it moved them to tears
               </span>
