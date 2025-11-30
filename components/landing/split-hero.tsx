@@ -100,18 +100,18 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
             {/* Badge - Desktop */}
             <span className="hidden lg:inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium tracking-wide border border-primary/20">
               <Gift className="w-4 h-4" />
-              The hardest person to buy for
+              The perfect gift for grandparents
             </span>
 
             {/* Main Headline */}
             <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4">
-              They have everything they need.
-              <span className="block mt-1 text-primary">Except their childhood.</span>
+              Turn old photos into a nostalgic
+              <span className="block mt-1 text-primary">family film.</span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed mb-4 md:mb-6">
-              Give the gift of a relived memory. Tell us the story, and our directors will bring it back to life.
+              Just upload a few vintage photos. We restore them, add music, and create a cinematic movie delivered in a digital gift wrap—perfect for the holidays.
             </p>
 
             {/* CTA Button - Prominent, above fold */}
@@ -122,7 +122,7 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
                 className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-5 md:px-8 md:py-6 text-base md:text-lg rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group"
               >
                 <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                Restore a Moment
+                Create Their Gift
               </Button>
               <span className="text-xs md:text-sm text-primary font-medium">
                 50% off Black Friday
