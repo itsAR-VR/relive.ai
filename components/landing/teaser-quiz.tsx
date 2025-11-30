@@ -118,7 +118,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
       {/* Modal */}
       <div className="relative w-full max-w-lg bg-card rounded-2xl shadow-2xl border border-border overflow-hidden animate-fade-in-up">
         {/* Close button */}
-        {step < 4 && (
+        {step <= 2 && (
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted z-10"
@@ -139,144 +139,100 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
 
         {/* Content */}
         <div className="p-6 md:p-8">
-          {/* Step 1: Who are we honoring? */}
+          {/* Combined Step: Honoree + Memory */}
           {step === 1 && (
-            <div className="animate-fade-in-slow">
-              <p className="text-xs font-medium text-primary mb-1">Step 1 of 3</p>
-              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-1">
-                Who are we honoring?
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                Select the person who will receive this gift.
-              </p>
+            <div className="animate-fade-in-slow space-y-5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-primary">Step {progressStep} of {totalSteps}</p>
+                <span className="text-[11px] text-muted-foreground">
+                  Completing this unlocks your best package
+                </span>
+              </div>
 
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {HONOREE_OPTIONS.map((option) => {
-                  const Icon = option.icon
-                  return (
+              <div className="bg-muted/40 border border-border rounded-xl p-3 text-xs text-foreground font-medium text-center">
+                Don&apos;t worry about details yet—add specific instructions after booking.
+              </div>
+
+              <div>
+                <h2 className="font-serif text-xl md:text-2xl text-foreground mb-3">
+                  Who are we honoring today?
+                </h2>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {HONOREE_OPTIONS.map((option) => {
+                    const Icon = option.icon
+                    return (
+                      <button
+                        key={option.id}
+                        onClick={() => setHonoree(option.id)}
+                        className={`w-full h-full min-h-[92px] p-3 rounded-xl border-2 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-1 text-center ${
+                          honoree === option.id
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-border bg-muted/30 text-foreground hover:border-primary/50"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5 mx-auto mb-1" />
+                        <span className="block text-xs font-semibold leading-tight">{option.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-serif text-lg text-foreground">What kind of memory?</h3>
+                  <span className="text-[11px] text-muted-foreground">Quick pick (2 sec)</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {MEMORY_TYPE_OPTIONS.map((option) => {
+                    const Icon = option.icon
+                    const selected = memoryType === option.id
+                    return (
+                      <button
+                        key={option.id}
+                        onClick={() => selectMemory(option.id)}
+                        className={`p-3 rounded-lg border-2 flex items-center gap-2 text-left transition-all ${
+                          selected
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-border bg-muted/30 hover:border-primary/40"
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 ${selected ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className="text-xs font-semibold">{option.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-3">
+                  {!showCustomMemory ? (
                     <button
-                      key={option.id}
-                      onClick={() => setHonoree(option.id)}
-                      className={`w-full h-full min-h-[96px] p-3 rounded-xl border-2 transition-all hover:scale-[1.02] flex flex-col items-center justify-center gap-1 text-center ${
-                        honoree === option.id
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-muted/30 text-foreground hover:border-primary/50"
-                      }`}
+                      onClick={() => setShowCustomMemory(true)}
+                      className="w-full py-2 px-3 rounded-lg border-2 border-dashed border-primary/60 bg-primary/5 text-primary font-semibold text-sm hover:bg-primary/10 transition-colors"
                     >
-                      <Icon className="w-5 h-5 mx-auto mb-1" />
-                      <span className="block text-xs font-medium leading-tight">{option.label}</span>
+                      Something else? Tap to tell us.
                     </button>
-                  )
-                })}
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      <p className="text-xs font-semibold text-foreground">
+                        Tell us the memory in your words
+                      </p>
+                      <input
+                        type="text"
+                        value={memoryType ?? ""}
+                        onChange={(e) => setMemoryType(e.target.value)}
+                        placeholder="e.g., Military homecoming, first day of school..."
+                        className="w-full rounded-lg border border-primary/40 bg-muted/30 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Step 2: What type of memory? (Selector Grid) */}
+          {/* Step 2: Analyzing */}
           {step === 2 && (
-            <div className="animate-fade-in-slow">
-              <p className="text-xs font-medium text-primary mb-1">Step 2 of 3</p>
-              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-1">
-                What type of memory?
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                Select a category. You&apos;ll add details after booking.
-              </p>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {MEMORY_TYPE_OPTIONS.map((option) => {
-                  const Icon = option.icon
-                  return (
-                    <button
-                      key={option.id}
-                      onClick={() => selectMemory(option.id)}
-                      className={`p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.01] ${
-                        memoryType === option.id
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-muted/30 hover:border-primary/50"
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 mb-2 ${memoryType === option.id ? "text-primary" : "text-muted-foreground"}`} />
-                      <span className={`block text-sm font-medium ${memoryType === option.id ? "text-primary" : "text-foreground"}`}>
-                        {option.label}
-                      </span>
-                      <span className="block text-xs text-muted-foreground mt-0.5">
-                        {option.description}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-
-              <div className="mt-4 text-center">
-                {!showCustomMemory ? (
-                  <button
-                    onClick={() => setShowCustomMemory(true)}
-                    className="text-sm text-primary underline-offset-4 hover:underline"
-                  >
-                    Something else?
-                  </button>
-                ) : (
-                  <div className="mt-3 space-y-2">
-                    <p className="text-xs text-muted-foreground">
-                      Tell us what kind of memory you have in mind.
-                    </p>
-                    <input
-                      type="text"
-                      value={memoryType ?? ""}
-                      onChange={(e) => setMemoryType(e.target.value)}
-                      placeholder="e.g., Military homecoming, first day of school..."
-                      className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Disclaimer */}
-              <p className="mt-4 text-xs text-muted-foreground text-center bg-muted/50 p-3 rounded-lg">
-                Don&apos;t worry about details yet. You can add specific instructions after booking.
-              </p>
-            </div>
-          )}
-
-          {/* Step 3: How do you want them to feel? */}
-          {step === 3 && (
-            <div className="animate-fade-in-slow">
-              <p className="text-xs font-medium text-primary mb-1">Step 3 of 3</p>
-              <h2 className="font-serif text-xl md:text-2xl text-foreground mb-1">
-                How should they feel?
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                This helps us craft the perfect emotional tone.
-              </p>
-
-              <div className="grid grid-cols-2 gap-3">
-                {FEELING_OPTIONS.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => setFeeling(option.id)}
-                    className={`p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.01] ${
-                      feeling === option.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-muted/30 hover:border-primary/50"
-                    }`}
-                  >
-                    <span className={`block text-sm font-medium ${
-                      feeling === option.id ? "text-primary" : "text-foreground"
-                    }`}>
-                      {option.label}
-                    </span>
-                    <span className="block text-xs text-muted-foreground mt-0.5">
-                      {option.description}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Analyzing */}
-          {step === 4 && (
             <div className="animate-fade-in-slow text-center py-6">
               <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <Loader2 className="w-7 h-7 text-primary animate-spin" />
@@ -291,27 +247,14 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
           )}
 
           {/* Navigation */}
-          {step < 4 && (
-            <div className="mt-6 flex items-center justify-between">
-              {step > 1 ? (
-                <Button
-                  variant="ghost"
-                  onClick={handleBack}
-                  className="text-muted-foreground hover:text-foreground h-10"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-1" />
-                  Back
-                </Button>
-              ) : (
-                <div />
-              )}
-
+          {step === 1 && (
+            <div className="mt-6 flex items-center justify-end">
               <Button
                 onClick={handleNext}
                 disabled={!canProceed()}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 h-10"
               >
-                {step === 3 ? "See Options" : "Continue"}
+                See options
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
