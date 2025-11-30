@@ -104,14 +104,14 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
             </span>
 
             {/* Main Headline */}
-            <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4">
+            <h1 className="font-serif text-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4">
               Turn old photos into a{" "}
               <span className="block sm:inline text-primary">nostalgic family film.</span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed mb-4 md:mb-6">
-              Just upload a few vintage photos. We restore them, add music, and create a cinematic movie delivered in a digital gift wrap—perfect for the holidays.
+              Just upload vintage photos. We restore them and craft a cinematic movie w/ custom audio in a digital gift wrap – perfect for the holidays.
             </p>
 
             {/* CTA Button - Prominent, above fold */}
