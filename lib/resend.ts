@@ -5,7 +5,8 @@ export const resend = new Resend(process.env.RESEND_API_KEY)
 
 // Admin email for notifications
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "ar@soramedia.co"
-export const FROM_EMAIL = process.env.FROM_EMAIL || "Gifting Moments <support@giftingmoments.com>"
+// Using subdomain: support.giftingmoments.com (verified in Resend)
+export const FROM_EMAIL = process.env.FROM_EMAIL || "Gifting Moments <hello@support.giftingmoments.com>"
 
 interface SupportTicketEmailData {
   ticketId: string
