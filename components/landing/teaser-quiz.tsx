@@ -118,7 +118,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
   if (!isOpen) return null
 
   const totalSteps = 2
-  const progressStep = step === 2 ? 2 : 1
+  const progressStep = step === 2 ? 2 : honoree ? 2 : 1
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -258,7 +258,7 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
 
           {/* Navigation */}
           {step === 1 && (
-            <div className="mt-6 space-y-3">
+            <div className="mt-4 space-y-2">
               <p className="text-[11px] text-muted-foreground text-center">
                 Completing this unlocks your best package
               </p>
