@@ -105,7 +105,8 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
 
             {/* Main Headline */}
             <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4">
-              Turn old photos into a <span className="text-primary">nostalgic family film.</span>
+              Turn old photos into a{" "}
+              <span className="block sm:inline text-primary">nostalgic family film.</span>
             </h1>
 
             {/* Subheadline */}
