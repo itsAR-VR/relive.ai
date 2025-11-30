@@ -8,9 +8,7 @@ import {
   Heart,
   Users,
   User,
-  Sparkles,
   ArrowRight,
-  ArrowLeft,
   Loader2,
   Home,
   Plane,
@@ -27,38 +25,29 @@ interface TeaserQuizProps {
 
 type HonoreeType = "dad" | "mom" | "grandparent" | "partner" | "other" | null
 type MemoryType = string | null
-type FeelingType = "nostalgic" | "joyful" | "peace" | "tears" | null
 
 const HONOREE_OPTIONS = [
   { id: "dad" as const, label: "Dad", icon: User },
   { id: "mom" as const, label: "Mom", icon: User },
   { id: "grandparent" as const, label: "Grandparent", icon: Users },
   { id: "partner" as const, label: "Partner", icon: Heart },
-  { id: "other" as const, label: "Someone Special", icon: Sparkles },
+  { id: "other" as const, label: "Someone Special", icon: Users },
 ]
 
 const MEMORY_TYPE_OPTIONS = [
-  { id: "holiday", label: "Holiday", icon: Gift, description: "Christmas, Thanksgiving, festive mornings" },
-  { id: "wedding", label: "Wedding", icon: Gem, description: "Their ceremony or reception magic" },
-  { id: "vacation", label: "Vacation", icon: Plane, description: "Beach trips, road trips, or Europe" },
-  { id: "everyday", label: "Everyday Life", icon: Coffee, description: "Kitchen laughs, porch talks" },
-  { id: "childhood", label: "Childhood Home", icon: Home, description: "The house they grew up in" },
-  { id: "birthday", label: "Birthday", icon: Cake, description: "Cakes, surprises, candles" },
-]
-
-const FEELING_OPTIONS = [
-  { id: "nostalgic" as const, label: "Nostalgic", description: "A warm return to simpler times" },
-  { id: "joyful" as const, label: "Joyful", description: "Pure happiness and celebration" },
-  { id: "peace" as const, label: "At Peace", description: "Comfort and serenity" },
-  { id: "tears" as const, label: "Tears of Joy", description: "The kind that come from love" },
+  { id: "holiday", label: "Holiday moments", icon: Gift },
+  { id: "wedding", label: "Wedding day", icon: Gem },
+  { id: "vacation", label: "Vacation", icon: Plane },
+  { id: "everyday", label: "Everyday life", icon: Coffee },
+  { id: "childhood", label: "Childhood home", icon: Home },
+  { id: "birthday", label: "Birthday", icon: Cake },
 ]
 
 export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
   const router = useRouter()
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(1) // 1 = selection, 2 = analyzing
   const [honoree, setHonoree] = useState<HonoreeType>(null)
   const [memoryType, setMemoryType] = useState<MemoryType>(null)
-  const [feeling, setFeeling] = useState<FeelingType>(null)
   const [showCustomMemory, setShowCustomMemory] = useState(false)
 
   // Reset state when modal closes
@@ -68,7 +57,6 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
         setStep(1)
         setHonoree(null)
         setMemoryType(null)
-        setFeeling(null)
         setShowCustomMemory(false)
       }, 300)
       return () => clearTimeout(timer)
@@ -78,56 +66,47 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
   const handleNext = () => {
     if (!canProceed()) return
 
-    if (step < 3) {
-      setStep(step + 1)
-    } else if (step === 3) {
-      // Start analysis animation
-      setStep(4)
-      
-      const memoryLabel = MEMORY_TYPE_OPTIONS.find((m) => m.id === memoryType)?.label || memoryType
-      const draft = {
-        who: honoree,
-        memory: memoryLabel,
-        vibe: feeling,
-      }
+    setStep(2)
 
-      // Persist quiz data for checkout/director handoff
-      try {
-        localStorage.setItem("gifter_draft", JSON.stringify(draft))
-      } catch {
-        // ignore
-      }
-
-      // Keep sessionStorage for existing summary UI
-      try {
-        sessionStorage.setItem("giftingmoments_quiz", JSON.stringify(draft))
-      } catch {
-        // ignore
-      }
-      
-      // Simulate analysis and redirect to pricing with middle tier pre-selected
-      setTimeout(() => {
-        router.push("/pricing?recommended=premium")
-      }, 2000)
+    const memoryLabel = MEMORY_TYPE_OPTIONS.find((m) => m.id === memoryType)?.label || memoryType
+    const draft = {
+      who: honoree,
+      memory: memoryLabel,
+      vibe: null,
     }
-  }
 
-  const handleBack = () => {
-    if (step > 1) {
-      setStep(step - 1)
+    // Persist quiz data for checkout/director handoff
+    try {
+      localStorage.setItem("gifter_draft", JSON.stringify(draft))
+    } catch {
+      // ignore
     }
+
+    // Keep sessionStorage for existing summary UI
+    try {
+      sessionStorage.setItem("giftingmoments_quiz", JSON.stringify(draft))
+    } catch {
+      // ignore
+    }
+    
+    // Simulate analysis and redirect to pricing with middle tier pre-selected
+    setTimeout(() => {
+      router.push("/pricing?recommended=premium")
+    }, 2000)
   }
 
   const canProceed = () => {
-    if (step === 1) return honoree !== null
-    if (step === 2) return typeof memoryType === "string" && memoryType.trim().length > 0
-    if (step === 3) return feeling !== null
-    return false
+    if (step === 1) return honoree !== null && typeof memoryType === "string" && memoryType.trim().length > 0
+    return true
   }
 
   const selectMemory = (id: string) => setMemoryType(id)
 
   if (!isOpen) return null
+
+  const totalSteps = 2
+  const progressStep = step === 2 ? 2 : honoree ? 2 : 1
+  const progressPercent = (progressStep / totalSteps) * 100
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -149,11 +128,11 @@ export function TeaserQuiz({ isOpen, onClose }: TeaserQuizProps) {
         )}
 
         {/* Progress bar */}
-        {step < 4 && (
+        {step <= 2 && (
           <div className="h-1 bg-muted">
             <div 
               className="h-full bg-primary transition-all duration-500 ease-out"
-              style={{ width: `${(step / 3) * 100}%` }}
+              style={{ width: `${progressPercent}%` }}
             />
           </div>
         )}

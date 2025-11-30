@@ -27,6 +27,9 @@ import {
   Eye,
   Filter,
   Upload,
+  MessageSquare,
+  AlertCircle,
+  Mail,
 } from "lucide-react"
 
 type OrderStatus = "pending" | "pending_interview" | "interview_in_progress" | "in_production" | "ready" | "delivered" | "cancelled"
@@ -60,10 +63,26 @@ interface OrderWithProfile {
   } | null
 }
 
+type TicketStatus = "open" | "in_progress" | "resolved" | "closed"
+
+interface SupportTicket {
+  id: string
+  user_id: string | null
+  name: string
+  email: string
+  subject: string
+  message: string
+  status: TicketStatus
+  order_id: string | null
+  created_at: string
+  updated_at: string
+}
+
 interface AdminDashboardContentProps {
   user: User
   profile: Profile
   orders: OrderWithProfile[]
+  supportTickets?: SupportTicket[]
 }
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode }> = {
@@ -136,6 +155,30 @@ const tierInterviewConfig: Record<OrderTier, { hasInterview: boolean; descriptio
   },
 }
 
+// Support ticket status configuration
+const ticketStatusConfig: Record<TicketStatus, { label: string; color: string; icon: React.ReactNode }> = {
+  open: {
+    label: "Open",
+    color: "bg-red-50 text-red-700 border-red-300",
+    icon: <AlertCircle className="w-3.5 h-3.5" />,
+  },
+  in_progress: {
+    label: "In Progress",
+    color: "bg-amber-50 text-amber-700 border-amber-300",
+    icon: <Loader2 className="w-3.5 h-3.5" />,
+  },
+  resolved: {
+    label: "Resolved",
+    color: "bg-green-50 text-green-700 border-green-300",
+    icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+  },
+  closed: {
+    label: "Closed",
+    color: "bg-slate-50 text-slate-700 border-slate-300",
+    icon: <Check className="w-3.5 h-3.5" />,
+  },
+}
+
 function formatDate(dateString: string) {
   const date = new Date(dateString)
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
@@ -160,13 +203,20 @@ function isConsultationCompleted(interviewData: Record<string, unknown> | null):
   return hasData
 }
 
-export function AdminDashboardContent({ user, profile, orders: initialOrders }: AdminDashboardContentProps) {
+export function AdminDashboardContent({ user, profile, orders: initialOrders, supportTickets: initialTickets = [] }: AdminDashboardContentProps) {
   const router = useRouter()
   const supabase = createClient()
   const [orders, setOrders] = useState(initialOrders)
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all")
   const [tierFilter, setTierFilter] = useState<OrderTier | "all">("all")
+  
+  // Support tickets state
+  const [tickets, setTickets] = useState(initialTickets)
+  const [expandedTicket, setExpandedTicket] = useState<string | null>(null)
+  const [ticketStatusFilter, setTicketStatusFilter] = useState<TicketStatus | "all">("all")
+  const [updatingTicket, setUpdatingTicket] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<"orders" | "support">("orders")
   const [sortBy, setSortBy] = useState<"date" | "tier">("tier")
   const [updating, setUpdating] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -245,6 +295,43 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
     setExpandedOrder(prev => prev === orderId ? null : orderId)
   }
 
+  // Support ticket functions
+  const filteredTickets = tickets
+    .filter(t => ticketStatusFilter === "all" || t.status === ticketStatusFilter)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  const ticketStatusCounts = tickets.reduce((acc, ticket) => {
+    acc[ticket.status] = (acc[ticket.status] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const openTicketsCount = ticketStatusCounts["open"] || 0
+
+  const updateTicketStatus = async (ticketId: string, newStatus: TicketStatus) => {
+    setUpdatingTicket(ticketId)
+    try {
+      const { error } = await supabase
+        .from("support_tickets")
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq("id", ticketId)
+
+      if (error) throw error
+
+      setTickets(prev => prev.map(t => 
+        t.id === ticketId ? { ...t, status: newStatus, updated_at: new Date().toISOString() } : t
+      ))
+    } catch (error) {
+      console.error("Failed to update ticket:", error)
+      alert("Failed to update ticket status")
+    } finally {
+      setUpdatingTicket(null)
+    }
+  }
+
+  const toggleTicketExpand = (ticketId: string) => {
+    setExpandedTicket(prev => prev === ticketId ? null : ticketId)
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Admin Header */}
@@ -284,6 +371,39 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Tab Navigation */}
+        <div className="flex gap-2 border-b border-slate-200 pb-2">
+          <button
+            onClick={() => setActiveTab("orders")}
+            className={`px-4 py-2 rounded-t-lg font-medium text-sm transition-colors flex items-center gap-2 ${
+              activeTab === "orders"
+                ? "bg-white border border-b-white border-slate-200 -mb-[9px] text-slate-900"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            Orders ({orders.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("support")}
+            className={`px-4 py-2 rounded-t-lg font-medium text-sm transition-colors flex items-center gap-2 ${
+              activeTab === "support"
+                ? "bg-white border border-b-white border-slate-200 -mb-[9px] text-slate-900"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            Support
+            {openTicketsCount > 0 && (
+              <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                {openTicketsCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {activeTab === "orders" && (
+          <>
         {/* Tier Summary Cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["biography", "premium", "standard"] as OrderTier[]).map(tier => {
@@ -702,6 +822,243 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders }: 
             </div>
           )}
         </section>
+          </>
+        )}
+
+        {/* Support Tickets Tab */}
+        {activeTab === "support" && (
+          <>
+            {/* Ticket Status Filter Pills */}
+            <section className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setTicketStatusFilter("all")}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  ticketStatusFilter === "all"
+                    ? "bg-slate-900 text-white"
+                    : "bg-white border border-slate-200 text-slate-600 hover:border-slate-400"
+                }`}
+              >
+                All ({tickets.length})
+              </button>
+              {(Object.keys(ticketStatusConfig) as TicketStatus[]).map(status => (
+                <button
+                  key={status}
+                  onClick={() => setTicketStatusFilter(status)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    ticketStatusFilter === status
+                      ? "bg-slate-900 text-white"
+                      : "bg-white border border-slate-200 text-slate-600 hover:border-slate-400"
+                  }`}
+                >
+                  {ticketStatusConfig[status].label} ({ticketStatusCounts[status] || 0})
+                </button>
+              ))}
+            </section>
+
+            {/* Support Tickets Table */}
+            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-slate-600" />
+                  <h2 className="text-lg font-semibold text-slate-900">Support Tickets</h2>
+                  <span className="text-sm text-slate-500">({filteredTickets.length})</span>
+                </div>
+                {ticketStatusFilter !== "all" && (
+                  <button
+                    onClick={() => setTicketStatusFilter("all")}
+                    className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+                  >
+                    <Filter className="w-4 h-4" />
+                    Clear filter
+                  </button>
+                )}
+              </div>
+
+              {filteredTickets.length === 0 ? (
+                <div className="p-12 text-center text-slate-500">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>No support tickets found</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {filteredTickets.map((ticket) => {
+                    const isExpanded = expandedTicket === ticket.id
+                    const config = ticketStatusConfig[ticket.status]
+                    const isUpdating = updatingTicket === ticket.id
+
+                    return (
+                      <div key={ticket.id} className="hover:bg-slate-50/50 transition-colors">
+                        {/* Ticket Row */}
+                        <div
+                          className="p-4 cursor-pointer"
+                          onClick={() => toggleTicketExpand(ticket.id)}
+                        >
+                          <div className="flex items-center gap-4">
+                            {/* Expand Icon */}
+                            <div className="text-slate-400">
+                              {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                            </div>
+
+                            {/* Ticket ID */}
+                            <div className="w-24 shrink-0">
+                              <div className="text-xs text-slate-400 uppercase tracking-wide">Ticket</div>
+                              <div className="font-mono text-sm text-slate-700">#{ticket.id.slice(0, 8)}</div>
+                            </div>
+
+                            {/* From */}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-slate-400 uppercase tracking-wide">From</div>
+                              <div className="text-sm text-slate-900 truncate">{ticket.name}</div>
+                              <div className="text-xs text-slate-500 truncate">{ticket.email}</div>
+                            </div>
+
+                            {/* Subject */}
+                            <div className="w-36 shrink-0 hidden sm:block">
+                              <div className="text-xs text-slate-400 uppercase tracking-wide">Subject</div>
+                              <div className="text-sm text-slate-700">{ticket.subject}</div>
+                            </div>
+
+                            {/* Status */}
+                            <div className="w-32 shrink-0">
+                              <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.color}`}>
+                                {config.icon}
+                                {config.label}
+                              </div>
+                            </div>
+
+                            {/* Date */}
+                            <div className="w-40 shrink-0 hidden lg:block text-right">
+                              <div className="text-xs text-slate-400 uppercase tracking-wide">Created</div>
+                              <div className="text-sm text-slate-600">{formatDate(ticket.created_at)}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Expanded Details */}
+                        {isExpanded && (
+                          <div className="px-4 pb-4 pt-2 bg-slate-50 border-t border-slate-100">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              {/* Left Column: Ticket Details */}
+                              <div className="space-y-4">
+                                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Ticket Details</h3>
+
+                                <div className="bg-white rounded-lg p-4 border border-slate-200 space-y-3">
+                                  <div>
+                                    <div className="text-xs text-slate-400">Full Ticket ID</div>
+                                    <div className="font-mono text-xs text-slate-700 break-all">{ticket.id}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-slate-400">Contact</div>
+                                    <div className="text-sm text-slate-700">{ticket.name}</div>
+                                    <a href={`mailto:${ticket.email}`} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                      <Mail className="w-3 h-3" />
+                                      {ticket.email}
+                                    </a>
+                                  </div>
+                                  {ticket.order_id && (
+                                    <div>
+                                      <div className="text-xs text-slate-400">Related Order</div>
+                                      <div className="font-mono text-xs text-slate-700">{ticket.order_id}</div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Message */}
+                                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Message</h3>
+                                <div className="bg-white rounded-lg p-4 border border-slate-200">
+                                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{ticket.message}</p>
+                                </div>
+                              </div>
+
+                              {/* Right Column: Actions */}
+                              <div className="space-y-4">
+                                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Actions</h3>
+
+                                <div className="bg-white rounded-lg p-4 border border-slate-200 space-y-3">
+                                  {/* Current Status */}
+                                  <div className="pb-3 border-b border-slate-100">
+                                    <div className="text-xs text-slate-400 mb-1">Current Status</div>
+                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.color}`}>
+                                      {config.icon}
+                                      {config.label}
+                                    </div>
+                                  </div>
+
+                                  {/* Quick Actions */}
+                                  <div className="space-y-2">
+                                    <div className="text-xs text-slate-400">Update Status</div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {ticket.status !== "in_progress" && (
+                                        <Button
+                                          onClick={(e) => { e.stopPropagation(); updateTicketStatus(ticket.id, "in_progress"); }}
+                                          disabled={isUpdating}
+                                          size="sm"
+                                          className="bg-amber-500 hover:bg-amber-600"
+                                        >
+                                          {isUpdating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+                                          In Progress
+                                        </Button>
+                                      )}
+                                      {ticket.status !== "resolved" && (
+                                        <Button
+                                          onClick={(e) => { e.stopPropagation(); updateTicketStatus(ticket.id, "resolved"); }}
+                                          disabled={isUpdating}
+                                          size="sm"
+                                          className="bg-green-600 hover:bg-green-700"
+                                        >
+                                          {isUpdating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+                                          Resolved
+                                        </Button>
+                                      )}
+                                      {ticket.status !== "closed" && (
+                                        <Button
+                                          onClick={(e) => { e.stopPropagation(); updateTicketStatus(ticket.id, "closed"); }}
+                                          disabled={isUpdating}
+                                          size="sm"
+                                          variant="outline"
+                                        >
+                                          {isUpdating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+                                          Close
+                                        </Button>
+                                      )}
+                                      {ticket.status === "closed" && (
+                                        <Button
+                                          onClick={(e) => { e.stopPropagation(); updateTicketStatus(ticket.id, "open"); }}
+                                          disabled={isUpdating}
+                                          size="sm"
+                                          variant="outline"
+                                        >
+                                          {isUpdating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+                                          Reopen
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Reply via Email */}
+                                  <div className="pt-3 border-t border-slate-100">
+                                    <a
+                                      href={`mailto:${ticket.email}?subject=Re: ${ticket.subject} [Ticket #${ticket.id.slice(0, 8)}]`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
+                                    >
+                                      <Mail className="w-4 h-4" />
+                                      Reply via Email
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </main>
     </div>
   )

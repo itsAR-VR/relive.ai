@@ -31,6 +31,19 @@ interface OrderWithProfile {
   } | null
 }
 
+interface SupportTicket {
+  id: string
+  user_id: string | null
+  name: string
+  email: string
+  subject: string
+  message: string
+  status: string
+  order_id: string | null
+  created_at: string
+  updated_at: string
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 
@@ -49,40 +62,51 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single()
 
-  // If admin, fetch ALL orders with customer info
+  // If admin, fetch ALL orders with customer info AND support tickets
   if (profile?.is_admin) {
-    const { data: allOrders, error: ordersError } = await supabase
-      .from("orders")
-      .select(`
-        id,
-        user_id,
-        status,
-        tier,
-        created_at,
-        stripe_checkout_session_id,
-        final_video_url,
-        interview_data,
-        quiz_data,
-        view_token,
-        first_viewed_at,
-        recipient_email,
-        recipient_name,
-        amount_paid,
-        profiles(email, full_name)
-      `)
-      .order("created_at", { ascending: false })
+    const [ordersResult, ticketsResult] = await Promise.all([
+      supabase
+        .from("orders")
+        .select(`
+          id,
+          user_id,
+          status,
+          tier,
+          created_at,
+          stripe_checkout_session_id,
+          final_video_url,
+          interview_data,
+          quiz_data,
+          view_token,
+          first_viewed_at,
+          recipient_email,
+          recipient_name,
+          amount_paid,
+          profiles(email, full_name)
+        `)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("support_tickets")
+        .select("*")
+        .order("created_at", { ascending: false })
+    ])
 
-    if (ordersError) {
-      console.error("Admin orders fetch error:", ordersError)
+    if (ordersResult.error) {
+      console.error("Admin orders fetch error:", ordersResult.error)
+    }
+    if (ticketsResult.error) {
+      console.error("Admin support tickets fetch error:", ticketsResult.error)
     }
 
-    console.log("Admin fetched orders count:", allOrders?.length || 0)
+    console.log("Admin fetched orders count:", ordersResult.data?.length || 0)
+    console.log("Admin fetched support tickets count:", ticketsResult.data?.length || 0)
 
     return (
       <AdminDashboardContent
         user={user}
         profile={profile as Profile}
-        orders={(allOrders as OrderWithProfile[]) || []}
+        orders={(ordersResult.data as OrderWithProfile[]) || []}
+        supportTickets={(ticketsResult.data as SupportTicket[]) || []}
       />
     )
   }

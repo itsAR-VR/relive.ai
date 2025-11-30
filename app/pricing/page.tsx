@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Check, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { Footer } from "@/components/footer"
 
 // Force dynamic rendering to avoid SSG issues with searchParams
 export const dynamic = "force-dynamic"
@@ -352,6 +353,8 @@ function PricingContent() {
           </p>
         </div>
       </main>
+
+      <Footer />
     </div>
   )
 }
