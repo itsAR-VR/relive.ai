@@ -21,8 +21,7 @@ const SERVICE_PACKAGES = [
     originalPrice: 75,
     duration: "15 secs",
     features: [
-      "1 Restored Memory Film crafted from up to 5 generated scenes",
-      "We select the most emotional scene for you",
+      "1 Restored Memory Scene (up to 5 generations; we pick the most emotional & accurate cut)",
       "Pick your favorite style (incl. Super 8 vintage)",
       "Delivered via private gift-wrapped page (shareable link)",
     ],
@@ -40,7 +39,7 @@ const SERVICE_PACKAGES = [
     originalPrice: 239,
     duration: "60 secs",
     features: [
-      "We generate up to 20 scenes and select the most emotional one",
+      "1 Restored Memory Scene (up to 20 generations; we pick the most emotional & accurate cut)",
       "Sound Design + Music",
       "Private gift-wrapped page (your own shareable link)",
       "Unlimited Revisions",
@@ -60,11 +59,11 @@ const SERVICE_PACKAGES = [
     originalPrice: 419,
     duration: "180 secs",
     features: [
-      "3 Connected Restored Memory Scenes",
+      "3 connected Restored Memory Scenes (25 generations per scene; we pick the most emotional & accurate cuts)",
       "30-Min Story Consultation Call (we guide the narrative)",
       "Documentary-style editing",
       "Optional Custom Narration",
-      "Priority support & updates throughout the process",
+      "Unlimited revisions with priority support & updates throughout the process",
     ],
     bonus: "🎁 Black Friday Bonus: Include additional people (both parents, grandparents, or family pet)",
     includedFrom: "Everything in Director's Cut",
