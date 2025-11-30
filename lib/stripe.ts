@@ -25,20 +25,20 @@ const priceIds = {
 export const SERVICE_TIERS = [
   {
     id: "standard",
-    name: "Standard",
-    price: 49, // $49
+    name: "Digital Keepsake",
+    price: 29, // $29 (Black Friday price)
     priceId: priceIds.standard,
   },
   {
     id: "premium",
-    name: "Premium",
-    price: 149, // $149
+    name: "Director's Cut",
+    price: 89, // $89 (Black Friday price)
     priceId: priceIds.premium,
   },
   {
     id: "biography",
-    name: "Biography",
-    price: 299, // $299
+    name: "The Biography",
+    price: 139, // $139 (Black Friday price)
     priceId: priceIds.bio,
   },
 ] as const

@@ -76,7 +76,7 @@ async function getOrCreateUserIdFromSession(
   // CRITICAL: Create profile for the new user
   // The orders table has FK to profiles, so profile must exist before order can be created
   const { error: profileCreateError } = await supabaseAdmin
-      .from("profiles")
+    .from("profiles")
     .upsert({
       id: newUserId,
       email: email,
@@ -86,10 +86,10 @@ async function getOrCreateUserIdFromSession(
 
   if (profileCreateError) {
     console.error("Failed to create profile for new user", {
-        userId: newUserId,
+      userId: newUserId,
       email,
       profileCreateError,
-      })
+    })
   }
 
   return newUserId
