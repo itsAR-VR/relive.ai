@@ -5,8 +5,11 @@ export const resend = new Resend(process.env.RESEND_API_KEY)
 
 // Admin email for notifications
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "ar@soramedia.co"
-// Using subdomain: support.giftingmoments.com (verified in Resend)
-export const FROM_EMAIL = process.env.FROM_EMAIL || "Gifting Moments <hello@support.giftingmoments.com>"
+
+// FROM_EMAIL: Use your verified domain, or fall back to Resend's test domain
+// Once support.giftingmoments.com is verified, set FROM_EMAIL env var to use it
+// For testing: Resend allows sending from onboarding@resend.dev to YOUR email only
+export const FROM_EMAIL = process.env.FROM_EMAIL || "Gifting Moments <onboarding@resend.dev>"
 
 interface SupportTicketEmailData {
   ticketId: string
