@@ -341,7 +341,7 @@ function PricingContent() {
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
               <Clock className="w-4 h-4 text-primary" />
-              <span className="text-xs md:text-sm text-foreground font-medium">24hr Delivery</span>
+              <span className="text-xs md:text-sm text-foreground font-medium">Same-day Delivery</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
               <RefreshCw className="w-4 h-4 text-accent" />

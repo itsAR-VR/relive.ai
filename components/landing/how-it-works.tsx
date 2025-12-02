@@ -94,7 +94,7 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 md:gap-10 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-primary" />
-              <span>Delivered in 24 hours</span>
+              <span>Delivered same day</span>
             </div>
             <div className="hidden sm:block w-px h-4 bg-border" />
             <div className="flex items-center gap-2">

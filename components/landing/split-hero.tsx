@@ -137,7 +137,7 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-accent rounded-full" />
-                24hr delivery
+                Same-day delivery
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-accent rounded-full" />

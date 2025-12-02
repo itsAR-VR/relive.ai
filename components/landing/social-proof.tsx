@@ -146,7 +146,7 @@ export function SocialProof({ onStartGift }: SocialProofProps) {
           </div>
           <div className="w-px bg-border" />
           <div className="text-center">
-            <p className="text-xl md:text-2xl font-serif text-foreground">24hrs</p>
+            <p className="text-xl md:text-2xl font-serif text-foreground">Same-day</p>
             <p className="text-xs text-muted-foreground">Delivery</p>
           </div>
           <div className="w-px bg-border" />

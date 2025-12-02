@@ -402,7 +402,7 @@ export function DirectorInterviewForm({ orderId, initialQuizData, savedInterview
         </h2>
         <p className="text-muted-foreground max-w-md mx-auto mb-8">
           Our directors are now crafting your memory. You&apos;ll receive your &ldquo;Digital Ticket&rdquo; 
-          within 24 hours, along with a link to the private viewing page.
+          later today (same-day delivery), along with a link to the private viewing page.
         </p>
         <div className="p-6 bg-muted/50 rounded-2xl max-w-sm mx-auto">
           <p className="text-sm text-muted-foreground mb-2">What happens next:</p>

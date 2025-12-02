@@ -51,7 +51,7 @@ const lifecycleSteps: { key: OrderStatus; label: string; helper: string }[] = [
   {
     key: "in_production",
     label: "In Production",
-    helper: "We are working on it — delivery in 24h",
+    helper: "We are working on it — same-day delivery",
   },
   {
     key: "ready",
@@ -93,7 +93,7 @@ function statusMeta(status: OrderStatus) {
     case "in_production":
       return {
         label: "In Production",
-        description: "Our directors are working on it now. Delivery ETA: 24 hours.",
+        description: "Our directors are working on it now. Delivery ETA: same day.",
         tone: "bg-primary/10 border-primary/30 text-primary",
         icon: <Loader2 className="w-4 h-4 animate-spin" />,
       }
