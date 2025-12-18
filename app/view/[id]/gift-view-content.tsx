@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { GiftWrapOverlay } from "@/components/gift/gift-wrap-overlay"
@@ -25,16 +25,8 @@ interface GiftViewContentProps {
 }
 
 export function GiftViewContent({ order, isTokenValid, isFirstView, token }: GiftViewContentProps) {
-  const [isUnwrapped, setIsUnwrapped] = useState(false)
-  const [showContent, setShowContent] = useState(false)
-
-  // Only skip unwrap animation if no valid token
-  useEffect(() => {
-    if (!isTokenValid) {
-      setIsUnwrapped(true)
-      setShowContent(true)
-    }
-  }, [isTokenValid])
+  const [isUnwrapped, setIsUnwrapped] = useState(() => !isTokenValid)
+  const [showContent, setShowContent] = useState(() => !isTokenValid)
 
   const handleUnwrap = async () => {
     setIsUnwrapped(true)

@@ -1,22 +1,21 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Gift, Sparkles } from "lucide-react"
+import Link from "next/link"
+import { BeforeAfterScrubber } from "@/components/landing/before-after-scrubber"
 
 interface SplitHeroProps {
   onStartGift: () => void
 }
 
 export function SplitHero({ onStartGift }: SplitHeroProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    setIsVisible(true)
-    if (videoRef.current) {
-      videoRef.current.play()
-    }
+    const raf = window.requestAnimationFrame(() => setIsVisible(true))
+    return () => window.cancelAnimationFrame(raf)
   }, [])
 
   return (
@@ -53,41 +52,11 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
               <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-br from-accent/20 via-primary/10 to-accent/20 rounded-2xl blur-xl opacity-50" />
               
               {/* Split container - horizontal on all screens */}
-              <div className="relative bg-card rounded-xl md:rounded-2xl shadow-xl overflow-hidden border border-border/50">
-                {/* Before/After Split - Always side-by-side */}
-                <div className="grid grid-cols-2 aspect-[16/9] md:aspect-[4/3]">
-                  {/* Left: B&W Photo */}
-                  <div className="relative overflow-hidden">
-                    <img
-                      src="/vintage-sepia-old-wedding-photograph-1950s-couple.jpg"
-                      alt="Original vintage photograph"
-                      className="w-full h-full object-cover grayscale"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20" />
-                    <span className="absolute bottom-2 left-2 md:bottom-3 md:left-3 text-[10px] md:text-xs font-medium text-white/80 bg-black/40 px-1.5 py-0.5 md:px-2 md:py-1 rounded">
-                      Before
-                    </span>
-                  </div>
-                  
-                  {/* Right: Colorized/Animated Video */}
-                  <div className="relative overflow-hidden">
-                    <video
-                      ref={videoRef}
-                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Wealth%20Video%20Crop-ZuwydYNC0E3xso5q3g1vtPBv2CoHS4.mp4"
-                      className="w-full h-full object-cover"
-                      loop
-                      muted
-                      playsInline
-                      autoPlay
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/10" />
-                    <span className="absolute bottom-2 right-2 md:bottom-3 md:right-3 text-[10px] md:text-xs font-medium text-white/80 bg-primary/80 px-1.5 py-0.5 md:px-2 md:py-1 rounded flex items-center gap-1">
-                      <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-white rounded-full animate-pulse" />
-                      Restored
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <BeforeAfterScrubber
+                beforeImageSrc="/vintage-sepia-old-wedding-photograph-1950s-couple.jpg"
+                afterVideoSrc="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Wealth%20Video%20Crop-ZuwydYNC0E3xso5q3g1vtPBv2CoHS4.mp4"
+                beforeAlt="Original vintage photograph"
+              />
             </div>
           </div>
 
@@ -100,33 +69,55 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
             {/* Badge - Desktop */}
             <span className="hidden lg:inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium tracking-wide border border-primary/20">
               <Gift className="w-4 h-4" />
-              The perfect gift for grandparents
+              The perfect gift for grandparents, parents & family.
             </span>
 
             {/* Main Headline */}
             <h1 className="font-serif text-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4">
-              Turn old photos into a{" "}
-              <span className="block sm:inline text-primary">nostalgic family film.</span>
+              Create a film that{" "}
+              <span className="block sm:inline text-primary">brings them to tears</span>{" "}
+              <span className="text-muted-foreground font-sans font-medium text-base sm:text-lg md:text-xl lg:text-2xl align-middle">
+                (the good kind).
+              </span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed mb-4 md:mb-6">
-              Just upload vintage photos. We restore them and craft a cinematic movie w/ custom audio in a digital gift wrap – perfect for the holidays.
+              We turn your old photos and clips into a cinematic, AI‑enhanced family film — directed by real editors,
+              delivered in 24 hours, with unlimited revisions until it feels just right.
+            </p>
+
+            {/* Trust line */}
+            <p className="text-sm text-foreground/90 max-w-xl mx-auto lg:mx-0 mb-4">
+              <span className="text-accent font-semibold">★★★★★</span>{" "}
+              <span className="text-muted-foreground">
+                “She cried the moment it started.” – Sarah, made a film for her Nana
+              </span>
             </p>
 
             {/* CTA Button - Prominent, above fold */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
-              <Button
-                onClick={onStartGift}
-                size="lg"
-                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-5 md:px-8 md:py-6 text-base md:text-lg rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group"
-              >
-                <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
-                Create Their Gift
-              </Button>
-              <span className="text-xs md:text-sm text-primary font-medium">
-                50% off Black Friday
-              </span>
+            <div className="flex flex-col items-center lg:items-start gap-3">
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 w-full">
+                <Button
+                  onClick={onStartGift}
+                  size="lg"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-5 md:px-8 md:py-6 text-base md:text-lg rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group"
+                >
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                  Create Their Gift
+                </Button>
+
+                <Link
+                  href="/examples"
+                  className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-border bg-background px-6 py-4 md:px-7 md:py-5 text-sm md:text-base font-semibold text-foreground hover:bg-muted transition-colors"
+                >
+                  Watch a 30‑second sample
+                </Link>
+              </div>
+
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
+                Up to 67% off today · 24‑hour delivery · Unlimited revisions
+              </p>
             </div>
 
             {/* Trust Signals - Compact */}
@@ -137,15 +128,15 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-accent rounded-full" />
-                Same-day delivery
+                Delivered in 24 hours
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-accent rounded-full" />
                 Unlimited revisions included
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                98% said it moved them to tears
+                <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+                Gift-wrapped sharing link included
               </span>
             </div>
           </div>

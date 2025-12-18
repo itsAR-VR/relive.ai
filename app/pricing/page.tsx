@@ -11,6 +11,11 @@ import { Footer } from "@/components/footer"
 // Force dynamic rendering to avoid SSG issues with searchParams
 export const dynamic = "force-dynamic"
 
+function percentOff(price: number, originalPrice: number) {
+  const pct = Math.round(((originalPrice - price) / originalPrice) * 100)
+  return Number.isFinite(pct) && pct > 0 ? pct : null
+}
+
 // Service packages for Moments
 const SERVICE_PACKAGES = [
   {
@@ -227,6 +232,7 @@ function PricingContent() {
             const Icon = pkg.icon
             const isRecommended = recommendedTier === pkg.tierId
             const showBadge = pkg.popular || isRecommended
+            const pct = percentOff(pkg.price, pkg.originalPrice)
             return (
               <div
                 key={pkg.id}
@@ -271,7 +277,13 @@ function PricingContent() {
                     {pkg.name}
                   </h3>
                   <p className="text-xs text-primary font-medium mb-1">
-                    ${pkg.price} <span className="text-muted-foreground line-through">(from ${pkg.originalPrice})</span>
+                    ${pkg.price}{" "}
+                    <span className="text-muted-foreground line-through">(from ${pkg.originalPrice})</span>
+                    {pct ? (
+                      <span className="ml-2 inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                        Save {pct}%
+                      </span>
+                    ) : null}
                   </p>
                   <p className="text-xs text-muted-foreground font-medium mb-2">
                     {pkg.duration}
@@ -336,16 +348,16 @@ function PricingContent() {
         <div className="mt-8 md:mt-10">
           <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
-              <Shield className="w-4 h-4 text-green-600" />
-              <span className="text-xs md:text-sm text-foreground font-medium">100% Money-Back</span>
+              <RefreshCw className="w-4 h-4 text-primary" />
+              <span className="text-xs md:text-sm text-foreground font-medium">Unlimited Revisions</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
               <Clock className="w-4 h-4 text-primary" />
-              <span className="text-xs md:text-sm text-foreground font-medium">Same-day Delivery</span>
+              <span className="text-xs md:text-sm text-foreground font-medium">24-hour Delivery</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
-              <RefreshCw className="w-4 h-4 text-accent" />
-              <span className="text-xs md:text-sm text-foreground font-medium">Unlimited Revisions</span>
+              <Shield className="w-4 h-4 text-accent" />
+              <span className="text-xs md:text-sm text-foreground font-medium">Private Sharing Link</span>
             </div>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-4 max-w-sm mx-auto">

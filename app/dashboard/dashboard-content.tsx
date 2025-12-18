@@ -93,7 +93,7 @@ function statusMeta(status: OrderStatus) {
     case "in_production":
       return {
         label: "In Production",
-        description: "Our directors are working on it now. Delivery ETA: same day.",
+        description: "Our directors are working on it now. Delivery ETA: within 24 hours.",
         tone: "bg-primary/10 border-primary/30 text-primary",
         icon: <Loader2 className="w-4 h-4 animate-spin" />,
       }

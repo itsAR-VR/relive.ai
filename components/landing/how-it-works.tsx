@@ -8,19 +8,22 @@ const STEPS = [
     number: "01",
     icon: MessageSquare,
     title: "You Tell the Story",
-    description: "Answer a few simple questions. What did it smell like? What colors do you remember? We translate feelings into visuals.",
+    description:
+      "Answer a few questions about who you’re honouring and upload your favourite photos and clips. We’ll help you choose what matters most.",
   },
   {
     number: "02",
     icon: Clapperboard,
     title: "We Direct the Scene",
-    description: "Our team curates, edits, and adds sound design. We generate 20 versions and pick the best one. You never see the failures.",
+    description:
+      "Our editors and AI tools restore, enhance and weave everything into a cinematic film — with music, pacing and titles tailored to your story.",
   },
   {
     number: "03",
     icon: Heart,
     title: "They Relive the Moment",
-    description: "Receive a private viewing page to share at the birthday or holiday. Watch as they're transported back in time.",
+    description:
+      "You send a private link or download the file. They press play… and you watch the tears, smiles and stories flow.",
   },
 ]
 
@@ -34,11 +37,8 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
       <div className="container relative mx-auto px-4">
         {/* Section Header - Compact */}
         <div className="text-center mb-6 md:mb-10">
-          <span className="inline-block mb-3 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground text-xs md:text-sm font-medium border border-accent/30">
-            The Concierge Promise
-          </span>
           <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-2">
-            We Are Your Memory Directors
+            How it works (it’s easier than finding last year’s photos)
           </h2>
           <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
             You just need to know the story. We handle everything else.
@@ -87,6 +87,9 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
             Start Their Gift
             <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Takes 2 minutes · No editing skills needed
+          </p>
         </div>
 
         {/* Value Props - Clean inline style */}
@@ -94,7 +97,7 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 md:gap-10 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-primary" />
-              <span>Delivered same day</span>
+              <span>Delivered in 24 hours</span>
             </div>
             <div className="hidden sm:block w-px h-4 bg-border" />
             <div className="flex items-center gap-2">
@@ -104,7 +107,7 @@ export function HowItWorks({ onStartGift }: HowItWorksProps) {
             <div className="hidden sm:block w-px h-4 bg-border" />
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-primary" />
-              <span>100% satisfaction guarantee</span>
+              <span>Private sharing link</span>
             </div>
           </div>
         </div>
