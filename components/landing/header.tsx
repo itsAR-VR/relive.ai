@@ -26,7 +26,8 @@ export function LandingHeader() {
       <div className="bg-primary text-primary-foreground px-3 py-2.5">
         <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 text-center">
           <p className="text-xs sm:text-sm font-medium">
-            🎁 HOLIDAY OFFER: Up to 67% off their first film — delivered in 24 hours
+            🎁 HOLIDAY OFFER: Up to 67% off their first film
+            <span className="hidden sm:inline"> — delivered in 24 hours</span>
           </p>
           <p className="hidden sm:block text-xs text-primary-foreground/90">
             Unlimited revisions included.
@@ -80,20 +81,9 @@ export function LandingHeader() {
         </nav>
 
         <div className="flex items-center justify-end gap-2 sm:gap-3">
-          {/* Mobile menu toggle */}
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen((open) => !open)}
-            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background hover:bg-muted transition-colors"
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={isMenuOpen}
-          >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-
           <Button
             asChild
-            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-all"
+            className="hidden md:inline-flex bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-all"
           >
             <Link href="/?quiz=1">Create Their Gift</Link>
           </Button>
@@ -111,6 +101,17 @@ export function LandingHeader() {
               {user ? "Dashboard" : "Sign in"}
             </Link>
           )}
+
+          {/* Mobile menu toggle */}
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((open) => !open)}
+            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background hover:bg-muted transition-colors"
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
 
