@@ -41,19 +41,19 @@ export function LandingHeader() {
         </div>
       </div>
 
-      <div className="container mx-auto grid grid-cols-[auto,1fr,auto] items-center px-3 sm:px-4 py-2.5 sm:py-3">
+      <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
         <Link href="/" className="flex items-center gap-2 group">
           <Image
             src="/gifting-moments-logo.svg"
             alt="Gifting Moments"
             width={240}
             height={80}
-            className="h-10 sm:h-12 md:h-14 w-auto dark:invert"
+            className="h-9 sm:h-10 md:h-12 w-auto dark:invert"
             priority
           />
         </Link>
 
-        <nav className="hidden md:flex items-center justify-center gap-2 justify-self-center">
+        <nav className="hidden md:flex flex-1 items-center justify-center gap-2">
           <Link
             href="/how-it-works"
             className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -90,7 +90,7 @@ export function LandingHeader() {
 
           {isLoading ? (
             <div
-              className="hidden sm:block h-10 w-[88px] animate-pulse rounded-md border border-border bg-muted"
+              className="hidden sm:block h-9 w-[88px] animate-pulse rounded-md border border-border bg-muted"
               aria-label="Loading navigation"
             />
           ) : (
@@ -106,7 +106,7 @@ export function LandingHeader() {
           <button
             type="button"
             onClick={() => setIsMenuOpen((open) => !open)}
-            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background hover:bg-muted transition-colors -mr-1 sm:mr-0"
+            className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-muted transition-colors -mr-1 sm:mr-0"
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMenuOpen}
           >
