@@ -17,40 +17,36 @@ const ROWS: Array<{
   values: Record<(typeof COLUMNS)[number]["key"], Tone>
 }> = [
   {
-    label: "Made to make them cry (happy tears)",
-    values: { regular: "maybe", apps: "no", gm: "yes" },
+    label: "Emotional value",
+    values: { regular: "maybe", apps: "maybe", gm: "yes" },
   },
   {
-    label: "Rewatchable for years",
-    values: { regular: "no", apps: "maybe", gm: "yes" },
+    label: "Lasts for years",
+    values: { regular: "yes", apps: "maybe", gm: "yes" },
   },
   {
-    label: "Recreate a life moment from 1+ photos",
-    values: { regular: "no", apps: "no", gm: "yes" },
+    label: "Personalized to them",
+    values: { regular: "maybe", apps: "maybe", gm: "yes" },
   },
   {
-    label: "Human editors guide the story",
-    values: { regular: "no", apps: "no", gm: "yes" },
+    label: "Memorable / wow factor",
+    values: { regular: "yes", apps: "maybe", gm: "yes" },
   },
   {
-    label: "Minutes for the giver",
-    values: { regular: "no", apps: "no", gm: "yes" },
+    label: "Easy for the giver",
+    values: { regular: "maybe", apps: "maybe", gm: "yes" },
   },
   {
-    label: "Delivered in 24 hours (holiday guaranteed)",
-    values: { regular: "no", apps: "maybe", gm: "yes" },
+    label: "Ready on time",
+    values: { regular: "maybe", apps: "maybe", gm: "yes" },
   },
   {
     label: "Unlimited revisions",
     values: { regular: "no", apps: "maybe", gm: "yes" },
   },
   {
-    label: "More valuable than a luxury gift",
-    values: { regular: "no", apps: "no", gm: "yes" },
-  },
-  {
-    label: "Gift-wrapped film link",
-    values: { regular: "no", apps: "maybe", gm: "yes" },
+    label: "Gift-ready presentation",
+    values: { regular: "yes", apps: "maybe", gm: "yes" },
   },
 ]
 
