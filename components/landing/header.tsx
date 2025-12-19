@@ -41,14 +41,14 @@ export function LandingHeader() {
         </div>
       </div>
 
-      <div className="container mx-auto grid grid-cols-[auto,1fr,auto] items-center px-3 sm:px-4 py-4">
+      <div className="container mx-auto grid grid-cols-[auto,1fr,auto] items-center px-3 sm:px-4 py-2.5 sm:py-3">
         <Link href="/" className="flex items-center gap-2 group">
           <Image
             src="/gifting-moments-logo.svg"
             alt="Gifting Moments"
             width={240}
             height={80}
-            className="h-16 md:h-20 w-auto dark:invert"
+            className="h-10 sm:h-12 md:h-14 w-auto dark:invert"
             priority
           />
         </Link>
