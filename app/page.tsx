@@ -47,7 +47,7 @@ function HomeContent() {
 
       <ProblemSolution onStartGift={handleStartGift} />
 
-      <Comparison onStartGift={handleStartGift} />
+      <Comparison />
       
       <HowItWorks onStartGift={handleStartGift} />
 
