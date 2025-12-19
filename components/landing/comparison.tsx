@@ -98,29 +98,35 @@ export function Comparison() {
         </div>
 
         <div className="max-w-[900px] mx-auto relative">
-          <div className="pointer-events-none absolute -left-20 top-14 hidden lg:block animate-float-slow">
+          <div className="pointer-events-none absolute -inset-6 hidden lg:block">
+            <Image
+              src="/graphics/botanical-corners.png"
+              alt=""
+              fill
+              className="object-contain opacity-60"
+              sizes="(min-width: 1024px) 900px, 100vw"
+            />
+          </div>
+          <div className="pointer-events-none absolute -left-12 top-2 hidden lg:block animate-float-slow">
             <Image
               src="/graphics/wax-seal.png"
               alt=""
-              width={220}
-              height={220}
-              className="opacity-90"
+              width={190}
+              height={190}
+              className="opacity-95"
             />
           </div>
-          <div className="pointer-events-none absolute -right-24 -top-10 hidden lg:block animate-float-medium">
+          <div className="pointer-events-none absolute -right-16 -bottom-6 hidden lg:block animate-float-medium">
             <Image
               src="/graphics/ribbon-filmstrip.png"
               alt=""
-              width={260}
-              height={190}
+              width={240}
+              height={170}
               className="opacity-90"
             />
           </div>
-          <div className="pointer-events-none absolute -left-28 -bottom-16 hidden lg:block opacity-50">
-            <Image src="/graphics/botanical-corners.png" alt="" width={260} height={200} />
-          </div>
 
-          <div className="rounded-[28px] border-2 border-border bg-secondary shadow-sm overflow-hidden">
+          <div className="relative z-10 rounded-[28px] border-2 border-border bg-secondary shadow-sm overflow-hidden">
             <div className="md:hidden">
               <table className="w-full border-separate border-spacing-0 text-left">
                 <thead>
