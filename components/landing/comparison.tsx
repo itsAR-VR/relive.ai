@@ -98,7 +98,7 @@ export function Comparison() {
         </div>
 
         <div className="max-w-[900px] mx-auto relative">
-          <div className="pointer-events-none absolute -inset-6 hidden lg:block">
+          <div className="pointer-events-none absolute -inset-6 hidden lg:block z-20">
             <Image
               src="/graphics/botanical-corners.png"
               alt=""
@@ -107,7 +107,7 @@ export function Comparison() {
               sizes="(min-width: 1024px) 900px, 100vw"
             />
           </div>
-          <div className="pointer-events-none absolute -left-12 top-2 hidden lg:block animate-float-slow">
+          <div className="pointer-events-none absolute -left-12 top-2 hidden lg:block z-30 animate-float-slow">
             <Image
               src="/graphics/wax-seal.png"
               alt=""
@@ -116,12 +116,12 @@ export function Comparison() {
               className="opacity-95"
             />
           </div>
-          <div className="pointer-events-none absolute -right-16 -bottom-6 hidden lg:block animate-float-medium">
+          <div className="pointer-events-none absolute -right-12 -bottom-8 hidden lg:block z-30 animate-float-medium">
             <Image
               src="/graphics/ribbon-filmstrip.png"
               alt=""
-              width={240}
-              height={170}
+              width={300}
+              height={210}
               className="opacity-90"
             />
           </div>
