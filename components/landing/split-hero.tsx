@@ -75,10 +75,7 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
             {/* Main Headline */}
             <h1 className="font-serif text-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4">
               Create a film that{" "}
-              <span className="block sm:inline text-primary">brings them to tears</span>{" "}
-              <span className="text-muted-foreground font-sans font-medium text-base sm:text-lg md:text-xl lg:text-2xl align-middle">
-                (the good kind).
-              </span>
+              <span className="block sm:inline text-primary">brings them to tears.</span>
             </h1>
 
             {/* Subheadline */}

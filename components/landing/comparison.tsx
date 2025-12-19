@@ -38,7 +38,7 @@ const COMPARISON = [
       { text: "AI enhances — never replaces emotion", ok: true },
       { text: "Delivered in 24 hours with unlimited revisions", ok: true },
     ],
-    highlight: "✅ Made to make them cry (happy tears).",
+    highlight: "Made to make them cry (happy tears).",
   },
 ]
 
@@ -74,9 +74,6 @@ export function Comparison({ onStartGift }: ComparisonProps) {
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div>
                     <p className="font-serif text-xl text-foreground">{col.title}</p>
-                    {"highlight" in col && col.highlight ? (
-                      <p className="mt-2 text-xs font-semibold text-primary">{col.highlight}</p>
-                    ) : null}
                   </div>
                   <span
                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border ${
@@ -90,6 +87,12 @@ export function Comparison({ onStartGift }: ComparisonProps) {
                 </div>
 
                 <div className="space-y-3">
+                  {"highlight" in col && col.highlight ? (
+                    <div className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                      <p className="text-sm font-semibold text-primary leading-relaxed">{col.highlight}</p>
+                    </div>
+                  ) : null}
                   {col.items.map((item) => (
                     <div key={item.text} className="flex items-start gap-2">
                       {item.ok ? (

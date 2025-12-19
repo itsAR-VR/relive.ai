@@ -5,13 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { LandingHeader } from "@/components/landing/header"
 import { SplitHero } from "@/components/landing/split-hero"
+import { DemoVideo } from "@/components/landing/demo-video"
 import { TrustedStrip } from "@/components/landing/trusted-strip"
 import { ProblemSolution } from "@/components/landing/problem-solution"
 import { Comparison } from "@/components/landing/comparison"
 import { TeaserQuiz } from "@/components/landing/teaser-quiz"
 import { SocialProof } from "@/components/landing/social-proof"
 import { HowItWorks } from "@/components/landing/how-it-works"
-import { PackagesPreview } from "@/components/landing/packages-preview"
 import { GiftOfTears } from "@/components/landing/gift-of-tears"
 import { AiHuman } from "@/components/landing/ai-human"
 import { FaqPreview } from "@/components/landing/faq-preview"
@@ -37,11 +37,13 @@ function HomeContent() {
 
   return (
     <main className="min-h-screen bg-background">
-      <LandingHeader />
-      
-      <SplitHero onStartGift={handleStartGift} />
+	      <LandingHeader />
+	      
+	      <SplitHero onStartGift={handleStartGift} />
 
-      <TrustedStrip onStartGift={handleStartGift} />
+	      <DemoVideo />
+
+	      <TrustedStrip onStartGift={handleStartGift} />
 
       <ProblemSolution onStartGift={handleStartGift} />
 
@@ -49,11 +51,9 @@ function HomeContent() {
       
       <HowItWorks onStartGift={handleStartGift} />
 
-      <GiftOfTears onStartGift={handleStartGift} />
+	      <GiftOfTears onStartGift={handleStartGift} />
 
-      <PackagesPreview onStartGift={handleStartGift} />
-
-      <SocialProof onStartGift={handleStartGift} />
+	      <SocialProof onStartGift={handleStartGift} />
 
       <AiHuman onStartGift={handleStartGift} />
 

@@ -75,13 +75,9 @@ export function GiftOfTears({ onStartGift }: GiftOfTearsProps) {
                 </div>
               )
             })}
-            <p className="text-[11px] text-muted-foreground text-center">
-              Stats shown are illustrative — replace with your own data as you collect it.
-            </p>
           </div>
         </div>
       </div>
     </section>
   )
 }
-

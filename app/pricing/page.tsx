@@ -71,7 +71,7 @@ const SERVICE_PACKAGES = [
       "Optional Custom Narration",
       "Unlimited revisions with priority support & updates throughout the process",
     ],
-    bonus: "🎁 Black Friday Bonus: Include additional people (both parents, grandparents, or family pet)",
+    bonus: "🎁 Holiday Bonus: Include additional people (both parents, grandparents, or family pet)",
     includedFrom: "Everything in Director's Cut",
     perfectFor: "Ideal for group gifts, parents, grandparents, or legacy keepsakes.",
     icon: Film,
@@ -216,7 +216,7 @@ function PricingContent() {
         <div className="text-center mb-6 md:mb-8">
           <span className="inline-flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-full bg-accent/20 text-accent-foreground text-xs font-medium border border-accent/30">
             <Sparkles className="w-3 h-3" />
-            Black Friday — Up to 67% Off
+            Holiday season — Up to 67% Off
           </span>
           <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground mb-2">
             Choose Your Package
@@ -309,7 +309,7 @@ function PricingContent() {
                   ))}
                 </div>
 
-                {/* Black Friday Bonus */}
+                {/* Holiday Bonus */}
                 {"bonus" in pkg && pkg.bonus && (
                   <div className="mb-4 p-3 rounded-lg bg-accent/10 border border-accent/20">
                     <p className="text-xs text-accent-foreground font-medium">{pkg.bonus}</p>

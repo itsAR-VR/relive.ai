@@ -108,9 +108,6 @@ export function ProblemSolution({ onStartGift }: ProblemSolutionProps) {
               )
             })}
           </div>
-          <p className="mt-3 text-[11px] text-background/60 text-center">
-            Stats are illustrative — replace with your own data as you collect it.
-          </p>
         </div>
       </div>
     </section>
