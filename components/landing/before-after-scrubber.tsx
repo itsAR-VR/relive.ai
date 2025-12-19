@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 interface BeforeAfterScrubberProps {
   beforeImageSrc: string
@@ -17,21 +17,75 @@ export function BeforeAfterScrubber({
   className,
 }: BeforeAfterScrubberProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState(55)
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
+  const [videoSize, setVideoSize] = useState({ width: 0, height: 0 })
 
   useEffect(() => {
     videoRef.current?.play().catch(() => {})
   }, [])
 
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) return
+      const { width, height } = entry.contentRect
+      setContainerSize({ width, height })
+    })
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    const handleLoaded = () => {
+      if (!video.videoWidth || !video.videoHeight) return
+      setVideoSize({ width: video.videoWidth, height: video.videoHeight })
+    }
+    if (video.readyState >= 1) {
+      handleLoaded()
+    } else {
+      video.addEventListener("loadedmetadata", handleLoaded)
+      return () => video.removeEventListener("loadedmetadata", handleLoaded)
+    }
+  }, [])
+
+  const videoStyle = useMemo(() => {
+    if (!containerSize.width || !containerSize.height || !videoSize.width || !videoSize.height) {
+      return { width: "100%", height: "100%" }
+    }
+
+    const scale = Math.min(
+      containerSize.width / videoSize.width,
+      containerSize.height / videoSize.height
+    )
+    const renderedWidth = videoSize.width * scale
+    const renderedHeight = videoSize.height * scale
+    const windowCenter = (containerSize.width * (position / 100) + containerSize.width) / 2
+    const videoLeft = windowCenter - renderedWidth / 2
+    const videoTop = (containerSize.height - renderedHeight) / 2
+
+    return {
+      width: `${renderedWidth}px`,
+      height: `${renderedHeight}px`,
+      transform: `translate(${videoLeft}px, ${videoTop}px)`,
+    }
+  }, [containerSize, position, videoSize])
+
   return (
     <div className={className}>
       <div className="relative overflow-hidden rounded-xl md:rounded-2xl border border-border/50 bg-card shadow-xl">
-        <div className="relative aspect-[3/4] sm:aspect-[16/9] md:aspect-[4/3] bg-black">
+        <div ref={containerRef} className="relative aspect-[16/9] bg-black">
           {/* After (base layer) */}
           <video
             ref={videoRef}
             src={afterVideoSrc}
-            className="absolute inset-0 h-full w-full object-contain"
+            className="absolute left-0 top-0 will-change-transform"
+            style={videoStyle}
             loop
             muted
             playsInline
