@@ -45,7 +45,7 @@ function HomeContent() {
 
 	      <TrustedStrip onStartGift={handleStartGift} />
 
-      <ProblemSolution onStartGift={handleStartGift} />
+      <ProblemSolution />
 
       <Comparison />
       
