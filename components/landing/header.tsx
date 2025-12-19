@@ -23,8 +23,8 @@ export function LandingHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/80 bg-background/90 backdrop-blur-sm">
-      <div className="bg-primary text-primary-foreground px-3 py-2.5">
-        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-4 text-center">
+      <div className="bg-primary text-primary-foreground px-3 py-2 sm:py-2.5">
+        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-4 text-center">
           <p className="text-xs sm:text-sm font-medium">
             🎁 HOLIDAY OFFER: Up to 67% off their first film
             <span className="hidden sm:inline"> — delivered in 24 hours</span>
@@ -34,14 +34,14 @@ export function LandingHeader() {
           </p>
           <Link
             href="/pricing"
-            className="mt-1 sm:mt-0 inline-flex items-center px-3 py-1 bg-primary-foreground/10 hover:bg-primary-foreground/20 border border-primary-foreground/30 rounded text-[11px] sm:text-xs font-semibold uppercase tracking-wide transition-colors"
+            className="mt-1 sm:mt-0 hidden sm:inline-flex items-center px-3 py-1 bg-primary-foreground/10 hover:bg-primary-foreground/20 border border-primary-foreground/30 rounded text-[11px] sm:text-xs font-semibold uppercase tracking-wide transition-colors"
           >
             See packages
           </Link>
         </div>
       </div>
 
-      <div className="container mx-auto grid grid-cols-3 items-center px-4 py-4">
+      <div className="container mx-auto grid grid-cols-[auto,1fr,auto] items-center px-3 sm:px-4 py-4">
         <Link href="/" className="flex items-center gap-2 group">
           <Image
             src="/gifting-moments-logo.svg"
@@ -53,7 +53,7 @@ export function LandingHeader() {
           />
         </Link>
 
-        <nav className="hidden md:flex items-center justify-center gap-2">
+        <nav className="hidden md:flex items-center justify-center gap-2 justify-self-center">
           <Link
             href="/how-it-works"
             className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -106,7 +106,7 @@ export function LandingHeader() {
           <button
             type="button"
             onClick={() => setIsMenuOpen((open) => !open)}
-            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background hover:bg-muted transition-colors"
+            className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background hover:bg-muted transition-colors -mr-1 sm:mr-0"
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMenuOpen}
           >
