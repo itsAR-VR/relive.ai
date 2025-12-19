@@ -1,196 +1,150 @@
 "use client"
 
-import { Check, Minus, X as XIcon } from "lucide-react"
+import Image from "next/image"
+import { useState } from "react"
+import { ArrowLeft, ArrowRight, Check, Minus, X as XIcon } from "lucide-react"
+
+type Tone = "yes" | "no" | "maybe"
 
 const COLUMNS = [
   { key: "regular", label: "Regular gifts", sublabel: "Luxury items" },
   { key: "apps", label: "Generic apps", sublabel: "Slideshow & memory apps" },
   { key: "gm", label: "Gifting Moments", sublabel: "Best" },
-]
+] as const
 
-const ROWS = [
+const ROWS: Array<{
+  label: string
+  values: Record<(typeof COLUMNS)[number]["key"], Tone>
+}> = [
   {
-    label: "Emotional impact",
-    regular: { tone: "maybe", text: "Sometimes" },
-    apps: { tone: "no", text: "Rarely" },
-    gm: { tone: "yes", text: "Happy tears" },
+    label: "Made to make them cry (happy tears)",
+    values: { regular: "maybe", apps: "no", gm: "yes" },
   },
   {
-    label: "Gift lasts",
-    regular: { tone: "no", text: "Fades fast" },
-    apps: { tone: "maybe", text: "Just a file" },
-    gm: { tone: "yes", text: "Rewatch for years" },
+    label: "Rewatchable for years",
+    values: { regular: "no", apps: "maybe", gm: "yes" },
   },
   {
-    label: "First-of-its-kind reliving",
-    regular: { tone: "no", text: "Not possible" },
-    apps: { tone: "no", text: "Not possible" },
-    gm: { tone: "yes", text: "Yes, from 1+ photos" },
+    label: "Recreate a life moment from 1+ photos",
+    values: { regular: "no", apps: "no", gm: "yes" },
   },
   {
-    label: "Guided storytelling",
-    regular: { tone: "no", text: "No guidance" },
-    apps: { tone: "no", text: "Template-only" },
-    gm: { tone: "yes", text: "Human editors" },
+    label: "Human editors guide the story",
+    values: { regular: "no", apps: "no", gm: "yes" },
   },
   {
-    label: "Effort for giver",
-    regular: { tone: "no", text: "Shop & guess" },
-    apps: { tone: "no", text: "Hours of editing" },
-    gm: { tone: "yes", text: "Minutes via quiz" },
+    label: "Minutes for the giver",
+    values: { regular: "no", apps: "no", gm: "yes" },
   },
   {
-    label: "Feels like them",
-    regular: { tone: "maybe", text: "Hit or miss" },
-    apps: { tone: "no", text: "Generic" },
-    gm: { tone: "yes", text: "Built from their story" },
+    label: "Delivered in 24 hours (holiday guaranteed)",
+    values: { regular: "no", apps: "maybe", gm: "yes" },
   },
   {
-    label: "Delivery certainty",
-    regular: { tone: "no", text: "Shipping delays" },
-    apps: { tone: "maybe", text: "DIY timeline" },
-    gm: { tone: "yes", text: "24h guaranteed" },
+    label: "Unlimited revisions",
+    values: { regular: "no", apps: "maybe", gm: "yes" },
   },
   {
-    label: "Revisions",
-    regular: { tone: "no", text: "No revisions" },
-    apps: { tone: "maybe", text: "Limited" },
-    gm: { tone: "yes", text: "Unlimited" },
+    label: "More valuable than a luxury gift",
+    values: { regular: "no", apps: "no", gm: "yes" },
   },
   {
-    label: "Price vs value",
-    regular: { tone: "no", text: "High cost, short-lived" },
-    apps: { tone: "maybe", text: "Low cost, low impact" },
-    gm: { tone: "yes", text: "Less cost, more value" },
-  },
-  {
-    label: "Gift format",
-    regular: { tone: "maybe", text: "Physical item" },
-    apps: { tone: "maybe", text: "App link" },
-    gm: { tone: "yes", text: "Gift-wrapped film link" },
-  },
-  {
-    label: "Hard-to-shop-for parents",
-    regular: { tone: "no", text: "Often misses" },
-    apps: { tone: "no", text: "Feels generic" },
-    gm: { tone: "yes", text: "Designed for parents" },
+    label: "Gift-wrapped film link",
+    values: { regular: "no", apps: "maybe", gm: "yes" },
   },
 ]
 
-const toneIcon = (tone: "yes" | "no" | "maybe") => {
+const toneIcon = (tone: Tone) => {
   if (tone === "yes") return Check
   if (tone === "maybe") return Minus
   return XIcon
 }
 
-const toneColor = (tone: "yes" | "no" | "maybe") => {
-  if (tone === "yes") return "text-emerald-600"
-  if (tone === "maybe") return "text-amber-500"
-  return "text-muted-foreground"
+const toneStyles = (tone: Tone, isPrimary: boolean) => {
+  if (tone === "yes") {
+    return isPrimary
+      ? "bg-primary text-primary-foreground border-primary"
+      : "bg-foreground text-background border-foreground"
+  }
+  if (tone === "maybe") {
+    return "bg-transparent text-muted-foreground border-border"
+  }
+  return "bg-transparent text-muted-foreground border-border"
 }
 
 export function Comparison() {
+  const competitorKeys = ["regular", "apps"] as const
+  const [activeCompetitorIndex, setActiveCompetitorIndex] = useState(0)
+  const activeCompetitorKey = competitorKeys[activeCompetitorIndex]
+  const activeCompetitor =
+    activeCompetitorKey === "regular" ? COLUMNS[0] : COLUMNS[1]
+  const isLeftDisabled = activeCompetitorIndex === 0
+  const isRightDisabled = activeCompetitorIndex === competitorKeys.length - 1
+
   return (
-    <section className="bg-background py-12 md:py-16">
+    <section className="bg-background py-12 md:py-16 relative overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-10">
           <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             Why Gifting Moments
           </p>
           <h2 className="mt-3 font-serif text-2xl md:text-3xl lg:text-4xl text-foreground">
-            The easiest way to give the most emotional gift they&apos;ve ever received.
+            The most emotional gift, made easy.
           </h2>
           <p className="mt-4 text-sm md:text-base text-muted-foreground leading-relaxed">
             It&apos;s always the thoughtful gifts that make us smile, so skip the designer handbag and save 10,000% by
             giving the gift of a lifetime.
           </p>
-          <p className="mt-3 text-sm md:text-base text-muted-foreground leading-relaxed">
-            Using old photos and the story of your loved one, we recreate the key moments in their life and add a
-            digital gift wrap.
-          </p>
         </div>
 
-        <div className="max-w-6xl mx-auto">
-          <div className="md:hidden space-y-4">
-            {ROWS.map((row) => (
-              <div key={row.label} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-                <p className="text-sm font-semibold text-foreground">{row.label}</p>
-                <div className="mt-3 space-y-3">
-                  {COLUMNS.map((col) => {
-                    const cell = row[col.key as "regular" | "apps" | "gm"]
-                    const Icon = toneIcon(cell.tone)
-                    const isBest = col.key === "gm"
-                    return (
-                      <div
-                        key={`${row.label}-${col.key}`}
-                        className={`rounded-xl border px-3 py-2 ${
-                          isBest ? "bg-primary/5 border-primary/20" : "bg-muted/10 border-border"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="space-y-0.5">
-                            <p className="text-sm font-semibold text-foreground">
-                              {isBest ? "Gifting Moments" : col.label}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {isBest ? "First of its kind" : col.sublabel}
-                            </p>
-                          </div>
-                          {isBest ? (
-                            <span className="inline-flex items-center rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground">
-                              Best
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="mt-2 flex items-center gap-2 text-sm text-foreground">
-                          <Icon className={`h-4 w-4 ${toneColor(cell.tone)}`} />
-                          <span>{cell.text}</span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
+        <div className="max-w-[900px] mx-auto relative">
+          <div className="pointer-events-none absolute -left-20 top-14 hidden lg:block animate-float-slow">
+            <Image
+              src="/graphics/wax-seal.png"
+              alt=""
+              width={220}
+              height={220}
+              className="opacity-90"
+            />
+          </div>
+          <div className="pointer-events-none absolute -right-24 -top-10 hidden lg:block animate-float-medium">
+            <Image
+              src="/graphics/ribbon-filmstrip.png"
+              alt=""
+              width={260}
+              height={190}
+              className="opacity-90"
+            />
+          </div>
+          <div className="pointer-events-none absolute -left-28 -bottom-16 hidden lg:block opacity-50">
+            <Image src="/graphics/botanical-corners.png" alt="" width={260} height={200} />
           </div>
 
-          <div className="hidden md:block rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] border-separate border-spacing-0 text-left">
+          <div className="rounded-[28px] border-2 border-border bg-secondary shadow-sm overflow-hidden">
+            <div className="md:hidden">
+              <table className="w-full border-separate border-spacing-0 text-left">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-5 py-4 text-xs uppercase tracking-wide text-muted-foreground sticky left-0 z-10 bg-card">
+                    <th className="px-4 py-3 text-[11px] uppercase tracking-wide text-muted-foreground bg-secondary">
                       Comparison
                     </th>
-                    {COLUMNS.map((col) => {
-                      const isBest = col.key === "gm"
-                      return (
-                        <th
-                          key={col.key}
-                          className={`px-5 py-4 text-sm font-semibold text-foreground border-b border-border ${
-                            isBest ? "bg-primary/5 border-l border-primary/20 border-r border-primary/20" : ""
-                          }`}
-                          scope="col"
-                        >
-                          {isBest ? (
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="space-y-1">
-                                <p className="font-serif text-base">Gifting Moments</p>
-                                <p className="text-xs text-muted-foreground">First of its kind</p>
-                              </div>
-                              <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                                Best
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="space-y-1">
-                              <p className="font-serif text-base">{col.label}</p>
-                              <p className="text-xs text-muted-foreground">{col.sublabel}</p>
-                            </div>
-                          )}
-                        </th>
-                      )
-                    })}
+                    <th className="px-4 py-3 text-sm font-semibold text-foreground bg-primary/10 border-l-2 border-r-2 border-primary/40">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-0.5">
+                          <p className="font-serif text-sm">Gifting Moments</p>
+                          <p className="text-[11px] text-muted-foreground">First of its kind</p>
+                        </div>
+                        <span className="inline-flex items-center rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold text-primary-foreground">
+                          Best
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-4 py-3 text-sm font-semibold text-foreground border-l border-border">
+                      <div className="space-y-0.5">
+                        <p className="font-serif text-sm">{activeCompetitor.label}</p>
+                        <p className="text-[11px] text-muted-foreground">{activeCompetitor.sublabel}</p>
+                      </div>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -198,27 +152,150 @@ export function Comparison() {
                     <tr key={row.label} className="border-b border-border">
                       <th
                         scope="row"
-                        className={`px-5 py-4 text-sm font-semibold text-foreground border-b border-border bg-card sticky left-0 z-10 ${
+                        className={`px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-secondary ${
                           index === ROWS.length - 1 ? "border-b-0" : ""
                         }`}
                       >
                         {row.label}
                       </th>
-                      {(["regular", "apps", "gm"] as const).map((key) => {
-                        const cell = row[key]
-                        const Icon = toneIcon(cell.tone)
-                        const isBest = key === "gm"
+                      {(["gm", activeCompetitorKey] as const).map((key) => {
+                        const tone = row.values[key]
+                        const Icon = toneIcon(tone)
+                        const isPrimary = key === "gm"
                         return (
                           <td
                             key={`${row.label}-${key}`}
-                            className={`px-5 py-4 text-sm text-foreground border-b border-border ${
-                              isBest ? "bg-primary/5 border-l border-primary/20 border-r border-primary/20" : ""
+                            className={`px-4 py-3 text-sm text-foreground border-b border-border text-center ${
+                              isPrimary
+                                ? "bg-primary/10 border-l-2 border-r-2 border-primary/40"
+                                : "border-l border-border"
                             } ${index === ROWS.length - 1 ? "border-b-0" : ""}`}
+                            aria-label={`${key} ${tone}`}
                           >
-                            <div className="flex items-center gap-2">
-                              <Icon className={`h-4 w-4 ${toneColor(cell.tone)}`} />
-                              <span>{cell.text}</span>
-                            </div>
+                            <span
+                              className={`inline-flex h-8 w-8 items-center justify-center rounded-full border ${toneStyles(
+                                tone,
+                                isPrimary,
+                              )}`}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </span>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="flex items-center justify-center gap-6 py-4">
+                <button
+                  type="button"
+                  aria-label="Show luxury gifts comparison"
+                  disabled={isLeftDisabled}
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
+                    isLeftDisabled
+                      ? "border-border text-muted-foreground/60"
+                      : "border-border text-foreground hover:bg-muted"
+                  }`}
+                  onClick={() => setActiveCompetitorIndex(0)}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+                <div className="flex items-center gap-2">
+                  {competitorKeys.map((_, idx) => (
+                    <span
+                      key={`dot-${idx}`}
+                      className={`h-2.5 w-2.5 rounded-full border ${
+                        idx === activeCompetitorIndex ? "bg-foreground border-foreground" : "border-border"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  aria-label="Show generic apps comparison"
+                  disabled={isRightDisabled}
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
+                    isRightDisabled
+                      ? "border-border text-muted-foreground/60"
+                      : "border-border text-foreground hover:bg-muted"
+                  }`}
+                  onClick={() => setActiveCompetitorIndex(1)}
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="hidden md:block">
+              <table className="w-full border-separate border-spacing-0 text-left">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="px-5 py-3 text-[11px] uppercase tracking-wide text-muted-foreground bg-secondary">
+                      Comparison
+                    </th>
+                    <th className="px-5 py-3 text-sm font-semibold text-foreground bg-primary/10 border-l-2 border-r-2 border-primary/40 rounded-t-2xl">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-0.5">
+                          <p className="font-serif text-base">Gifting Moments</p>
+                          <p className="text-xs text-muted-foreground">First of its kind</p>
+                        </div>
+                        <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+                          Best
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-5 py-3 text-sm font-semibold text-foreground border-l border-border">
+                      <div className="space-y-0.5">
+                        <p className="font-serif text-base">Regular gifts</p>
+                        <p className="text-xs text-muted-foreground">Luxury items</p>
+                      </div>
+                    </th>
+                    <th className="px-5 py-3 text-sm font-semibold text-foreground border-l border-border">
+                      <div className="space-y-0.5">
+                        <p className="font-serif text-base">Generic apps</p>
+                        <p className="text-xs text-muted-foreground">Slideshow & memory apps</p>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ROWS.map((row, index) => (
+                    <tr key={row.label} className="border-b border-border">
+                      <th
+                        scope="row"
+                        className={`px-5 py-3 text-sm font-semibold text-foreground border-b border-border bg-secondary ${
+                          index === ROWS.length - 1 ? "border-b-0" : ""
+                        }`}
+                      >
+                        {row.label}
+                      </th>
+                      {(["gm", "regular", "apps"] as const).map((key) => {
+                        const tone = row.values[key]
+                        const Icon = toneIcon(tone)
+                        const isPrimary = key === "gm"
+                        const isLastRow = index === ROWS.length - 1
+                        return (
+                          <td
+                            key={`${row.label}-${key}`}
+                            className={`px-5 py-3 text-sm text-foreground border-b border-border text-center ${
+                              isPrimary
+                                ? "bg-primary/10 border-l-2 border-r-2 border-primary/40"
+                                : "border-l border-border"
+                            } ${isLastRow ? "border-b-0" : ""} ${
+                              isPrimary && isLastRow ? "rounded-b-2xl" : ""
+                            }`}
+                            aria-label={`${key} ${tone}`}
+                          >
+                            <span
+                              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border ${toneStyles(
+                                tone,
+                                isPrimary,
+                              )}`}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </span>
                           </td>
                         )
                       })}
