@@ -41,13 +41,13 @@ export function ProblemSolution() {
         <div className="mt-10 grid gap-8 sm:grid-cols-3 text-center">
           {PAIN_STATS.map((stat) => (
             <div key={stat.label}>
-              <div className="mx-auto mb-3 h-8 w-8 flex items-center justify-center">
+              <div className="mx-auto mb-3 h-12 w-12 flex items-center justify-center">
                 <Image
                   src={stat.iconSrc}
                   alt=""
-                  width={28}
-                  height={28}
-                  className="h-7 w-7"
+                  width={44}
+                  height={44}
+                  className="h-11 w-11"
                 />
               </div>
               <p className="font-serif text-4xl md:text-5xl tracking-tight">{stat.value}</p>
