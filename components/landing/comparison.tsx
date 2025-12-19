@@ -97,36 +97,42 @@ export function Comparison() {
           </p>
         </div>
 
-        <div className="max-w-[900px] mx-auto relative">
-          <div className="pointer-events-none absolute -inset-6 hidden lg:block z-20">
+        <div className="max-w-[920px] mx-auto relative">
+          <div className="pointer-events-none absolute inset-0 hidden lg:block z-20">
             <Image
               src="/graphics/botanical-corners.png"
               alt=""
               fill
-              className="object-contain opacity-60"
-              sizes="(min-width: 1024px) 900px, 100vw"
+              className="object-contain opacity-70"
+              sizes="(min-width: 1024px) 920px, 100vw"
+              style={{
+                WebkitMaskImage:
+                  "radial-gradient(circle at center, transparent 0 58%, black 72%)",
+                maskImage: "radial-gradient(circle at center, transparent 0 58%, black 72%)",
+              }}
             />
           </div>
-          <div className="pointer-events-none absolute -left-12 top-2 hidden lg:block z-30 animate-float-slow">
+          <div className="pointer-events-none absolute left-[-11rem] top-8 hidden lg:block z-30 animate-float-slow">
             <Image
               src="/graphics/wax-seal.png"
               alt=""
-              width={190}
-              height={190}
+              width={200}
+              height={200}
               className="opacity-95"
             />
           </div>
-          <div className="pointer-events-none absolute -right-12 -bottom-8 hidden lg:block z-30 animate-float-medium">
+          <div className="pointer-events-none absolute right-[-21rem] bottom-[-2rem] hidden lg:block z-30 animate-float-medium">
             <Image
               src="/graphics/ribbon-filmstrip.png"
               alt=""
-              width={300}
-              height={210}
+              width={380}
+              height={260}
               className="opacity-90"
             />
           </div>
 
-          <div className="relative z-10 rounded-[28px] border-2 border-border bg-secondary shadow-sm overflow-hidden">
+          <div className="relative z-10 px-8 py-10 lg:px-12 lg:py-12">
+            <div className="rounded-[28px] border-2 border-border bg-secondary shadow-sm overflow-hidden">
             <div className="md:hidden">
               <table className="w-full border-separate border-spacing-0 text-left">
                 <thead>
@@ -310,6 +316,7 @@ export function Comparison() {
                 </tbody>
               </table>
             </div>
+          </div>
           </div>
         </div>
       </div>
