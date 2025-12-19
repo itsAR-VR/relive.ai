@@ -38,20 +38,20 @@ export function ProblemSolution() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-8 sm:grid-cols-3 text-center">
+        <div className="mt-10 grid gap-8 sm:grid-cols-3">
           {PAIN_STATS.map((stat) => (
-            <div key={stat.label}>
-              <div className="mx-auto mb-3 h-12 w-12 flex items-center justify-center">
+            <div key={stat.label} className="text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-4">
                 <Image
                   src={stat.iconSrc}
                   alt=""
-                  width={44}
-                  height={44}
-                  className="h-11 w-11"
+                  width={64}
+                  height={64}
+                  className="h-16 w-16"
                 />
+                <p className="font-serif text-4xl md:text-5xl tracking-tight">{stat.value}</p>
               </div>
-              <p className="font-serif text-4xl md:text-5xl tracking-tight">{stat.value}</p>
-              <p className="mt-2 text-xs md:text-sm text-background/80 leading-relaxed max-w-[220px] mx-auto">
+              <p className="mt-3 text-xs md:text-sm text-background/80 leading-relaxed max-w-[240px] sm:max-w-none">
                 {stat.label}
               </p>
             </div>
