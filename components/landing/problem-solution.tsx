@@ -38,10 +38,10 @@ export function ProblemSolution() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-8 sm:grid-cols-3">
+        <div className="mt-8 grid gap-6 sm:gap-8 sm:grid-cols-3 justify-items-center">
           {PAIN_STATS.map((stat) => (
-            <div key={stat.label} className="text-center sm:text-left">
-              <div className="flex items-center justify-center sm:justify-start gap-4">
+            <div key={stat.label} className="w-full max-w-[340px] text-center">
+              <div className="flex items-center justify-center gap-4">
                 <Image
                   src={stat.iconSrc}
                   alt=""
@@ -51,7 +51,7 @@ export function ProblemSolution() {
                 />
                 <p className="font-serif text-4xl md:text-5xl tracking-tight">{stat.value}</p>
               </div>
-              <p className="mt-3 text-xs md:text-sm text-background/80 leading-relaxed max-w-[240px] sm:max-w-none">
+              <p className="mt-3 mx-auto text-xs md:text-sm text-background/80 leading-relaxed max-w-[280px]">
                 {stat.label}
               </p>
             </div>
