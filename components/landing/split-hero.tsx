@@ -72,6 +72,14 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
               The perfect gift for grandparents, parents & family.
             </span>
 
+            {/* Trust line */}
+            <p className="text-sm text-foreground/90 max-w-xl mx-auto lg:mx-0 mb-3 md:mb-4">
+              <span className="text-accent font-semibold">★★★★★</span>{" "}
+              <span className="text-muted-foreground">
+                “She cried the moment it started.” – Sarah, made a film for her Nana
+              </span>
+            </p>
+
             {/* Main Headline */}
             <h1 className="font-serif text-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4">
               Create a film that{" "}
@@ -79,17 +87,9 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
             </h1>
 
             {/* Subheadline */}
-            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed mb-4 md:mb-6">
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed mb-5 md:mb-7">
               We turn your old photos and clips into a cinematic, AI‑enhanced family film — directed by real editors,
               delivered in 24 hours, with unlimited revisions until it feels just right.
-            </p>
-
-            {/* Trust line */}
-            <p className="text-sm text-foreground/90 max-w-xl mx-auto lg:mx-0 mb-4">
-              <span className="text-accent font-semibold">★★★★★</span>{" "}
-              <span className="text-muted-foreground">
-                “She cried the moment it started.” – Sarah, made a film for her Nana
-              </span>
             </p>
 
             {/* CTA Button - Prominent, above fold */}
@@ -111,14 +111,10 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
                   Watch a 30‑second sample
                 </Link>
               </div>
-
-              <p className="text-xs md:text-sm text-muted-foreground font-medium">
-                Up to 67% off today · 24‑hour delivery · Unlimited revisions
-              </p>
             </div>
 
             {/* Trust Signals - Compact */}
-            <div className="mt-4 md:mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground">
+            <div className="mt-5 md:mt-7 flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-accent rounded-full" />
                 No AI skills needed
