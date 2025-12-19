@@ -58,6 +58,14 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
                 beforeAlt="Original vintage photograph"
               />
             </div>
+
+            {/* Trust line */}
+            <p className="text-sm text-foreground/90 max-w-xl mx-auto lg:mx-0 mt-3 md:mt-4 text-center lg:text-left">
+              <span className="text-accent font-semibold">★★★★★</span>{" "}
+              <span className="text-muted-foreground">
+                “She cried the moment it started.” – Sarah, made a film for her Nana
+              </span>
+            </p>
           </div>
 
           {/* Copy and CTA Section */}
@@ -71,14 +79,6 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
               <Gift className="w-4 h-4" />
               The perfect gift for grandparents, parents & family.
             </span>
-
-            {/* Trust line */}
-            <p className="text-sm text-foreground/90 max-w-xl mx-auto lg:mx-0 mb-3 md:mb-4">
-              <span className="text-accent font-semibold">★★★★★</span>{" "}
-              <span className="text-muted-foreground">
-                “She cried the moment it started.” – Sarah, made a film for her Nana
-              </span>
-            </p>
 
             {/* Main Headline */}
             <h1 className="font-serif text-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-foreground leading-[1.15] tracking-tight mb-3 md:mb-4">

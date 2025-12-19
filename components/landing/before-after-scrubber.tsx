@@ -26,12 +26,12 @@ export function BeforeAfterScrubber({
   return (
     <div className={className}>
       <div className="relative overflow-hidden rounded-xl md:rounded-2xl border border-border/50 bg-card shadow-xl">
-        <div className="relative aspect-[16/9] md:aspect-[4/3]">
+        <div className="relative aspect-[3/4] sm:aspect-[16/9] md:aspect-[4/3] bg-black">
           {/* After (base layer) */}
           <video
             ref={videoRef}
             src={afterVideoSrc}
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-contain"
             loop
             muted
             playsInline
@@ -91,4 +91,3 @@ export function BeforeAfterScrubber({
     </div>
   )
 }
-
