@@ -110,12 +110,12 @@ export function Comparison() {
 
           <div className="relative z-10 px-8 py-10 lg:px-12 lg:py-12">
             <div className="relative rounded-[28px] border-2 border-border bg-secondary shadow-sm overflow-hidden">
-              <div className="pointer-events-none absolute -left-7 -top-7 hidden lg:block z-20">
+              <div className="pointer-events-none absolute -left-[calc(1.75rem+10px)] -top-[calc(1.75rem+6px)] hidden lg:block z-20">
                 <Image
                   src="/graphics/wax-seal.png"
                   alt=""
-                  width={240}
-                  height={240}
+                  width={230}
+                  height={230}
                   className="opacity-95"
                 />
               </div>
