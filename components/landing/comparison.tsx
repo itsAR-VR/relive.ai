@@ -18,15 +18,15 @@ const ROWS: Array<{
 }> = [
   {
     label: "Emotional value",
-    values: { regular: "yes", apps: "maybe", gm: "yes" },
+    values: { regular: "maybe", apps: "yes", gm: "yes" },
   },
   {
     label: "Lasts for years",
-    values: { regular: "yes", apps: "maybe", gm: "yes" },
+    values: { regular: "yes", apps: "yes", gm: "yes" },
   },
   {
     label: "Personalized to them",
-    values: { regular: "yes", apps: "maybe", gm: "yes" },
+    values: { regular: "maybe", apps: "yes", gm: "yes" },
   },
   {
     label: "Memorable / wow factor",
@@ -46,7 +46,7 @@ const ROWS: Array<{
   },
   {
     label: "Gift-ready presentation",
-    values: { regular: "yes", apps: "maybe", gm: "yes" },
+    values: { regular: "maybe", apps: "maybe", gm: "yes" },
   },
 ]
 
