@@ -55,9 +55,11 @@ export function ProblemSolution() {
                       className="h-24 w-24 object-contain"
                     />
                   </div>
-                  <p className="font-serif font-semibold text-7xl md:text-8xl tracking-tight leading-none">
-                    {stat.value}
-                  </p>
+                  <div className="h-24 flex items-center">
+                    <p className="font-serif font-semibold text-7xl md:text-8xl tracking-tight leading-none">
+                      {stat.value}
+                    </p>
+                  </div>
                 </div>
 
                 <p className="mt-2 mx-auto text-base md:text-lg font-semibold text-background/90 leading-snug max-w-[320px]">
