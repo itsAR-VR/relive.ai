@@ -7,16 +7,19 @@ const PAIN_STATS = [
     iconSrc: "/icons/gift-box.png",
     value: "68%",
     label: "of gifts are returned or unused within 6 months",
+    labelShort: "Returned / unused in 6 months",
   },
   {
     iconSrc: "/icons/photos.png",
     value: "84%",
     label: "say their favourite photos are scattered across devices",
+    labelShort: "Photos scattered across devices",
   },
   {
     iconSrc: "/icons/magic-wand.png",
     value: "74%",
     label: "say most “AI” tools feel cold or templated",
+    labelShort: "Most “AI” feels cold",
   },
 ]
 
@@ -38,24 +41,32 @@ export function ProblemSolution() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-6 sm:gap-8 sm:grid-cols-3 justify-items-center">
-          {PAIN_STATS.map((stat) => (
-            <div key={stat.label} className="w-full max-w-[340px] text-center">
-              <div className="flex items-center justify-center gap-4">
-                <Image
-                  src={stat.iconSrc}
-                  alt=""
-                  width={64}
-                  height={64}
-                  className="h-16 w-16"
-                />
-                <p className="font-serif text-4xl md:text-5xl tracking-tight">{stat.value}</p>
+        <div className="mt-6 max-w-5xl mx-auto">
+          <div className="grid gap-5 sm:gap-10 sm:grid-cols-3 justify-items-center">
+            {PAIN_STATS.map((stat) => (
+              <div key={stat.label} className="w-full max-w-[340px] text-center">
+                <div className="flex items-center justify-center gap-4">
+                  <Image
+                    src={stat.iconSrc}
+                    alt=""
+                    width={80}
+                    height={80}
+                    className="h-20 w-20"
+                  />
+                  <p className="font-serif text-6xl md:text-6xl lg:text-6xl tracking-tight leading-none">
+                    {stat.value}
+                  </p>
+                </div>
+
+                <p className="mt-2 mx-auto text-base font-semibold text-background/90 leading-snug max-w-[320px] sm:hidden">
+                  {stat.labelShort}
+                </p>
+                <p className="mt-3 mx-auto hidden sm:block text-xs md:text-sm text-background/80 leading-relaxed max-w-[320px]">
+                  {stat.label}
+                </p>
               </div>
-              <p className="mt-3 mx-auto text-xs md:text-sm text-background/80 leading-relaxed max-w-[280px]">
-                {stat.label}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>
