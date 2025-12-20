@@ -126,7 +126,7 @@ export function Comparison() {
                           <p className="font-serif text-[13px]">Gifting Moments</p>
                           <p className="text-[11px] text-muted-foreground">First of its kind</p>
                         </div>
-                        <span className="inline-flex items-center rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold text-primary-foreground">
+                        <span className="hidden md:inline-flex items-center rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold text-primary-foreground">
                           Best
                         </span>
                       </div>
