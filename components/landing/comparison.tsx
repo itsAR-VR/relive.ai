@@ -104,7 +104,7 @@ export function Comparison() {
             />
           </div>
 
-          <div className="relative z-10 px-8 py-10 lg:px-12 lg:py-12">
+          <div className="relative z-10 px-4 py-8 sm:px-6 sm:py-9 lg:px-12 lg:py-12">
             <div className="pointer-events-none absolute -left-[70px] -top-[71px] hidden lg:block z-30">
               <Image
                 src="/graphics/wax-seal.png"
@@ -116,14 +116,14 @@ export function Comparison() {
             </div>
             <div className="relative rounded-[28px] border-2 border-border bg-secondary shadow-sm overflow-hidden">
             <div className="md:hidden">
-              <table className="w-full border-separate border-spacing-0 text-left">
+              <table className="w-full table-fixed border-separate border-spacing-0 text-left">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-[11px] uppercase tracking-wide text-muted-foreground bg-secondary"></th>
-                    <th className="px-4 py-3 text-sm font-semibold text-foreground bg-primary/10 border-l-2 border-r-2 border-primary/40">
+                    <th className="w-[42%] px-3 py-3 text-[11px] uppercase tracking-wide text-muted-foreground bg-secondary"></th>
+                    <th className="w-[29%] px-3 py-3 text-[13px] font-semibold text-foreground bg-primary/10 border-l-2 border-r-2 border-primary/40">
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-0.5">
-                          <p className="font-serif text-sm">Gifting Moments</p>
+                          <p className="font-serif text-[13px]">Gifting Moments</p>
                           <p className="text-[11px] text-muted-foreground">First of its kind</p>
                         </div>
                         <span className="inline-flex items-center rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold text-primary-foreground">
@@ -131,9 +131,9 @@ export function Comparison() {
                         </span>
                       </div>
                     </th>
-                    <th className="px-4 py-3 text-sm font-semibold text-foreground border-l border-border">
+                    <th className="w-[29%] px-3 py-3 text-[13px] font-semibold text-foreground border-l border-border">
                       <div className="space-y-0.5">
-                        <p className="font-serif text-sm">{activeCompetitor.label}</p>
+                        <p className="font-serif text-[13px]">{activeCompetitor.label}</p>
                         <p className="text-[11px] text-muted-foreground">{activeCompetitor.sublabel}</p>
                       </div>
                     </th>
@@ -144,7 +144,7 @@ export function Comparison() {
                     <tr key={row.label} className="border-b border-border">
                       <th
                         scope="row"
-                        className={`px-4 py-3 text-sm font-semibold text-foreground border-b border-border bg-secondary ${
+                        className={`px-3 py-3 text-[13px] font-semibold text-foreground border-b border-border bg-secondary ${
                           index === ROWS.length - 1 ? "border-b-0" : ""
                         }`}
                       >
@@ -157,7 +157,7 @@ export function Comparison() {
                         return (
                           <td
                             key={`${row.label}-${key}`}
-                            className={`px-4 py-3 text-sm text-foreground border-b border-border text-center ${
+                            className={`px-3 py-3 text-sm text-foreground border-b border-border text-center ${
                               isPrimary
                                 ? "bg-primary/10 border-l-2 border-r-2 border-primary/40"
                                 : "border-l border-border"
