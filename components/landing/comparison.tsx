@@ -18,7 +18,7 @@ const ROWS: Array<{
 }> = [
   {
     label: "Emotional value",
-    values: { regular: "maybe", apps: "maybe", gm: "yes" },
+    values: { regular: "yes", apps: "maybe", gm: "yes" },
   },
   {
     label: "Lasts for years",
@@ -26,7 +26,7 @@ const ROWS: Array<{
   },
   {
     label: "Personalized to them",
-    values: { regular: "maybe", apps: "maybe", gm: "yes" },
+    values: { regular: "yes", apps: "maybe", gm: "yes" },
   },
   {
     label: "Memorable / wow factor",
@@ -119,9 +119,7 @@ export function Comparison() {
               <table className="w-full border-separate border-spacing-0 text-left">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-[11px] uppercase tracking-wide text-muted-foreground bg-secondary">
-                      Comparison
-                    </th>
+                    <th className="px-4 py-3 text-[11px] uppercase tracking-wide text-muted-foreground bg-secondary"></th>
                     <th className="px-4 py-3 text-sm font-semibold text-foreground bg-primary/10 border-l-2 border-r-2 border-primary/40">
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-0.5">
@@ -226,9 +224,7 @@ export function Comparison() {
               <table className="w-full border-separate border-spacing-0 text-left">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-5 py-3 text-[11px] uppercase tracking-wide text-muted-foreground bg-secondary">
-                      Comparison
-                    </th>
+                    <th className="px-5 py-3 text-[11px] uppercase tracking-wide text-muted-foreground bg-secondary"></th>
                     <th className="px-5 py-3 text-sm font-semibold text-foreground bg-primary/10 border-l-2 border-r-2 border-primary/40 rounded-t-2xl">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-0.5">
