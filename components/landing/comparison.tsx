@@ -105,16 +105,16 @@ export function Comparison() {
           </div>
 
           <div className="relative z-10 px-8 py-10 lg:px-12 lg:py-12">
+            <div className="pointer-events-none absolute -left-[70px] -top-[71px] hidden lg:block z-30">
+              <Image
+                src="/graphics/wax-seal.png"
+                alt=""
+                width={230}
+                height={230}
+                className="opacity-95"
+              />
+            </div>
             <div className="relative rounded-[28px] border-2 border-border bg-secondary shadow-sm overflow-hidden">
-              <div className="pointer-events-none absolute -left-[calc(1.75rem+70px)] -top-[calc(1.75rem+71px)] hidden lg:block z-30">
-                <Image
-                  src="/graphics/wax-seal.png"
-                  alt=""
-                  width={230}
-                  height={230}
-                  className="opacity-95"
-                />
-              </div>
             <div className="md:hidden">
               <table className="w-full border-separate border-spacing-0 text-left">
                 <thead>
