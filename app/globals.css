@@ -193,6 +193,43 @@
       animation: none;
     }
   }
+
+  @keyframes slide-in-right {
+    0% {
+      opacity: 0;
+      transform: translateX(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-in-left {
+    0% {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 240ms ease-out both;
+  }
+
+  .animate-slide-in-left {
+    animation: slide-in-left 240ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-slide-in-right,
+    .animate-slide-in-left {
+      animation: none;
+    }
+  }
 }
 
 /* Custom scrollbar - warm, elegant feel */

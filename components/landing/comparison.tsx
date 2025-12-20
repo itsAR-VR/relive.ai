@@ -8,7 +8,7 @@ type Tone = "yes" | "no" | "maybe"
 
 const COLUMNS = [
   { key: "regular", label: "Regular gifts", sublabel: "Luxury items" },
-  { key: "apps", label: "Generic apps", sublabel: "Slideshow & memory apps" },
+  { key: "apps", label: "Generic apps", sublabel: "Slides & memory apps" },
   { key: "gm", label: "Gifting Moments", sublabel: "Best" },
 ] as const
 
@@ -71,11 +71,14 @@ const toneStyles = (tone: Tone, isPrimary: boolean) => {
 export function Comparison() {
   const competitorKeys = ["regular", "apps"] as const
   const [activeCompetitorIndex, setActiveCompetitorIndex] = useState(0)
+  const [lastCompetitorIndex, setLastCompetitorIndex] = useState(0)
   const activeCompetitorKey = competitorKeys[activeCompetitorIndex]
   const activeCompetitor =
     activeCompetitorKey === "regular" ? COLUMNS[0] : COLUMNS[1]
   const isLeftDisabled = activeCompetitorIndex === 0
   const isRightDisabled = activeCompetitorIndex === competitorKeys.length - 1
+  const slideDir =
+    activeCompetitorIndex > lastCompetitorIndex ? "animate-slide-in-right" : "animate-slide-in-left"
 
   return (
     <section className="bg-background py-12 md:py-16 relative overflow-hidden">
@@ -132,7 +135,7 @@ export function Comparison() {
                       </div>
                     </th>
                     <th className="w-[29%] px-3 py-3 text-[13px] font-semibold text-foreground border-l border-border">
-                      <div className="space-y-0.5">
+                      <div key={activeCompetitorKey} className={`space-y-0.5 ${slideDir}`}>
                         <p className="font-serif text-[13px]">{activeCompetitor.label}</p>
                         <p className="text-[11px] text-muted-foreground">{activeCompetitor.sublabel}</p>
                       </div>
@@ -154,6 +157,7 @@ export function Comparison() {
                         const tone = row.values[key]
                         const Icon = toneIcon(tone)
                         const isPrimary = key === "gm"
+                        const cellMotion = key === "gm" ? "" : slideDir
                         return (
                           <td
                             key={`${row.label}-${key}`}
@@ -164,14 +168,16 @@ export function Comparison() {
                             } ${index === ROWS.length - 1 ? "border-b-0" : ""}`}
                             aria-label={`${key} ${tone}`}
                           >
-                            <span
-                              className={`inline-flex h-8 w-8 items-center justify-center rounded-full border ${toneStyles(
-                                tone,
-                                isPrimary,
-                              )}`}
-                            >
-                              <Icon className="h-4 w-4" />
-                            </span>
+                            <div key={activeCompetitorKey} className={cellMotion}>
+                              <span
+                                className={`inline-flex h-8 w-8 items-center justify-center rounded-full border ${toneStyles(
+                                  tone,
+                                  isPrimary,
+                                )}`}
+                              >
+                                <Icon className="h-4 w-4" />
+                              </span>
+                            </div>
                           </td>
                         )
                       })}
@@ -190,7 +196,10 @@ export function Comparison() {
                       ? "border-border text-muted-foreground/60"
                       : "border-border text-foreground hover:bg-muted"
                   }`}
-                  onClick={() => setActiveCompetitorIndex(0)}
+                  onClick={() => {
+                    setLastCompetitorIndex(activeCompetitorIndex)
+                    setActiveCompetitorIndex(0)
+                  }}
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </button>
@@ -213,7 +222,10 @@ export function Comparison() {
                       ? "border-border text-muted-foreground/60"
                       : "border-border text-foreground hover:bg-muted"
                   }`}
-                  onClick={() => setActiveCompetitorIndex(1)}
+                  onClick={() => {
+                    setLastCompetitorIndex(activeCompetitorIndex)
+                    setActiveCompetitorIndex(1)
+                  }}
                 >
                   <ArrowRight className="h-5 w-5" />
                 </button>
@@ -245,7 +257,7 @@ export function Comparison() {
                     <th className="px-5 py-3 text-sm font-semibold text-foreground border-l border-border">
                       <div className="space-y-0.5">
                         <p className="font-serif text-base">Generic apps</p>
-                        <p className="text-xs text-muted-foreground">Slideshow & memory apps</p>
+                        <p className="text-xs text-muted-foreground">Slides & memory apps</p>
                       </div>
                     </th>
                   </tr>
