@@ -4,19 +4,19 @@ import Image from "next/image"
 
 const PAIN_STATS = [
   {
-    iconSrc: "/icons/gift-box.png",
+    iconSrc: "/icons/gift-box.svg",
     value: "68%",
     label: "of gifts are returned or unused within 6 months",
     labelShort: "Returned / unused in 6 months",
   },
   {
-    iconSrc: "/icons/photos.png",
+    iconSrc: "/icons/photos.svg",
     value: "84%",
     label: "say their favourite photos are scattered across devices",
     labelShort: "Photos scattered across devices",
   },
   {
-    iconSrc: "/icons/magic-wand.png",
+    iconSrc: "/icons/magic-wand.svg",
     value: "74%",
     label: "say most “AI” tools feel cold or templated",
     labelShort: "Most “AI” feels cold",
