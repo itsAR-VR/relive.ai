@@ -10,6 +10,24 @@ export function DemoVideo() {
     const videos = [desktopRef.current, mobileRef.current].filter(Boolean) as HTMLVideoElement[]
     if (videos.length === 0) return
 
+    // Warm the cache shortly after first paint so the section appears instantly when reached,
+    // without competing with more critical above-the-fold resources.
+    const warm = () => {
+      for (const video of videos) {
+        try {
+          video.preload = "auto"
+          video.load()
+        } catch {
+          // Ignore
+        }
+      }
+    }
+
+    const hasRic = typeof window !== "undefined" && "requestIdleCallback" in window
+    const idleId = hasRic
+      ? (window as any).requestIdleCallback(warm, { timeout: 1500 })
+      : window.setTimeout(warm, 800)
+
     const tryPlay = (video: HTMLVideoElement) => {
       const promise = video.play()
       if (promise && typeof promise.catch === "function") {
@@ -35,7 +53,14 @@ export function DemoVideo() {
 
     for (const video of videos) observer.observe(video)
 
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      if (hasRic) {
+        ;(window as any).cancelIdleCallback?.(idleId)
+      } else {
+        window.clearTimeout(idleId)
+      }
+    }
   }, [])
 
   return (
@@ -69,4 +94,3 @@ export function DemoVideo() {
     </section>
   )
 }
-

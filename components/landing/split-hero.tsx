@@ -55,6 +55,7 @@ export function SplitHero({ onStartGift }: SplitHeroProps) {
               <BeforeAfterScrubber
                 beforeImageSrc="/vintage-sepia-old-wedding-photograph-1950s-couple.jpg"
                 afterVideoSrc="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Wealth%20Video%20Crop-ZuwydYNC0E3xso5q3g1vtPBv2CoHS4.mp4"
+                afterPosterSrc="/restored-colorized-vintage-wedding-photograph-high.jpg"
                 beforeAlt="Original vintage photograph"
               />
             </div>

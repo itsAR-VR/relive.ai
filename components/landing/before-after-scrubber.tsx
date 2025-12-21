@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 interface BeforeAfterScrubberProps {
   beforeImageSrc: string
   afterVideoSrc: string
+  afterPosterSrc?: string
   beforeAlt: string
   className?: string
 }
@@ -13,6 +14,7 @@ interface BeforeAfterScrubberProps {
 export function BeforeAfterScrubber({
   beforeImageSrc,
   afterVideoSrc,
+  afterPosterSrc,
   beforeAlt,
   className,
 }: BeforeAfterScrubberProps) {
@@ -84,12 +86,14 @@ export function BeforeAfterScrubber({
           <video
             ref={videoRef}
             src={afterVideoSrc}
+            poster={afterPosterSrc}
             className="absolute left-0 top-0 will-change-transform"
             style={videoStyle}
             loop
             muted
             playsInline
             autoPlay
+            preload="auto"
           />
 
           {/* Before (overlay) */}

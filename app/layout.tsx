@@ -68,6 +68,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfairDisplay.variable} ${inter.variable}`}>
       <head>
+        <link rel="dns-prefetch" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
+        <link
+          rel="preconnect"
+          href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com"
+          crossOrigin="anonymous"
+        />
         <Script
           id="meta-pixel"
           strategy="afterInteractive"
