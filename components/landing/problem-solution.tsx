@@ -46,20 +46,16 @@ export function ProblemSolution() {
             {PAIN_STATS.map((stat) => (
               <div key={stat.label} className="w-full max-w-[340px] text-center">
                 <div className="flex items-center justify-center gap-4">
-                  <div className="h-24 w-24 flex items-center justify-center">
-                    <Image
-                      src={stat.iconSrc}
-                      alt=""
-                      width={96}
-                      height={96}
-                      className="h-24 w-24 object-contain"
-                    />
-                  </div>
-                  <div className="h-24 flex items-center">
-                    <p className="font-serif font-semibold text-7xl md:text-8xl tracking-tight leading-none">
-                      {stat.value}
-                    </p>
-                  </div>
+                  <Image
+                    src={stat.iconSrc}
+                    alt=""
+                    width={80}
+                    height={80}
+                    className="h-[72px] w-[72px] md:h-20 md:w-20 object-contain flex-shrink-0"
+                  />
+                  <p className="font-serif font-semibold text-7xl md:text-8xl tracking-tight leading-none">
+                    {stat.value}
+                  </p>
                 </div>
 
                 <p className="mt-2 mx-auto text-base md:text-lg font-semibold text-background/90 leading-snug max-w-[320px]">
