@@ -8,6 +8,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { VideoUploader } from "@/components/admin/video-uploader"
+import { ClipUploader } from "@/components/admin/clip-uploader"
 import {
   LogOut,
   Shield,
@@ -33,7 +34,7 @@ import {
 } from "lucide-react"
 
 type OrderStatus = "pending" | "pending_interview" | "interview_in_progress" | "in_production" | "ready" | "delivered" | "cancelled"
-type OrderTier = "standard" | "premium" | "biography"
+type OrderTier = "standard" | "premium" | "biography" | "custom"
 
 interface Profile {
   id: string
@@ -127,6 +128,7 @@ const tierLabels: Record<OrderTier, string> = {
   standard: "Standard",
   premium: "Premium",
   biography: "Biography",
+  custom: "Custom",
 }
 
 // Tier priority for sorting (higher = more important, shows first)
@@ -134,6 +136,7 @@ const tierPriority: Record<OrderTier, number> = {
   biography: 3,
   premium: 2,
   standard: 1,
+  custom: 0,
 }
 
 // Tier configuration with interview requirements
@@ -152,6 +155,11 @@ const tierInterviewConfig: Record<OrderTier, { hasInterview: boolean; descriptio
     hasInterview: true,
     description: "30-min consultation required",
     color: "bg-amber-100 text-amber-700",
+  },
+  custom: {
+    hasInterview: false,
+    description: "Photo upload required (no gift wrap, no revisions)",
+    color: "bg-purple-100 text-purple-700",
   },
 }
 
@@ -405,8 +413,8 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders, su
         {activeTab === "orders" && (
           <>
         {/* Tier Summary Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {(["biography", "premium", "standard"] as OrderTier[]).map(tier => {
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {(["biography", "premium", "standard", "custom"] as OrderTier[]).map(tier => {
             const config = tierInterviewConfig[tier]
             const count = tierCounts[tier] || 0
             const isActive = tierFilter === tier
@@ -508,6 +516,17 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders, su
                 const isExpanded = expandedOrder === order.id
                 const config = statusConfig[order.status]
                 const isUpdating = updating === order.id
+                const isCustom = order.tier === "custom"
+                const expectedCountRaw = order.quiz_data && typeof order.quiz_data === "object"
+                  ? (order.quiz_data as Record<string, unknown>).expected_photo_count
+                  : null
+                const expectedCount = typeof expectedCountRaw === "number" ? expectedCountRaw : Number(expectedCountRaw)
+                const clipUrlsRaw = order.interview_data && typeof order.interview_data === "object"
+                  ? (order.interview_data as Record<string, unknown>).final_video_urls
+                  : null
+                const clipUrls = Array.isArray(clipUrlsRaw)
+                  ? clipUrlsRaw.filter((u): u is string => typeof u === "string")
+                  : []
 
                 return (
                   <div key={order.id} className="hover:bg-slate-50/50 transition-colors">
@@ -720,43 +739,99 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders, su
 
                               {/* Action Buttons based on status */}
                               {order.status === "pending_interview" && (
-                                <Button
-                                  onClick={(e) => { e.stopPropagation(); updateOrderStatus(order.id, "in_production"); }}
-                                  disabled={isUpdating}
-                                  className="w-full bg-purple-600 hover:bg-purple-700"
-                                >
-                                  {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
-                                  Start Production
-                                </Button>
+                                isCustom ? (
+                                  <Button
+                                    disabled
+                                    className="w-full bg-slate-100 text-slate-600 hover:bg-slate-100 cursor-not-allowed"
+                                  >
+                                    Awaiting photo upload
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    onClick={(e) => { e.stopPropagation(); updateOrderStatus(order.id, "in_production"); }}
+                                    disabled={isUpdating}
+                                    className="w-full bg-purple-600 hover:bg-purple-700"
+                                  >
+                                    {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
+                                    Start Production
+                                  </Button>
+                                )
                               )}
 
                               {order.status === "in_production" && (
                                 <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
-                                  <div className="text-xs text-slate-500 font-medium">Upload Final Video</div>
-                                  <VideoUploader
-                                    orderId={order.id}
-                                    currentVideoUrl={order.final_video_url}
-                                    onUploadComplete={async (url) => {
-                                      // Update local state immediately
-                                      setOrders(prev => prev.map(o => 
-                                        o.id === order.id ? { ...o, final_video_url: url } : o
-                                      ))
-                                      // Persist to database
-                                      await updateOrderStatus(order.id, order.status, { final_video_url: url })
-                                    }}
-                                  />
-                                  {order.final_video_url && (
-                                    <Button
-                                      onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        updateOrderStatus(order.id, "ready"); 
-                                      }}
-                                      disabled={isUpdating}
-                                      className="w-full bg-green-600 hover:bg-green-700"
-                                    >
-                                      {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-                                      Mark Ready
-                                    </Button>
+                                  {isCustom ? (
+                                    <>
+                                      <div className="text-xs text-slate-500 font-medium">
+                                        Upload Clips {Number.isFinite(expectedCount) && expectedCount > 0 ? `(${expectedCount} required)` : ""}
+                                      </div>
+                                      {Number.isFinite(expectedCount) && expectedCount >= 1 && expectedCount <= 20 ? (
+                                        <ClipUploader
+                                          orderId={order.id}
+                                          expectedCount={expectedCount}
+                                          urls={clipUrls}
+                                          onChange={async (urls) => {
+                                            const mergedInterview = {
+                                              ...(order.interview_data || {}),
+                                              final_video_urls: urls,
+                                            }
+                                            setOrders(prev => prev.map(o =>
+                                              o.id === order.id ? { ...o, interview_data: mergedInterview } : o
+                                            ))
+                                            await updateOrderStatus(order.id, order.status, { interview_data: mergedInterview })
+                                          }}
+                                        />
+                                      ) : (
+                                        <div className="text-sm text-red-600">
+                                          Missing expected clip count on this order (quiz_data.expected_photo_count).
+                                        </div>
+                                      )}
+
+                                      <Button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          updateOrderStatus(order.id, "ready")
+                                        }}
+                                        disabled={
+                                          isUpdating ||
+                                          !(Number.isFinite(expectedCount) && expectedCount >= 1 && expectedCount <= 20) ||
+                                          clipUrls.length !== expectedCount
+                                        }
+                                        className="w-full bg-green-600 hover:bg-green-700"
+                                      >
+                                        {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                                        Mark Ready
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="text-xs text-slate-500 font-medium">Upload Final Video</div>
+                                      <VideoUploader
+                                        orderId={order.id}
+                                        currentVideoUrl={order.final_video_url}
+                                        onUploadComplete={async (url) => {
+                                          // Update local state immediately
+                                          setOrders(prev => prev.map(o =>
+                                            o.id === order.id ? { ...o, final_video_url: url } : o
+                                          ))
+                                          // Persist to database
+                                          await updateOrderStatus(order.id, order.status, { final_video_url: url })
+                                        }}
+                                      />
+                                      {order.final_video_url && (
+                                        <Button
+                                          onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            updateOrderStatus(order.id, "ready"); 
+                                          }}
+                                          disabled={isUpdating}
+                                          className="w-full bg-green-600 hover:bg-green-700"
+                                        >
+                                          {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                                          Mark Ready
+                                        </Button>
+                                      )}
+                                    </>
                                   )}
                                 </div>
                               )}
@@ -772,7 +847,7 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders, su
                                     Mark Delivered
                                   </Button>
                                   
-                                  {order.final_video_url && (
+                                  {!isCustom && order.final_video_url && (
                                     <a
                                       href={order.final_video_url}
                                       target="_blank"
@@ -783,6 +858,25 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders, su
                                       <ExternalLink className="w-4 h-4" />
                                       View Final Video
                                     </a>
+                                  )}
+
+                                  {isCustom && clipUrls.length > 0 && (
+                                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2">
+                                      <div className="text-xs font-medium text-slate-600">Clip downloads</div>
+                                      {clipUrls.map((url, idx) => (
+                                        <a
+                                          key={`${url}-${idx}`}
+                                          href={url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="flex items-center justify-between gap-2 text-sm text-slate-700 hover:underline"
+                                        >
+                                          <span>Clip {idx + 1}</span>
+                                          <ExternalLink className="w-4 h-4 text-slate-500" />
+                                        </a>
+                                      ))}
+                                    </div>
                                   )}
                                 </div>
                               )}
@@ -800,7 +894,7 @@ export function AdminDashboardContent({ user, profile, orders: initialOrders, su
                               )}
 
                               {/* View Gift Page Link */}
-                              {(order.status === "ready" || order.status === "delivered") && (
+                              {!isCustom && (order.status === "ready" || order.status === "delivered") && (
                                 <Link
                                   href={`/view/${order.id}`}
                                   target="_blank"

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Check, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, RefreshCw } from "lucide-react"
+import { Check, ArrowLeft, Heart, Clapperboard, Film, Sparkles, Shield, Clock, RefreshCw, Minus, Plus, Image as ImageIcon } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { Footer } from "@/components/footer"
@@ -29,6 +29,8 @@ const SERVICE_PACKAGES = [
     features: [
       "1 Restored Memory Scene (up to 5 generations; we pick the most emotional & accurate cut)",
       "Pick your favorite style (incl. Super 8 vintage)",
+      "Sound Design + Music",
+      "Unlimited Revisions",
       "Delivered via private gift-wrapped page (shareable link)",
     ],
     includedFrom: null,
@@ -84,6 +86,7 @@ function PricingContent() {
   const [toast, setToast] = useState<{ message: string; type?: "error" | "success" } | null>(null)
   const [quizData, setQuizData] = useState<{ honoree?: string; memory?: string; vibe?: string } | null>(null)
   const [isDesktop, setIsDesktop] = useState(false)
+  const [customCount, setCustomCount] = useState(1)
   const searchParams = useSearchParams()
   const recommendedTier = searchParams.get("recommended")
   const premiumRef = useRef<HTMLDivElement>(null)
@@ -138,14 +141,14 @@ function PricingContent() {
     return () => clearTimeout(timer)
   }, [toast])
 
-  const handlePurchase = async (tierId: string) => {
+  const handlePurchase = async (tierId: string, options?: { quantity?: number }) => {
     setLoading(tierId)
 
     try {
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tierId, quizData }),
+        body: JSON.stringify({ tierId, quizData, quantity: options?.quantity }),
       })
 
       const data = await response.json()
@@ -342,6 +345,113 @@ function PricingContent() {
               </div>
             )
           })}
+
+          {/* Custom package - full width */}
+          <div className="md:col-span-3 bg-card rounded-xl border-2 border-border p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                    <ImageIcon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-xl md:text-2xl text-foreground">Revive Clips (Custom)</h3>
+                    <p className="text-sm text-muted-foreground">Animate photos into 5‑second video clips</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {[
+                    "1 photo → 1 5‑second clip",
+                    "Bulk upload your photos after checkout",
+                    "No sound design + music",
+                    "No gift‑wrapped viewing page",
+                    "No revisions",
+                  ].map((feature) => (
+                    <div key={feature} className="flex items-start gap-2 text-foreground">
+                      <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-xs md:text-sm">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="mt-4 text-xs text-muted-foreground italic">
+                  Perfect for quickly reviving multiple moments — delivered within 24 hours.
+                </p>
+              </div>
+
+              <div className="w-full md:w-[320px] border border-border rounded-xl p-4 bg-muted/20">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium">Price</p>
+                    <p className="text-sm text-foreground font-semibold">$8 per clip</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground font-medium">Total</p>
+                    <p className="text-lg font-semibold text-foreground">${customCount * 8}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-xs text-muted-foreground font-medium mb-2">How many photos do you want revived?</p>
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setCustomCount((c) => Math.max(1, c - 1))}
+                      className="h-10 w-10 rounded-lg border border-border bg-background flex items-center justify-center hover:bg-muted transition-colors"
+                      aria-label="Decrease quantity"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <div className="flex-1">
+                      <input
+                        type="range"
+                        min={1}
+                        max={20}
+                        value={customCount}
+                        onChange={(e) => setCustomCount(Number(e.target.value))}
+                        className="w-full"
+                        aria-label="Custom clip quantity"
+                      />
+                      <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                        <span>1</span>
+                        <span>20</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCustomCount((c) => Math.min(20, c + 1))}
+                      className="h-10 w-10 rounded-lg border border-border bg-background flex items-center justify-center hover:bg-muted transition-colors"
+                      aria-label="Increase quantity"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="mt-2 flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Quantity</span>
+                    <span className="font-medium text-foreground">{customCount}</span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Total runtime</span>
+                    <span className="font-medium text-foreground">{customCount * 5}s</span>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => handlePurchase("custom", { quantity: customCount })}
+                  disabled={loading === "custom"}
+                  className="w-full h-10 md:h-11 font-medium text-sm mt-5 bg-foreground hover:bg-foreground/90 text-background"
+                >
+                  {loading === "custom" ? (
+                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                  ) : (
+                    "Checkout"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Trust Section - Improved 3 bullets */}
@@ -349,7 +459,7 @@ function PricingContent() {
           <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
               <RefreshCw className="w-4 h-4 text-primary" />
-              <span className="text-xs md:text-sm text-foreground font-medium">Unlimited Revisions</span>
+              <span className="text-xs md:text-sm text-foreground font-medium">Unlimited revisions (gift packages)</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
               <Clock className="w-4 h-4 text-primary" />
@@ -357,7 +467,7 @@ function PricingContent() {
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border">
               <Shield className="w-4 h-4 text-accent" />
-              <span className="text-xs md:text-sm text-foreground font-medium">Private Sharing Link</span>
+              <span className="text-xs md:text-sm text-foreground font-medium">Private sharing link (gift packages)</span>
             </div>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-4 max-w-sm mx-auto">

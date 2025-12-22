@@ -107,6 +107,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 | `STRIPE_PRICE_STANDARD` | Stripe Price ID - Digital Keepsake ($49) |
 | `STRIPE_PRICE_PREMIUM` | Stripe Price ID - Director's Cut ($149) |
 | `STRIPE_PRICE_BIO` | Stripe Price ID - Biography ($299) |
+| `STRIPE_PRICE_CUSTOM` | Stripe Price ID - Revive Clips (Custom) ($8 per clip) |
 | `NEXT_PUBLIC_APP_URL` | Your deployed app URL |
 
 ### AI Integration (Kie.ai)
@@ -157,7 +158,7 @@ AND table_name IN ('orders', 'pending_checkouts', 'profiles');
 2. Quiz → Redirects to Pricing with recommended tier
 3. Pricing → User selects package, clicks "Book Now"
 4. Stripe Checkout → Payment processed
-5. Director Interview → Magic link sent, user completes interview
+5. Post-checkout intake → Gift packages: Director Interview • Custom: Photo upload
 6. Dashboard → User can view order status
 7. Delivery → Memory film delivered via email + private viewing page
 ```

@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 
 type OrderStatus = "pending_interview" | "in_production" | "ready"
-type OrderTier = "standard" | "premium" | "biography"
+type OrderTier = "standard" | "premium" | "biography" | "custom"
 
 interface Profile {
   id: string
@@ -59,6 +59,15 @@ const lifecycleSteps: { key: OrderStatus; label: string; helper: string }[] = [
     helper: "View and share the gift",
   },
 ]
+
+function lifecycleStepsForTier(tier: OrderTier) {
+  if (tier === "custom") {
+    return lifecycleSteps.map((step) =>
+      step.key === "pending_interview" ? { ...step, helper: "Waiting for your photos" } : step
+    )
+  }
+  return lifecycleSteps
+}
 
 function getStepIndex(status: OrderStatus) {
   switch (status) {
@@ -114,6 +123,8 @@ function tierLabel(tier: OrderTier) {
       return "Premium Gift"
     case "biography":
       return "Biography Gift"
+    case "custom":
+      return "Revive Clips (Custom)"
     default:
       return "Standard Gift"
   }
@@ -140,6 +151,7 @@ export function DashboardContent({ user, profile, orders }: DashboardContentProp
 
   const interviewLink = (order: Order) =>
     `/director-interview?order_id=${order.stripe_checkout_session_id || order.id}`
+  const reviveUploadLink = (order: Order) => `/revive-upload?order_id=${order.id}`
   const viewLink = (order: Order) => `/view/${order.id}`
 
   return (
@@ -228,6 +240,19 @@ export function DashboardContent({ user, profile, orders }: DashboardContentProp
               {orders.map((order) => {
                 const meta = statusMeta(order.status)
                 const progressIndex = getStepIndex(order.status)
+                const isCustom = order.tier === "custom"
+                const displayMeta =
+                  isCustom && order.status === "pending_interview"
+                    ? { ...meta, label: "Awaiting photos", description: "We need your photos to start production. Upload them to begin." }
+                    : meta
+                const steps = lifecycleStepsForTier(order.tier)
+                const clipUrlsRaw =
+                  isCustom && order.interview_data && typeof order.interview_data === "object"
+                    ? (order.interview_data as Record<string, unknown>).final_video_urls
+                    : null
+                const clipUrls = Array.isArray(clipUrlsRaw)
+                  ? clipUrlsRaw.filter((u): u is string => typeof u === "string")
+                  : []
                 return (
                   <div
                     key={order.id}
@@ -245,13 +270,13 @@ export function DashboardContent({ user, profile, orders }: DashboardContentProp
                           Booked {formatDate(order.created_at)}
                         </p>
                       </div>
-                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border font-sans ${meta.tone}`}>
-                        {meta.icon}
-                        <span className="font-semibold">{meta.label}</span>
+                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border font-sans ${displayMeta.tone}`}>
+                        {displayMeta.icon}
+                        <span className="font-semibold">{displayMeta.label}</span>
                       </div>
                     </div>
 
-                    <p className="relative text-sm text-muted-foreground">{meta.description}</p>
+                    <p className="relative text-sm text-muted-foreground">{displayMeta.description}</p>
 
                     <div className="relative bg-secondary border border-border rounded-xl p-4">
                       <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-primary">
@@ -259,9 +284,9 @@ export function DashboardContent({ user, profile, orders }: DashboardContentProp
                         <span>Order lifecycle</span>
                       </div>
                       <div className="mt-4 flex items-center gap-2">
-                        {lifecycleSteps.map((step, index) => {
+                        {steps.map((step, index) => {
                           const state = getStepState(order.status, step.key)
-                          const isLast = index === lifecycleSteps.length - 1
+                          const isLast = index === steps.length - 1
                           const connectionComplete = progressIndex > index
 
                           const icon =
@@ -309,9 +334,9 @@ export function DashboardContent({ user, profile, orders }: DashboardContentProp
 
                     <div className="relative flex flex-col sm:flex-row gap-3">
                       {order.status === "pending_interview" && (
-                        <Link href={interviewLink(order)} className="flex-1">
+                        <Link href={isCustom ? reviveUploadLink(order) : interviewLink(order)} className="flex-1">
                           <Button className="w-full font-sans bg-primary hover:bg-primary/90 text-primary-foreground">
-                            Complete Director Interview
+                            {isCustom ? "Upload photos" : "Complete Director Interview"}
                           </Button>
                         </Link>
                       )}
@@ -329,15 +354,42 @@ export function DashboardContent({ user, profile, orders }: DashboardContentProp
 
                       {order.status === "ready" && (
                         <>
-                          <Link href={viewLink(order)} className="flex-1">
-                            <Button className="w-full font-sans bg-primary hover:bg-primary/90 text-primary-foreground">
-                              View gift
-                            </Button>
-                          </Link>
-                          {order.final_video_url && (
-                            <p className="text-xs text-muted-foreground sm:self-center">
-                              Final video attached to this order.
-                            </p>
+                          {isCustom ? (
+                            <div className="flex-1 bg-secondary border border-border rounded-xl p-4">
+                              <p className="text-sm font-semibold text-foreground">Your clips are ready</p>
+                              {clipUrls.length > 0 ? (
+                                <div className="mt-3 grid gap-2">
+                                  {clipUrls.map((url, idx) => (
+                                    <a
+                                      key={`${url}-${idx}`}
+                                      href={url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm font-sans text-primary underline underline-offset-4 hover:text-primary/90"
+                                    >
+                                      Download clip {idx + 1}
+                                    </a>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                  Clips are marked ready, but downloads haven&apos;t been attached yet.
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <>
+                              <Link href={viewLink(order)} className="flex-1">
+                                <Button className="w-full font-sans bg-primary hover:bg-primary/90 text-primary-foreground">
+                                  View gift
+                                </Button>
+                              </Link>
+                              {order.final_video_url && (
+                                <p className="text-xs text-muted-foreground sm:self-center">
+                                  Final video attached to this order.
+                                </p>
+                              )}
+                            </>
                           )}
                         </>
                       )}

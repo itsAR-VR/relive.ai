@@ -124,6 +124,8 @@ export async function POST(request: Request) {
       const userId = session.metadata?.user_id
       const tierId = session.metadata?.tier
       const quizData = parseMetadataJson(session.metadata?.quiz_data)
+      const customQuantityRaw = session.metadata?.custom_quantity
+      const customQuantity = customQuantityRaw ? Number.parseInt(customQuantityRaw, 10) : null
       const tier = tierId ? getServiceTierById(tierId) : null
       const customerEmail =
         session.customer_details?.email || session.customer_email || undefined
@@ -142,6 +144,13 @@ export async function POST(request: Request) {
         break
       }
 
+      const isCustom = tier.id === "custom"
+      const enrichedQuizData = isCustom && customQuantity && Number.isFinite(customQuantity)
+        ? { ...quizData, expected_photo_count: customQuantity }
+        : quizData
+      const effectiveQuantity = isCustom && customQuantity && Number.isFinite(customQuantity) ? customQuantity : 1
+      const fallbackAmountPaid = Math.round(tier.price * 100 * effectiveQuantity)
+
       const { data: orderData, error } = await supabaseAdmin
         .from("orders")
         .upsert(
@@ -149,9 +158,10 @@ export async function POST(request: Request) {
             user_id: resolvedUserId,
             tier: tier.id,
             status: "pending_interview",
-            quiz_data: quizData,
+            quiz_data: enrichedQuizData,
             stripe_checkout_session_id: session.id,
-            amount_paid: session.amount_total || Math.round(tier.price * 100),
+            amount_paid: session.amount_total || fallbackAmountPaid,
+            ...(isCustom ? { view_token: null, recipient_email: null, recipient_name: null } : {}),
           },
           { onConflict: "stripe_checkout_session_id" }
         )
@@ -177,7 +187,7 @@ export async function POST(request: Request) {
         })
       }
 
-      const amount = session.amount_total ? session.amount_total / 100 : tier.price
+      const amount = session.amount_total ? session.amount_total / 100 : (fallbackAmountPaid / 100)
       const currency = session.currency ? session.currency.toUpperCase() : "USD"
 
       sendConversionEvent({

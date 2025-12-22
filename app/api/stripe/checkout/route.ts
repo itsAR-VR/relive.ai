@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { tierId, tier, packageId, quizData } = body
+    const { tierId, tier, packageId, quizData, quantity } = body
     const serviceTierId: string | undefined = tierId || tier || packageId
 
     if (!serviceTierId) {
@@ -38,6 +38,24 @@ export async function POST(request: Request) {
 
     if (!serviceTier) {
       return NextResponse.json({ error: "Invalid service tier" }, { status: 400 })
+    }
+
+    const isCustom = serviceTier.id === "custom"
+    const parsedQuantity = typeof quantity === "number" ? quantity : Number(quantity)
+    let effectiveQuantity = 1
+
+    if (isCustom) {
+      const isValid =
+        Number.isFinite(parsedQuantity) &&
+        Number.isInteger(parsedQuantity) &&
+        parsedQuantity >= 1 &&
+        parsedQuantity <= 20
+
+      if (!isValid) {
+        return NextResponse.json({ error: "Quantity must be an integer between 1 and 20" }, { status: 400 })
+      }
+
+      effectiveQuantity = parsedQuantity
     }
 
     const stripe = getStripe()
@@ -77,6 +95,10 @@ export async function POST(request: Request) {
       metadata.user_id = user.id
     }
 
+    if (isCustom) {
+      metadata.custom_quantity = String(effectiveQuantity)
+    }
+
     if (quizData) {
       try {
         metadata.quiz_data =
@@ -87,7 +109,7 @@ export async function POST(request: Request) {
     }
 
     const lineItem = serviceTier.priceId
-      ? { price: serviceTier.priceId, quantity: 1 }
+      ? { price: serviceTier.priceId, quantity: effectiveQuantity }
       : {
         price_data: {
           currency: "USD",
@@ -97,18 +119,22 @@ export async function POST(request: Request) {
             metadata: { tier: serviceTier.id },
           },
         },
-        quantity: 1,
+        quantity: effectiveQuantity,
       }
 
     if (!serviceTier.priceId) {
       metadata.price_fallback = "inline_price_data"
     }
 
+    const totalValue = serviceTier.price * effectiveQuantity
+
     const session = await stripe.checkout.sessions.create({
       ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
       line_items: [lineItem],
       mode: "payment",
-      success_url: `${origin}/director-interview?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: isCustom
+        ? `${origin}/revive-upload?session_id={CHECKOUT_SESSION_ID}`
+        : `${origin}/director-interview?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?canceled=true`,
       metadata,
     })
@@ -133,7 +159,7 @@ export async function POST(request: Request) {
       },
       customData: {
         currency: "USD",
-        value: serviceTier.price,
+        value: totalValue,
         content_category: "gift_package",
         content_ids: [serviceTier.id],
         content_name: serviceTier.name,

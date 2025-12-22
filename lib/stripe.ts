@@ -20,6 +20,7 @@ const priceIds = {
   standard: process.env.STRIPE_PRICE_STANDARD,
   premium: process.env.STRIPE_PRICE_PREMIUM,
   bio: process.env.STRIPE_PRICE_BIO,
+  custom: process.env.STRIPE_PRICE_CUSTOM,
 }
 
 export const SERVICE_TIERS = [
@@ -40,6 +41,12 @@ export const SERVICE_TIERS = [
     name: "The Biography",
     price: 139, // $139 (holiday price)
     priceId: priceIds.bio,
+  },
+  {
+    id: "custom",
+    name: "Revive Clips (Custom)",
+    price: 8, // $8 per 5s clip
+    priceId: priceIds.custom,
   },
 ] as const
 

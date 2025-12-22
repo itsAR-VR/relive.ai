@@ -78,7 +78,7 @@ export function PackagesPreview({ onStartGift }: PackagesPreviewProps) {
             Choose the film that fits your moment
           </h2>
           <p className="mt-4 text-sm md:text-base text-muted-foreground leading-relaxed">
-            Clear options. Clear perks. Unlimited revisions on every tier.
+            Clear options. Clear perks. Unlimited revisions on every gift package.
           </p>
         </div>
 
@@ -158,13 +158,13 @@ export function PackagesPreview({ onStartGift }: PackagesPreviewProps) {
                 <div className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-primary mt-0.5" />
                   <p className="text-sm text-foreground leading-relaxed">
-                    Unlimited revisions guarantee (all tiers)
+                    Unlimited revisions guarantee (all gift packages)
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-primary mt-0.5" />
                   <p className="text-sm text-foreground leading-relaxed">
-                    Private gift‑wrapped sharing link (all tiers)
+                    Private gift‑wrapped sharing link (all gift packages)
                   </p>
                 </div>
               </div>
@@ -238,7 +238,7 @@ export function PackagesPreview({ onStartGift }: PackagesPreviewProps) {
         </div>
 
         <p className="mt-8 text-xs text-muted-foreground text-center max-w-3xl mx-auto">
-          All packages include AI-enhanced restoration, a private sharing link, and unlimited revisions.
+          All gift packages include AI-enhanced restoration, a private sharing link, and unlimited revisions.
         </p>
       </div>
     </section>

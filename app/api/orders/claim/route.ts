@@ -74,11 +74,23 @@ export async function POST(request: Request) {
         const tierFromPrice = priceId ? getServiceTierByPriceId(priceId) : null
         const tier = tierFromMetadata || tierFromPrice
         const quizData = parseMetadataJson(session.metadata?.quiz_data)
+        const customQuantityRaw = session.metadata?.custom_quantity
+        const customQuantityFromMetadata = customQuantityRaw ? Number.parseInt(customQuantityRaw, 10) : null
+        const customQuantityFromLineItem =
+          typeof firstLine?.quantity === "number" && Number.isFinite(firstLine.quantity) ? firstLine.quantity : null
 
         if (!tier) {
           console.error("Order claim fallback: Missing tier for session", { sessionId, priceId, tierMeta: session.metadata?.tier })
           return NextResponse.json({ error: "Order not found" }, { status: 404 })
         }
+
+        const isCustom = tier.id === "custom"
+        const customQuantity = isCustom
+          ? (customQuantityFromMetadata || customQuantityFromLineItem)
+          : null
+        const enrichedQuizData = isCustom && customQuantity
+          ? { ...quizData, expected_photo_count: customQuantity }
+          : quizData
 
         // Ensure profile exists before creating order (FK constraint)
         const customerEmail = session.customer_details?.email || session.customer_email
@@ -97,8 +109,9 @@ export async function POST(request: Request) {
               user_id: user.id,
               tier: tier.id,
               status: "pending_interview",
-              quiz_data: quizData,
+              quiz_data: enrichedQuizData,
               stripe_checkout_session_id: session.id,
+              ...(isCustom ? { view_token: null, recipient_email: null, recipient_name: null } : {}),
             },
             { onConflict: "stripe_checkout_session_id" }
           )

@@ -197,6 +197,10 @@ export async function POST(request: Request) {
         const tierFromPrice = priceId ? getServiceTierByPriceId(priceId) : null
         const tier = tierFromMetadata || tierFromPrice
         const quizData = parseMetadataJson(session.metadata?.quiz_data)
+        const customQuantityRaw = session.metadata?.custom_quantity
+        const customQuantityFromMetadata = customQuantityRaw ? Number.parseInt(customQuantityRaw, 10) : null
+        const customQuantityFromLineItem =
+          typeof firstLine?.quantity === "number" && Number.isFinite(firstLine.quantity) ? firstLine.quantity : null
         let orderUserId = session.metadata?.user_id
         const sessionEmail = session.customer_details?.email || session.customer_email || undefined
 
@@ -220,6 +224,14 @@ export async function POST(request: Request) {
           }
         }
 
+        const isCustom = tier.id === "custom"
+        const customQuantity = isCustom
+          ? (customQuantityFromMetadata || customQuantityFromLineItem)
+          : null
+        const enrichedQuizData = isCustom && customQuantity
+          ? { ...quizData, expected_photo_count: customQuantity }
+          : quizData
+
         const upsertResult = await admin
           .from("orders")
           .upsert(
@@ -227,8 +239,9 @@ export async function POST(request: Request) {
               user_id: orderUserId,
               tier: tier.id,
               status: "pending_interview",
-              quiz_data: quizData,
+              quiz_data: enrichedQuizData,
               stripe_checkout_session_id: session.id,
+              ...(isCustom ? { view_token: null, recipient_email: null, recipient_name: null } : {}),
             },
             { onConflict: "stripe_checkout_session_id" }
           )
@@ -266,22 +279,45 @@ export async function POST(request: Request) {
 
     const audioNoteFile = formData.get("audio_note") || formData.get("audioNote")
 
+    const orderTier = typeof order.tier === "string" ? order.tier : null
+    const isCustomTier = orderTier === "custom"
+    const expectedPhotoCount =
+      isCustomTier && order.quiz_data && typeof order.quiz_data === "object"
+        ? Number((order.quiz_data as Record<string, unknown>).expected_photo_count)
+        : null
+
     // Handle multiple reference photos
     const referencePhotoUrls: string[] = []
+    const referencePhotoFiles: File[] = []
 
     // Check for indexed photos (reference_photo_0, reference_photo_1, etc.)
     for (let i = 0; i < 20; i++) {
       const photoFile = formData.get(`reference_photo_${i}`)
       if (isFile(photoFile)) {
-        const url = await uploadAsset(admin, photoFile, actingUserId, order.id)
-        referencePhotoUrls.push(url)
+        referencePhotoFiles.push(photoFile)
       }
     }
 
     // Also check for single reference_photo for backwards compatibility
     const singlePhoto = formData.get("reference_photo") || formData.get("referencePhoto")
     if (isFile(singlePhoto)) {
-      const url = await uploadAsset(admin, singlePhoto, actingUserId, order.id)
+      referencePhotoFiles.push(singlePhoto)
+    }
+
+    if (isCustomTier) {
+      if (!expectedPhotoCount || !Number.isFinite(expectedPhotoCount) || expectedPhotoCount < 1 || expectedPhotoCount > 20) {
+        return NextResponse.json({ error: "Missing expected photo count for this order" }, { status: 400 })
+      }
+      if (referencePhotoFiles.length !== expectedPhotoCount) {
+        return NextResponse.json(
+          { error: `Please upload exactly ${expectedPhotoCount} photos.` },
+          { status: 400 }
+        )
+      }
+    }
+
+    for (const photoFile of referencePhotoFiles) {
+      const url = await uploadAsset(admin, photoFile, actingUserId, order.id)
       referencePhotoUrls.push(url)
     }
 

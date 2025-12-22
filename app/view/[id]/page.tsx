@@ -43,7 +43,7 @@ export default async function ViewGiftPage({ params, searchParams }: PageProps) 
   const order = await getOrder(id)
 
   // Order must exist and be ready or delivered
-  if (!order || !["ready", "delivered"].includes(order.status)) {
+  if (!order || !["ready", "delivered"].includes(order.status) || order.tier === "custom") {
     notFound()
   }
 

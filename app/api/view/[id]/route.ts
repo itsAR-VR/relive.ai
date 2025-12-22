@@ -103,6 +103,10 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
+    if (order.tier === "custom") {
+      return NextResponse.json({ error: "Order not viewable" }, { status: 404 })
+    }
+
     // Check order is viewable
     if (!["ready", "delivered"].includes(order.status)) {
       return NextResponse.json({ error: "Order not ready for viewing" }, { status: 400 })

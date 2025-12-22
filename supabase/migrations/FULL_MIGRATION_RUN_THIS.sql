@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
   status text NOT NULL DEFAULT 'pending_interview' 
     CHECK (status IN ('pending', 'pending_interview', 'interview_in_progress', 'in_production', 'ready', 'delivered', 'cancelled')),
   tier text NOT NULL DEFAULT 'standard'
-    CHECK (tier IN ('standard', 'premium', 'biography')),
+    CHECK (tier IN ('standard', 'premium', 'biography', 'custom')),
   quiz_data jsonb DEFAULT '{}'::jsonb,
   interview_data jsonb DEFAULT '{}'::jsonb,
   final_video_url text,
